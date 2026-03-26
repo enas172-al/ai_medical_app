@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../profile/profile_setup_screen.dart'; // 👈 مهم جدًا
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,10 +15,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
+    // حركة النقاط
     Future.delayed(Duration(milliseconds: 500), updateDots);
 
+    // الانتقال بعد 3 ثواني
     Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfileSetupScreen(),
+        ),
+      );
     });
   }
 
@@ -53,6 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
+              // 🧪 Logo
               Container(
                 width: 90,
                 height: 90,
@@ -60,18 +69,16 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-            child: Icon(
-              Icons.science,
-              color: Color(0xFF1FB6A6),
-              size: 40,
-            ),
-            ),
-
-
+                child: Icon(
+                  Icons.science,
+                  color: Color(0xFF1FB6A6),
+                  size: 40,
+                ),
+              ),
 
               SizedBox(height: 20),
 
-
+              // اسم التطبيق
               Text(
                 "labby",
                 style: TextStyle(
@@ -83,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               SizedBox(height: 8),
 
-
+              // شعار
               Text(
                 "رفيقك في رحلة الصحة",
                 style: TextStyle(
@@ -94,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               SizedBox(height: 30),
 
-
+              // Loading dots
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

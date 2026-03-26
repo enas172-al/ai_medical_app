@@ -34,7 +34,6 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
-        '/search': (context) => SearchScreen(),
       },
     );
   }
