@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
+import 'features/auth//home_screen.dart';
+
 
 void main() {
   runApp(const MyApp());
