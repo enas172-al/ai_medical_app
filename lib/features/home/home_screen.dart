@@ -14,14 +14,12 @@ class HomeScreen extends StatelessWidget {
 
         // 🧭 Bottom Navigation
         bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 0, // 👈 مهم
+          currentIndex: 0,
           selectedItemColor: Color(0xFF1FB6A6),
           unselectedItemColor: Colors.grey,
 
           onTap: (index) {
-            if (index == 0) {
-              // نفس الصفحة
-            } else if (index == 1) {
+            if (index == 1) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => HistoryScreen()),
@@ -50,145 +48,159 @@ class HomeScreen extends StatelessWidget {
         body: SafeArea(
             child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
 
-                    // 🔝 Top Bar
-                    Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                      // 🔝 Top Bar
                       Row(
-                        children: [
-                          Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) => NotificationSheet(),
-                                  );
-                                },
-                                child: Icon(Icons.notifications_none),
-                              ),
-                              Positioned(
-                                right: 0,
-                                child: CircleAvatar(
-                                  radius: 8,
-                                  backgroundColor: Colors.red,
-                                  child: Text("4",
-                                      style: TextStyle(fontSize: 10, color: Colors.white)),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (context) => NotificationSheet(),
+                                    );
+                                  },
+                                  child: Icon(Icons.notifications_none),
                                 ),
-                              )
+                                Positioned(
+                                  right: 0,
+                                  child: CircleAvatar(
+                                    radius: 8,
+                                    backgroundColor: Colors.red,
+                                    child: Text("4",
+                                        style: TextStyle(fontSize: 10, color: Colors.white)),
+                                  ),
+                                )
+                              ],
+                            ),
+                            SizedBox(width: 10),
+                            Icon(Icons.search),
+                          ],
+                        ),
+
+                        Row(
+                          children: [
+                            Text("labby",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18)),
+                            SizedBox(width: 10),
+                            Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Color(0xFF1FB6A6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.science, color: Colors.white),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    // 👋 Greeting
+                    Text(
+                      "مرحباً أحمد 👋",style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+
+                        Text(
+                          "كيف حالك اليوم؟",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+
+                        SizedBox(height: 10),
+
+                        // ✨ Tag
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text("✨ الذكاء الاصطناعي في الطب"),
+                        ),
+
+                        SizedBox(height: 20),
+
+                        // 📷 Scan Card
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF1FB6A6), Color(0xFF1AA3A3)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Icon(Icons.camera_alt,
+                                    color: Color(0xFF1FB6A6), size: 30),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                "صور التحاليل الطبية",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "التقط صورة واضحة للحصول على تحليل فوري",
+                                style: TextStyle(color: Colors.white70),
+                              ),
                             ],
                           ),
-                          SizedBox(width: 10),
-                          Icon(Icons.search),
-                        ],
-                      ),
-
-                      Row(
-                        children: [
-                          Text("labby",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18)),
-                          SizedBox(width: 10),
-                          Container(
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Color(0xFF1FB6A6),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(Icons.science, color: Colors.white),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-
-                  SizedBox(height: 20),// 👋 Greeting
-                      Text(
-                        "مرحباً أحمد 👋",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-
-                      Text(
-                        "كيف حالك اليوم؟",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-
-                      SizedBox(height: 10),
-
-                      // ✨ Tag
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text("✨ الذكاء الاصطناعي في الطب"),
-                      ),
 
-                      SizedBox(height: 20),
+                        SizedBox(height: 20),
 
-                      // 📷 Scan Card
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF1FB6A6), Color(0xFF1AA3A3)],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
+                        // 📊 Last Result + زر التفاصيل
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Text("آخر تحليل",
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
 
-                            Container(
-                              padding: EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/result');
+                              },
+                              child: Text(
+                                "عرض التفاصيل",
+                                style: TextStyle(
+                                  color: Color(0xFF1FB6A6),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              child: Icon(Icons.camera_alt,
-                                  color: Color(0xFF1FB6A6), size: 30),
-                            ),
-
-                            SizedBox(height: 10),
-
-                            Text(
-                              "صور التحاليل الطبية",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                            ),
-
-                            Text(
-                              "التقط صورة واضحة للحصول على تحليل فوري",
-                              style: TextStyle(color: Colors.white70),
                             ),
                           ],
                         ),
-                      ),
 
-                      SizedBox(height: 20),
+                        SizedBox(height: 10),
 
-                      // 📊 Last Result
-                      Text("آخر تحليل",
-                          style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        resultCard("سكر الدم (Glucose)", "95 mg/dL", Colors.green),
+                        resultCard("الهيموجلوبين", "15.2 g/dL", Colors.green),
 
-                      SizedBox(height: 10),
-
-                      resultCard("سكر الدم (Glucose)", "95 mg/dL", Colors.green),
-                      resultCard("الهيموجلوبين", "15.2 g/dL", Colors.green),
-
-                      SizedBox(height: 20),
-                    ],
-                  ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
                 ),
             ),
         ),
