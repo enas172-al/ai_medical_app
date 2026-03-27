@@ -8,80 +8,78 @@ class SearchScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF7F9FB),
 
-      // 🧭 Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: Color(0xFF1FB6A6),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
-        ],
+      // 🔙 AppBar
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text("بحث", style: TextStyle(color: Colors.black)),
+        centerTitle: true,
       ),
 
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              // 🔝 Top Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("labby", style: TextStyle(fontWeight: FontWeight.bold)),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1FB6A6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.science, color: Colors.white),
-                  )
-                ],
-              ),
-
-              SizedBox(height: 20),
 
               // 🧾 Title
               Text(
-                "بحث عن التحاليل",
+                "ابحث عن التحاليل 🔍",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
 
               Text(
-                "اكتشف معاني التحاليل والقيم الطبيعية",
+                "اكتب اسم التحليل لمعرفة التفاصيل",
                 style: TextStyle(color: Colors.grey),
               ),
 
               SizedBox(height: 20),
 
-              // 🔍 Search Bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "ابحث عن تحليل...",
-                  prefixIcon: Icon(Icons.search),
-                  filled: true,
-                  fillColor: Color(0xFFF1F5F9),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              // 🔍 Search Box (🔥 مطور)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "مثال: سكر الدم",
+                    prefixIcon: Icon(Icons.search, color: Color(0xFF1FB6A6)),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(15),
                   ),
                 ),
               ),
 
               SizedBox(height: 20),
 
+              // ✨ Suggested Title
+              Text(
+                "تحاليل شائعة",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              SizedBox(height: 10),
+
               // 📋 List
               Expanded(
                 child: ListView(
                   children: [
-                    searchCard("سكر الدم", "Glucose"),
-                    searchCard("الهيموجلوبين", "Hemoglobin"),
-                    searchCard("الكوليسترول الكلي", "Total Cholesterol"),
-                    searchCard("فيتامين د", "Vitamin D"),
+                    searchCard("سكر الدم", "Glucose", Icons.water_drop, Colors.blue),
+                    searchCard("الهيموجلوبين", "Hemoglobin", Icons.bloodtype, Colors.red),
+                    searchCard("الكوليسترول", "Cholesterol", Icons.favorite, Colors.orange),
+                    searchCard("فيتامين د", "Vitamin D", Icons.wb_sunny, Colors.amber),
                   ],
                 ),
               ),
@@ -92,37 +90,57 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  // 🔎 Card
-  Widget searchCard(String title, String sub) {
+  // 🔎 Card مطور
+  Widget searchCard(String title, String sub, IconData icon, Color color) {
     return Container(
       margin: EdgeInsets.only(bottom: 15),
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-
-          Icon(Icons.arrow_back_ios, size: 16, color: Colors.grey),
-
-          SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(sub, style: TextStyle(color: Colors.grey)),
-                SizedBox(height: 5),
-                Text(
-                  "طبيعي",
-                  style: TextStyle(color: Color(0xFF1FB6A6)),
-                ),
-              ],
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
           ),
         ],
+      ),
+      child: Row(
+          children: [
+
+      // 🔥 Icon Circle
+      Container(
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: color),
+    ),
+
+    SizedBox(width: 15),
+
+    // 🧾 Text
+    Expanded(
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+    Text(sub, style: TextStyle(color: Colors.grey)),
+    SizedBox(height: 5),
+    Text(
+    "القيم الطبيعية متوفرة",
+    style: TextStyle(
+    color: Color(0xFF1FB6A6),
+    fontSize: 12,),
+    ),
+    ],
+    ),
+    ),
+
+            // ➡️ Arrow
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
       ),
     );
   }
