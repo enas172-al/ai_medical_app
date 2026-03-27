@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../home/home_screen.dart';
+import '../medication/medication_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -6,100 +9,121 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF7F9FB),
+        backgroundColor: Color(0xFFF7F9FB),
 
-      // 🧭 Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        selectedItemColor: Color(0xFF1FB6A6),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
-        ],
-      ),
+        // 🧭 Bottom Navigation
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: 2,
+          selectedItemColor: Color(0xFF1FB6A6),
+          unselectedItemColor: Colors.grey,
 
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            } else if (index == 1) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MedicationScreen()),
+              );
+            } else if (index == 2) {
+              // نفس الصفحة
+            } else if (index == 3) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+            }
+          },
 
-              // 🔝 Top Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "labby",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1FB6A6),
-                      borderRadius: BorderRadius.circular(12),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
+            BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
+            BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
+          ],
+        ),
+
+        body: SafeArea(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+
+                  // 🔝 Top Bar
+                  Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "labby",
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    child: Icon(Icons.science, color: Colors.white),
-                  )
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              // 🧾 Title
-              Text(
-                "سجل التحاليل",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold),
-              ),
-
-              Text(
-                "جميع تحاليلك السابقة في مكان واحد",
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              SizedBox(height: 20),
-
-              // 🔘 Tabs
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(child: Text("الأحدث")),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                    Container(
+                      padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Color(0xFF1FB6A6),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(
-                        child: Text(
-                          "جميع التحاليل",
-                          style: TextStyle(color: Colors.white),
+                      child: Icon(Icons.science, color: Colors.white),
+                    )
+                  ],
+                ),
+
+                SizedBox(height: 20),
+
+                // 🧾 Title
+                Text(
+                  "سجل التحاليل",
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold),
+                ),
+
+                Text(
+                  "جميع تحاليلك السابقة في مكان واحد",
+                  style: TextStyle(color: Colors.grey),
+                ),
+
+                SizedBox(height: 20),
+
+                // 🔘 Tabs
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(child: Text("الأحدث")),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1FB6A6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "جميع التحاليل",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
 
-              SizedBox(height: 20),
+                SizedBox(height: 20),
 
-              // 📊 List
-              Expanded(
-                child: ListView(
+                // 📊 List
+                Expanded(child: ListView(
                   children: [
                     historyCard("سكر الدم", "Glucose", "12", "20 مارس 2026"),
                     historyCard("الهيموجلوبين", "Hemoglobin", "8", "20 مارس 2026"),
@@ -107,11 +131,11 @@ class HistoryScreen extends StatelessWidget {
                     historyCard("فيتامين د", "Vitamin D", "4", "15 مارس 2026"),
                   ],
                 ),
-              ),
-            ],
-          ),
+                ),
+                  ],
+                ),
+            ),
         ),
-      ),
     );
   }
 
@@ -127,12 +151,10 @@ class HistoryScreen extends StatelessWidget {
       child: Row(
         children: [
 
-          // سهم
           Icon(Icons.arrow_back_ios, size: 16, color: Colors.grey),
 
           SizedBox(width: 10),
 
-          // دائرة العدد
           Container(
             width: 40,
             height: 40,
@@ -152,7 +174,6 @@ class HistoryScreen extends StatelessWidget {
 
           SizedBox(width: 15),
 
-          // النص
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

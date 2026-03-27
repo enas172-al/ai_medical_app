@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../home/home_screen.dart';
+import '../history/history_screen.dart';
+import '../medication/medication_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -6,112 +9,133 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF7F9FB),
+        backgroundColor: Color(0xFFF7F9FB),
 
-      // 🧭 Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        selectedItemColor: Color(0xFF1FB6A6),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف الشخصي"),
-        ],
-      ),
+        // 🧭 Bottom Navigation
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: 3,
+          selectedItemColor: Color(0xFF1FB6A6),
+          unselectedItemColor: Colors.grey,
 
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            } else if (index == 1) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MedicationScreen()),
+              );
+            } else if (index == 2) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HistoryScreen()),
+              );
+            } else if (index == 3) {
+              // نفس الصفحة
+            }
+          },
 
-              // 🔝 Top Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("labby", style: TextStyle(fontWeight: FontWeight.bold)),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1FB6A6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.science, color: Colors.white),
-                  )
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              // 👤 User Card
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.person, color: Color(0xFF1FB6A6)),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "أحمد محمد",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "ahmed@example.com",
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              // 📄 Info Card
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-
-                    Text(
-                      "المعلومات الشخصية",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(height: 15),
-
-                    infoRow("الاسم الكامل", "أحمد محمد", Icons.person),
-                    infoRow("البريد الإلكتروني", "ahmed@example.com", Icons.email),
-                    infoRow("العمر", "15 يناير 1990", Icons.calendar_today),
-                    infoRow("الجنس", "ذكر", Icons.wc),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
+            BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
+            BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف الشخصي"),
+          ],
         ),
-      ),
+
+        body: SafeArea(
+            child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+
+                  // 🔝 Top Bar
+                  Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("labby", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF1FB6A6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.science, color: Colors.white),
+                    )
+                  ],
+                ),
+
+                SizedBox(height: 20),
+
+                // 👤 User Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, color: Color(0xFF1FB6A6)),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "أحمد محمد",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "ahmed@example.com",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // 📄 Info Card
+                Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                        children: [
+
+                        Text(
+                        "المعلومات الشخصية",
+                        style: TextStyle(fontWeight: FontWeight.bold,
+                        ),
+                        ),
+
+                          SizedBox(height: 15),
+
+                          infoRow("الاسم الكامل", "أحمد محمد", Icons.person),
+                          infoRow("البريد الإلكتروني", "ahmed@example.com", Icons.email),
+                          infoRow("العمر", "15 يناير 1990", Icons.calendar_today),
+                          infoRow("الجنس", "ذكر", Icons.wc),
+                        ],
+                    ),
+                ),
+                  ],
+                ),
+            ),
+        ),
     );
   }
 
@@ -122,7 +146,6 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         children: [
 
-          // النص
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +156,6 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // أيقونة
           Container(
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
