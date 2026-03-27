@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
-import 'features/auth//home_screen.dart';
-
+import 'features/home/home_screen.dart'; // ✔ صح
+import 'features/history/history_screen.dart';
+import 'features/profile/profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,15 +26,14 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Cairo',
       ),
 
-      // البداية
       home: SplashScreen(),
 
-      // routes (مهم لاحقًا)
       routes: {
-          '/login': (context) => LoginScreen(),
-          '/register': (context) => RegisterScreen(),
-          '/home': (context) => HomeScreen(),
-
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomeScreen(),
+        '/history': (context) => HistoryScreen(),
+        '/profile': (context) => ProfileScreen(),
       },
     );
   }
