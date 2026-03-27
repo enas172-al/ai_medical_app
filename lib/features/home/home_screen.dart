@@ -3,6 +3,8 @@ import '../notifications/notification_sheet.dart';
 import '../history/history_screen.dart';
 import '../medication/medication_screen.dart';
 import '../profile/profile_screen.dart';
+import '../search/search_screen.dart';
+import '../results/result_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,207 +12,224 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xFFF7F9FB),
+      backgroundColor: Color(0xFFF7F9FB),
 
-        // 🧭 Bottom Navigation
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 0,
-          selectedItemColor: Color(0xFF1FB6A6),
-          unselectedItemColor: Colors.grey,
+      // 🧭 Bottom Navigation
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        selectedItemColor: Color(0xFF1FB6A6),
+        unselectedItemColor: Colors.grey,
 
-          onTap: (index) {
-            if (index == 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HistoryScreen()),
-              );
-            } else if (index == 2) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => MedicationScreen()),
-              );
-            } else if (index == 3) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-              );
-            }
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HistoryScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MedicationScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
+          }
+        },
+
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
+          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
+        ],
+      ),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                // 🔝 Top Bar
+                Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+            Row(
+            children: [
+
+            // 🔔 Notifications
+            Stack(
+            children: [
+                GestureDetector(
+                onTap: () {
+          showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => NotificationSheet(),
+          );
           },
-
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-            BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-            BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
+            child: Icon(Icons.notifications_none),
+          ),
+          Positioned(
+            right: 0,
+            child: CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.red,
+              child: Text(
+                "4",
+                style: TextStyle(fontSize: 10, color: Colors.white),
+              ),
+            ),
+          )
           ],
         ),
 
-        body: SafeArea(
-            child: SingleChildScrollView(
-                child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+        SizedBox(width: 10),
 
-                      // 🔝 Top Bar
-                      Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Stack(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      builder: (context) => NotificationSheet(),
-                                    );
-                                  },
-                                  child: Icon(Icons.notifications_none),
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  child: CircleAvatar(
-                                    radius: 8,
-                                    backgroundColor: Colors.red,
-                                    child: Text("4",
-                                        style: TextStyle(fontSize: 10, color: Colors.white)),
-                                  ),
-                                )
-                              ],
-                            ),
-                            SizedBox(width: 10),
-                            Icon(Icons.search),
-                          ],
-                        ),
-
-                        Row(
-                          children: [
-                            Text("labby",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18)),
-                            SizedBox(width: 10),
-                            Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF1FB6A6),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.science, color: Colors.white),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-
-                    SizedBox(height: 20),
-
-                    // 👋 Greeting
-                    Text(
-                      "مرحباً أحمد 👋",style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-
-                        Text(
-                          "كيف حالك اليوم؟",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-
-                        SizedBox(height: 10),
-
-                        // ✨ Tag
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text("✨ الذكاء الاصطناعي في الطب"),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        // 📷 Scan Card
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF1FB6A6), Color(0xFF1AA3A3)],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: Icon(Icons.camera_alt,
-                                    color: Color(0xFF1FB6A6), size: 30),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                "صور التحاليل الطبية",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                "التقط صورة واضحة للحصول على تحليل فوري",
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        // 📊 Last Result + زر التفاصيل
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("آخر تحليل",
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/result');
-                              },
-                              child: Text(
-                                "عرض التفاصيل",
-                                style: TextStyle(
-                                  color: Color(0xFF1FB6A6),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 10),
-
-                        resultCard("سكر الدم (Glucose)", "95 mg/dL", Colors.green),
-                        resultCard("الهيموجلوبين", "15.2 g/dL", Colors.green),
-
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                ),
-            ),
+        // 🔍 Search (🔥 FIX)
+        IconButton(
+          icon: Icon(Icons.search),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SearchScreen()),
+            );
+          },
         ),
+        ],
+      ),
+
+      Row(
+        children: [
+        Text(
+        "labby",
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+      SizedBox(width: 10),Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Color(0xFF1FB6A6),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.science, color: Colors.white),
+          )
+        ],
+      )
+                ],
+                ),
+
+                  SizedBox(height: 20),
+
+                  // 👋 Greeting
+                  Text(
+                    "مرحباً أحمد 👋",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+
+                  Text(
+                    "كيف حالك اليوم؟",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+
+                  SizedBox(height: 10),
+
+                  // ✨ Tag
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text("✨ الذكاء الاصطناعي في الطب"),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // 📷 Scan Card
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1FB6A6), Color(0xFF1AA3A3)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Icon(Icons.camera_alt,
+                              color: Color(0xFF1FB6A6), size: 30),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          "صور التحاليل الطبية",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "التقط صورة واضحة للحصول على تحليل فوري",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // 📊 Last Result + Details
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "آخر تحليل",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ResultScreen()),
+                          );
+                        },
+                        child: Text(
+                          "عرض التفاصيل",
+                          style: TextStyle(color: Color(0xFF1FB6A6)),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 10),
+
+                  resultCard("سكر الدم (Glucose)", "95 mg/dL", Colors.green),
+                  resultCard("الهيموجلوبين", "15.2 g/dL", Colors.green),
+
+                  SizedBox(height: 20),
+                ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   // 🧾 Result Card
   Widget resultCard(String title, String value, Color color) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
+    return Container(margin: EdgeInsets.only(bottom: 10),
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,

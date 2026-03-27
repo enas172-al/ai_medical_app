@@ -38,6 +38,8 @@ class MyApp extends StatelessWidget {
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
         '/result': (context) => ResultScreen(),
+        '/search': (context) => SearchScreen(),
+
       },
     );
   }
