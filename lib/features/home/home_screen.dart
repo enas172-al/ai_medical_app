@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../notifications/notification_sheet.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -36,7 +36,16 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         Stack(
                           children: [
-                            Icon(Icons.notifications_none, size: 28),
+                            GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) => NotificationSheet(),
+                                );
+                              },
+                              child: Icon(Icons.notifications_none),
+                            ),
                             Positioned(
                               right: 0,
                               child: CircleAvatar(

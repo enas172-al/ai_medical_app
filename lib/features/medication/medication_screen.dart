@@ -13,6 +13,19 @@ class MedicationScreen extends StatelessWidget {
         currentIndex: 1,
         selectedItemColor: Color(0xFF1FB6A6),
         unselectedItemColor: Colors.grey,
+
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else if (index == 1) {
+            // نفس الصفحة (ما نديروش شي)
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/history');
+          } else if (index == 3) {
+            Navigator.pushReplacementNamed(context, '/profile');
+          }
+        },
+
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
           BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
@@ -20,6 +33,7 @@ class MedicationScreen extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف"),
         ],
       ),
+
 
       body: SafeArea(
         child: Padding(

@@ -5,7 +5,7 @@ import 'features/auth/register_screen.dart';
 import 'features/home/home_screen.dart'; // ✔ صح
 import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
-
+import 'features/search/search_screen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
+        '/search': (context) => SearchScreen(),
       },
     );
   }
