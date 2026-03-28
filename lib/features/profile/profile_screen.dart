@@ -9,54 +9,54 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xFFF7F9FB),
+      backgroundColor: Color(0xFFF7F9FB),
 
-        // 🧭 Bottom Navigation
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 3,
-          selectedItemColor: Color(0xFF1FB6A6),
-          unselectedItemColor: Colors.grey,
+      // 🧭 Bottom Navigation
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 3,
+        selectedItemColor: Color(0xFF1FB6A6),
+        unselectedItemColor: Colors.grey,
 
-          onTap: (index) {
-            if (index == 0) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            } else if (index == 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => MedicationScreen()),
-              );
-            } else if (index == 2) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HistoryScreen()),
-              );
-            } else if (index == 3) {
-              // نفس الصفحة
-            }
-          },
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MedicationScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HistoryScreen()),
+            );
+          }
+        },
 
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-            BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-            BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف الشخصي"),
-          ],
-        ),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
+          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف الشخصي"),
+        ],
+      ),
 
-        body: SafeArea(
-            child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
 
-                  // 🔝 Top Bar
-                  Row(
+                // 🔝 Top Bar
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("labby", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text("labby",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -79,13 +79,21 @@ class ProfileScreen extends StatelessWidget {
                       colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
                     ),
                     borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      )
+                    ],
                   ),
                   child: Column(
                     children: [
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.person, color: Color(0xFF1FB6A6)),
+                        child: Icon(Icons.person,
+                            color: Color(0xFF1FB6A6)),
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -108,34 +116,46 @@ class ProfileScreen extends StatelessWidget {
 
                 // 📄 Info Card
                 Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                        children: [
+                  width: double.infinity,
+                  padding: EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    children: [
 
-                        Text(
+                      Text(
                         "المعلومات الشخصية",
-                        style: TextStyle(fontWeight: FontWeight.bold,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
-                        ),
+                      ),
 
-                          SizedBox(height: 15),
+                      SizedBox(height: 15),
 
-                          infoRow("الاسم الكامل", "أحمد محمد", Icons.person),
-                          infoRow("البريد الإلكتروني", "ahmed@example.com", Icons.email),
-                          infoRow("العمر", "15 يناير 1990", Icons.calendar_today),
-                          infoRow("الجنس", "ذكر", Icons.wc),
-                        ],
-                    ),
+                      infoRow("الاسم الكامل", "أحمد محمد", Icons.person),
+                      infoRow("البريد الإلكتروني", "ahmed@example.com", Icons.email),
+                      infoRow("تاريخ الميلاد", "15 يناير 1990", Icons.calendar_today),
+                      infoRow("الجنس", "ذكر", Icons.wc),
+
+                    ],
+                  ),
                 ),
-                  ],
-                ),
+
+                SizedBox(height: 20), // 👈 مهم
+              ],
             ),
+          ),
         ),
+      ),
     );
   }
 
@@ -151,7 +171,9 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TextStyle(color: Colors.grey)),
-                Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 3),
+                Text(value,
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           ),

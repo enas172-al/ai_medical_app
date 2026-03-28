@@ -1,169 +1,317 @@
 import 'package:flutter/material.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _familyCodeController = TextEditingController();
+
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _familyCodeController.dispose();
+    super.dispose();
+  }
+
+  void _handleRegister() {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إنشاء الحساب بنجاح!'),
+              backgroundColor: Color(0xFF1FB6A6),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1FB6A6),
-
+      backgroundColor: const Color(0xFF1FB6A6),
       body: SafeArea(
-        child: SingleChildScrollView( // 🔥 حل مشكلة overflow
-          child: Column(
-            children: [
-
-              SizedBox(height: 30),
-
-              // 🧪 Logo
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  Icons.science,
-                  color: Color(0xFF1FB6A6),
-                  size: 45,
-                ),
-              ),
-
-              SizedBox(height: 10),
-
-              Text(
-                "labby",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              Text(
-                "رفيقك في رحلة الصحة",
-                style: TextStyle(color: Colors.white70),
-              ),
-
-              SizedBox(height: 20),
-
-              // 📦 Card
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(30),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 🧪 Logo
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.science,
+                    color: Color(0xFF1FB6A6),
+                    size: 35,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
 
-                    Center(
-                      child: Text(
-                        "إنشاء حساب جديد",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                const SizedBox(height: 12),
 
-                    SizedBox(height: 20),
-
-                    // الاسم
-                    Text("الاسم الكامل"),
-                    SizedBox(height: 6),
-                    TextField(
-                      decoration: inputStyle("ادخل اسمك", Icons.person_outline),
-                    ),
-
-                    SizedBox(height: 15),
-
-                    // الإيميل
-                    Text("البريد الإلكتروني"),
-                    SizedBox(height: 6),
-                    TextField(
-                      decoration: inputStyle("example@email.com", Icons.email_outlined),
-                    ),
-
-                    SizedBox(height: 15),
-
-                    // كلمة المرور
-                    Text("كلمة المرور"),
-                    SizedBox(height: 6),
-                    TextField(
-                      obscureText: true,
-                      decoration: inputStyle("********", Icons.lock_outline),
-                    ),
-
-                    SizedBox(height: 15),
-
-                    // كود العائلة
-                    Text("كود العائلة (اختياري)"),
-                    SizedBox(height: 6),
-                    TextField(
-                      decoration: inputStyle("ادخل كود العائلة للربط", Icons.group_outlined),
-                    ),
-
-                    SizedBox(height: 25),
-
-                    // زر إنشاء حساب
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF1FB6A6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/home');
-                        },
-                        child: Text("إنشاء حساب"),
-                      ),
-                    ),
-
-                    SizedBox(height: 15),
-
-                    // رجوع لتسجيل الدخول
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "لديك حساب؟ تسجيل الدخول",
-                          style: TextStyle(
-                            color: Color(0xFF1FB6A6),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                const Text(
+                  "labby",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+
+                const Text(
+                  "رفيقك في رحلة الصحة",
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+
+                const SizedBox(height: 30),
+
+                // 🔥 CARD - مع هوامش من اليمين واليسار
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FB),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "إنشاء حساب جديد",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+
+                        const SizedBox(height: 25),
+
+                        // الاسم الكامل
+                        input(
+                          title: "الاسم الكامل",
+                          hint: "أدخل اسمك",
+                          icon: Icons.person_outline,
+                          controller: _nameController,
+                        ),
+
+                        // البريد الإلكتروني
+                        input(
+                          title: "البريد الإلكتروني",
+                          hint: "example@email.com",
+                          icon: Icons.email_outlined,
+                          controller: _emailController,
+                        ),
+
+                        // كلمة المرور
+                        input(
+                          title: "كلمة المرور",
+                          hint: "********",
+                          icon: Icons.lock_outline,
+                          controller: _passwordController,
+                          isPassword: true,
+                          isPasswordVisible: _isPasswordVisible,
+                          onTogglePassword: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+
+                        // كود العائلة
+                        input(
+                          title: "كود العائلة (اختياري)",
+                          hint: "أدخل كود العائلة للربط",
+                          icon: Icons.family_restroom,
+                          controller: _familyCodeController,
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // نص توضيحي
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 14,
+                                color: const Color(0xFF9CA3AF),
+                              ),
+                              const SizedBox(width: 6),
+                              const Expanded(
+                                child: Text(
+                                  "يمكنك ربط حسابك مع أفراد العائلة لمشاركة النتائج",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF6B7280),
+                                  ),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 25),
+
+                        // زر إنشاء حساب
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1FB6A6),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: _isLoading ? null : _handleRegister,
+                            child: _isLoading
+                                ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                                : const Text(
+                              "إنشاء حساب",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // رابط تسجيل الدخول
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacementNamed(context, '/login');
+                          },
+                          child: const Text(
+                            "لديك حساب؟ تسجيل الدخول",
+                            style: TextStyle(
+                              color: Color(0xFF1FB6A6),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  InputDecoration inputStyle(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon),
-      filled: true,
-      fillColor: Color(0xFFF1F5F9),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+  // 🔹 Input Widget
+  Widget input({
+    required String title,
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePassword,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF374151),
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: controller,
+            obscureText: isPassword ? !isPasswordVisible : false,
+            textAlign: TextAlign.right,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+              prefixIcon: Icon(icon, size: 20, color: const Color(0xFF9CA3AF)),
+              suffixIcon: isPassword
+                  ? IconButton(
+                icon: Icon(
+                  isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  size: 20,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                onPressed: onTogglePassword,
+              )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFFEFF3F6),
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF1FB6A6), width: 1.5),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

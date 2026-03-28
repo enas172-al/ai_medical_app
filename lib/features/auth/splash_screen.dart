@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../profile/profile_setup_screen.dart'; // 👈 مهم جدًا
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,14 +17,9 @@ class _SplashScreenState extends State<SplashScreen> {
     // حركة النقاط
     Future.delayed(Duration(milliseconds: 500), updateDots);
 
-    // الانتقال بعد 3 ثواني
+    // 🔥 الانتقال إلى Login
     Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProfileSetupScreen(),
-        ),
-      );
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 
@@ -90,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               SizedBox(height: 8),
 
-              // شعار
+              // الشعار
               Text(
                 "رفيقك في رحلة الصحة",
                 style: TextStyle(
