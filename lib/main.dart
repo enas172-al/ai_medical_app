@@ -6,8 +6,10 @@ import 'features/auth/register_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
+import 'features/results/view/screens/result_screen.dart';
 import 'package:ai_medical_app/features/home/screens/home_screen.dart';
 import 'main_screen.dart';
+import 'features/chart/chart_screen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -33,6 +35,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/search': (context) => SearchScreen(),
         '/home': (context) => MainScreen(),
+        '/result': (context) => ResultScreen(),
+        '/chart': (context) => ChartScreen(),
       },
     );
   }
