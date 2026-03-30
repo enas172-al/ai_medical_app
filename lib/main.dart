@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'core/theme/app_theme.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
-
 import 'features/auth/register_screen.dart';
-import 'features/home/home_screen.dart'; // ✔ صح
 import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
-import 'features/results/result_screen.dart';
-
+import 'package:ai_medical_app/features/home/screens/home_screen.dart';
+import 'main_screen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -19,15 +18,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
       title: 'Labby',
 
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF1FB6A6),
-        ),
-        fontFamily: 'Cairo',
-      ),
 
       home: SplashScreen(),
 
@@ -37,9 +31,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
-        '/result': (context) => ResultScreen(),
         '/search': (context) => SearchScreen(),
-
+        '/home': (context) => MainScreen(),
       },
     );
   }

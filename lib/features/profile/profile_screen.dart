@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import '../home/home_screen.dart';
-import '../history/history_screen.dart';
-import '../medication/medication_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -11,63 +8,12 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF7F9FB),
 
-      // 🧭 Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        selectedItemColor: Color(0xFF1FB6A6),
-        unselectedItemColor: Colors.grey,
-
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => MedicationScreen()),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HistoryScreen()),
-            );
-          }
-        },
-
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "الرئيسية"),
-          BottomNavigationBarItem(icon: Icon(Icons.medication), label: "الدواء"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "السجل"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "الملف الشخصي"),
-        ],
-      ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Column(
               children: [
-
-                // 🔝 Top Bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("labby",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF1FB6A6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.science, color: Colors.white),
-                    )
-                  ],
-                ),
-
                 SizedBox(height: 20),
 
                 // 👤 User Card

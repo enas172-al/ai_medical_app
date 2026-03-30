@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../profile/profile_setup_screen.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -26,26 +28,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  // ✅ هذا هو الجزء اللي تعدل
+  void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم إنشاء الحساب بنجاح!'),
-              backgroundColor: Color(0xFF1FB6A6),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      });
+      // هنا تقدر تضيف منطق التسجيل الحقيقي (API أو Firebase)
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // ✅ بعد إنشاء الحساب، نروح لصفحة إعداد الملف الشخصي
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProfileSetupScreen(),
+          ),
+        );
+      }
     }
   }
 
