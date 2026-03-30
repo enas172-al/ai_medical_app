@@ -19,10 +19,10 @@ class ScanScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
 
-              /// ❌ Close (🔥 هذا المهم)
+              /// ❌ Close
               GestureDetector(
                 onTap: () {
-                  Navigator.pop(context); // ✅ تو يشتغل
+                  Navigator.pop(context);
                 },
                 child: const Icon(Icons.close, color: Colors.white),
               ),
@@ -78,7 +78,7 @@ class ScanScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Color(0xFF1FB6A6),
+                    color: const Color(0xFF1FB6A6),
                     width: 2,
                   ),
                 ),
@@ -110,22 +110,35 @@ class ScanScreen extends StatelessWidget {
               child: const Icon(Icons.image, color: Colors.white),
             ),
 
-            /// 📸 Capture
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1FB6A6),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-              ),
+            /// 📸 Capture (🔥 أهم تعديل هنا)
+            GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/result',
+                    arguments: {
+                      "name": "سكر الدم",
+                      "value": "95",
+                      "status": "طبيعي",
+                    },
+                  );
+                },
+                child: Container(
+                  width: 70,
+                  height: 70,decoration: BoxDecoration(
+                  color: const Color(0xFF1FB6A6),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                ),
+                ),
             ),
 
-            /// ⚡ Flash
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.white10,child: const Icon(Icons.flash_on, color: Colors.white),
-            ),
+                /// ⚡ Flash
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.white10,
+                  child: const Icon(Icons.flash_on, color: Colors.white),
+                ),
               ],
             ),
         ),
