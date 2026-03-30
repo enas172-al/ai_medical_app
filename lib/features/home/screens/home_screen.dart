@@ -1,42 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:ai_medical_app/features/results/view/screens/result_screen.dart';
-import '../../results/view/screens/result_screen.dart';
+import 'package:ai_medical_app/features/scan/scan_screen.dart'; // 🔥 مهم
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FB),
+        backgroundColor: const Color(0xFFF7F9FB),
 
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+        body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
 
-              /// 👋 ترحيب
-              const Text(
-                "مرحباً أحمد",
+                /// 👋 ترحيب
+                const Text(
+                "مرحباً أحمد 👋",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
                 ),
-                textAlign: TextAlign.right,
               ),
-              const SizedBox(height: 8),
+
+              const SizedBox(height: 5),
+
               const Text(
                 "كيف حالك اليوم؟",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                ),
-                textAlign: TextAlign.right,
+                style: TextStyle(color: Colors.grey),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
 
               /// ✨ AI Tag
               Container(
@@ -50,18 +47,22 @@ class HomeScreen extends StatelessWidget {
                   "✨ الذكاء الاصطناعي في الطب",
                   style: TextStyle(
                     color: Color(0xFF1FB6A6),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
                   ),
-                  textAlign: TextAlign.right,
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              /// 📷 Scan Card
+              /// 📷 Scan Card (🔥 تم التعديل هنا)
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.black,
+                    builder: (_) => const ScanScreen(),
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
@@ -73,7 +74,8 @@ class HomeScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: const [
-                      Icon(Icons.camera_alt, color: Colors.white, size: 36),
+                      Icon(Icons.camera_alt,
+                          color: Colors.white, size: 36),
                       SizedBox(height: 12),
                       Text(
                         "صور التحاليل الطبية",
@@ -99,171 +101,100 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// 📊 العنوان
+              /// 📊 Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-
-                  /// 🔹 زر التفاصيل (FIX: حذف const)
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ResultScreen(),
-                        ),
-                      );
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.arrow_back_ios,
-                          size: 14,
-                          color: Color(0xFF1FB6A6),
-                        ),
+                  onPressed: () {
+            Navigator.push(
+            context,
+            MaterialPageRoute(
+            builder: (_) => const ResultScreen(),
+            ),
+            );
+            },
+              child: const Text(
+                "عرض التفاصيل",
+                style: TextStyle(color: Color(0xFF1FB6A6)),
+              ),),
 
-                        SizedBox(width: 4),
-
-                        /// 🔹 النص
-                        Text(
-                          "عرض التفاصيل",
-                          style: TextStyle(
-                            color: Color(0xFF1FB6A6),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    const Text(
+                      "آخر تحليل",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
+              ),
 
-                  const Text(
-                    "آخر تحليل",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
+                  const SizedBox(height: 10),
+
+                  /// 🧪 Cards
+                  _buildCard("سكر الدم", "95", "mg/dL", "طبيعي"),
+                  _buildCard("الهيموجلوبين", "15.2", "g/dL", "طبيعي"),
+                  _buildCard("الكوليسترول", "220", "mg/dL", "مرتفع"),
                 ],
               ),
-
-              const SizedBox(height: 12),
-
-              /// 🧪 الكروت
-              _buildResultCard(
-                title: "سكر الدم",
-                value: "95",
-                unit: "mg/dL",
-                status: "طبيعي",
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildResultCard(
-                title: "الهيموجلوبين",
-                value: "15.2",
-                unit: "g/dL",
-                status: "طبيعي",
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildResultCard(
-                title: "الكوليسترول",
-                value: "220",
-                unit: "mg/dL",
-                status: "مرتفع",
-              ),
-            ],
-          ),
+            ),
         ),
-      ),
     );
   }
 
-  /// 🔥 كارت مطابق لتصميم Labby
-  Widget _buildResultCard({
-    required String title,
-    required String value,
-    required String unit,
-    required String status,
-  }) {
-    Color getColor() {
-      switch (status) {
-        case "طبيعي":
-          return const Color(0xFF2E7D32);
-        case "مرتفع":
-          return const Color(0xFFD32F2F);
-        case "منخفض":
-          return const Color(0xFFF57C00);
-        default:
-          return Colors.grey;
-      }
+  /// 🔥 Card
+  Widget _buildCard(
+      String title, String value, String unit, String status) {
+    Color color;
+
+    switch (status) {
+      case "طبيعي":
+        color = Colors.green;
+        break;
+      case "مرتفع":
+        color = Colors.red;
+        break;
+      default:
+        color = Colors.grey;
     }
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
 
-          /// 🔹 القيمة (يسار)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                unit,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
+              Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(unit,
+                  style: const TextStyle(color: Colors.grey)),
             ],
           ),
 
-          /// 🔹 العنوان + الحالة (يمين)
           Row(
             children: [
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: getColor().withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(
-                    color: getColor(),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: color),
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(title),
             ],
           ),
         ],
@@ -271,4 +202,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-
