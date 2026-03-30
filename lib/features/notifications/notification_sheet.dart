@@ -7,7 +7,7 @@ class NotificationSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -16,21 +16,24 @@ class NotificationSheet extends StatelessWidget {
 
           // 🔝 Header
           Container(
-            padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(15),
+            decoration: const BoxDecoration(
               color: Color(0xFF1FB6A6),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius:
+              BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   "الإشعارات",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: Icon(Icons.close, color: Colors.white),
+                  child: const Icon(Icons.close, color: Colors.white),
                 ),
               ],
             ),
@@ -39,10 +42,11 @@ class NotificationSheet extends StatelessWidget {
           // 📋 List
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(15),
+              padding: const EdgeInsets.all(15),
               children: [
 
                 notificationItem(
+                  context,
                   "موعد الدواء",
                   "حان وقت تناول دواء الضغط",
                   "منذ 5 دقائق",
@@ -51,6 +55,7 @@ class NotificationSheet extends StatelessWidget {
                 ),
 
                 notificationItem(
+                  context,
                   "تذكير بالتحليل",
                   "حان موعد إجراء تحليل السكر التراكمي",
                   "منذ ساعة",
@@ -59,6 +64,7 @@ class NotificationSheet extends StatelessWidget {
                 ),
 
                 notificationItem(
+                  context,
                   "نتيجة جديدة",
                   "تم تحليل نتائجك بنجاح",
                   "منذ 3 ساعات",
@@ -66,9 +72,9 @@ class NotificationSheet extends StatelessWidget {
                   Colors.green,
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-                Center(
+                const Center(
                   child: Text(
                     "عرض جميع الإشعارات",
                     style: TextStyle(color: Color(0xFF1FB6A6)),
@@ -82,44 +88,71 @@ class NotificationSheet extends StatelessWidget {
     );
   }
 
+  // 🔥 عنصر الإشعار
   Widget notificationItem(
-      String title, String desc, String time, IconData icon, Color color) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
+      BuildContext context,
+      String title,
+      String desc,
+      String time,
+      IconData icon,
+      Color color,
+      ) {
+    return InkWell(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade100,
-      ),
-      child: Row(
-        children: [
+        onTap: () {
 
-          // icon
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color),
+          /// 🔥 إصلاح التنقل
+          if (title == "نتيجة جديدة") {
+            Navigator.pushNamed(context, '/result'); // ✅ صح
+          } else if (title == "تذكير بالتحليل") {
+            Navigator.pushNamed(context, '/history');
+          } else {
+            Navigator.pushNamed(context, '/home');
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey.shade100,
           ),
-
-          SizedBox(width: 10),
-
-          // text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
               children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(desc),
-                SizedBox(height: 4),
-                Text(time, style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
+
+          // 🔘 Icon
+          Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            shape: BoxShape.circle,
           ),
-        ],
-      ),
+          child: Icon(icon, color: color),
+        ),
+
+        const SizedBox(width: 10),
+
+        // 📝 Text
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),Text(desc),
+              const SizedBox(height: 4),
+              Text(
+                time,
+                style: const TextStyle(
+                    fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+              ],
+          ),
+        ),
     );
   }
 }
