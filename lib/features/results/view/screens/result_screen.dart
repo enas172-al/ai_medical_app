@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/expandable_result_item.dart';
+
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
 
@@ -11,7 +12,44 @@ class ResultScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.black),
+
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Row(
+              children: [
+                const Text(
+                  "labby",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1FB6A6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.science,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
 
       body: SafeArea(
@@ -62,7 +100,7 @@ class ResultScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// 🔥 الكروت
+              /// 🔥 الكروت (هنا فقط استدعاء)
               ExpandableCard(
                 title: "سكر الدم",
                 value: "95",
@@ -112,4 +150,3 @@ class ResultScreen extends StatelessWidget {
     );
   }
 }
-

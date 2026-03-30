@@ -26,7 +26,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<String> titles = [
     "",
-    "الدواء",
+    "أدويتي ",
     "السجل",
     "الملف الشخصي ",
   ];

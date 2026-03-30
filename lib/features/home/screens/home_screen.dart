@@ -114,12 +114,26 @@ class HomeScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text(
-                      "عرض التفاصيل",
-                      style: TextStyle(
-                        color: Color(0xFF1FB6A6),
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(
+                          Icons.arrow_back_ios,
+                          size: 14,
+                          color: Color(0xFF1FB6A6),
+                        ),
+
+                        SizedBox(width: 4),
+
+                        /// 🔹 النص
+                        Text(
+                          "عرض التفاصيل",
+                          style: TextStyle(
+                            color: Color(0xFF1FB6A6),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 

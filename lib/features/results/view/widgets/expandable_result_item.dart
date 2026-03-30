@@ -59,6 +59,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
               child: Row(
                 children: [
 
+                  /// 🔥 السهم
                   Icon(
                     isOpen
                         ? Icons.keyboard_arrow_down
@@ -68,51 +69,74 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                   const SizedBox(width: 10),
 
+                  /// 🔥 المحتوى
                   Expanded(
                     child: Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
                       children: [
 
-                        /// القيمة
+                        /// 🔹 الحالة
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: getColor().withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            widget.status,
+                            style: TextStyle(
+                              color: getColor(),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        /// 🔹 القيمة + الوحدة
                         Column(
                           crossAxisAlignment:
                           CrossAxisAlignment.start,
                           children: [
-                            Text(widget.value,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            Text(widget.unit,
-                                style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12)),
+                            Text(
+                              widget.value,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              widget.unit,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ],
                         ),
 
-                        /// العنوان + الحالة
-                        Row(
+                        const Spacer(),
+
+                        /// 🔹 اسم التحليل + subtitle
+                        Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.end,
                           children: [
-                            Container(
-                              padding:
-                              const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4),
-                              decoration: BoxDecoration(
-                                color: getColor()
-                                    .withOpacity(0.1),
-                                borderRadius:
-                                BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                widget.status,
-                                style: TextStyle(
-                                  color: getColor(),
-                                  fontSize: 12,
-                                ),
+                            Text(
+                              widget.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(widget.title),
+                            const Text(
+                              "Glucose",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -128,15 +152,18 @@ class _ExpandableCardState extends State<ExpandableCard> {
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment:
+                CrossAxisAlignment.end,
                 children: [
 
+                  /// المعدل الطبيعي
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius:
+                      BorderRadius.circular(12),
                     ),
                     child: const Text(
                       "المعدل الطبيعي: 70 - 100 mg/dL",
@@ -146,9 +173,12 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                   const SizedBox(height: 10),
 
-                  const Text("التفسير",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold)),
+                  /// التفسير
+                  const Text(
+                    "التفسير",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold),
+                  ),
                   const Text(
                     "القيمة ضمن المعدل الطبيعي.",
                     textAlign: TextAlign.right,
@@ -156,12 +186,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                   const SizedBox(height: 10),
 
+                  /// التوصيات
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE7F6F1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius:
+                      BorderRadius.circular(12),
                     ),
                     child: const Text(
                       "استمر على نمط حياة صحي.",

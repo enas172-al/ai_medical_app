@@ -9,13 +9,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.title,
     this.isHome = false,
-    this.notificationCount = 2, // 🔴 عدد الإشعارات
+    this.notificationCount = 2,
   });
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: TextDirection.rtl,
 
       child: Container(
         decoration: const BoxDecoration(
