@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF7F9FB),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+      backgroundColor: AppColors.background,
 
       // 🔙 AppBar
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text("بحث", style: TextStyle(color: Colors.black)),
+        leading: const BackButton(color: Colors.black),
+        title: const Text("بحث", style: TextStyle(color: Colors.black)),
         centerTitle: true,
       ),
 
@@ -53,9 +53,9 @@ class SearchScreen extends StatelessWidget {
                   ],
                 ),
                 child: TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "مثال: سكر الدم",
-                    prefixIcon: Icon(Icons.search, color: Color(0xFF1FB6A6)),
+                    prefixIcon: Icon(Icons.search, color: AppColors.primary),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(15),
                   ),
@@ -86,6 +86,7 @@ class SearchScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -130,8 +131,8 @@ class SearchScreen extends StatelessWidget {
     SizedBox(height: 5),
     Text(
     "القيم الطبيعية متوفرة",
-    style: TextStyle(
-    color: Color(0xFF1FB6A6),
+    style: const TextStyle(
+    color: AppColors.primary,
     fontSize: 12,),
     ),
     ],

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../features/notifications/notification_sheet.dart';
+import '../../features/search/search_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -70,8 +72,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   isHome
                       ? Row(
                     children: [
-                      _buildNotificationIcon(),
-                      _buildIcon(Icons.search),
+                      _buildNotificationIcon(context),
+                      _buildIcon(context, Icons.search),
                     ],
                   )
                       : Text(
@@ -92,10 +94,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   /// 🔔 أيقونة إشعارات مع Badge
-  Widget _buildNotificationIcon() {
+  Widget _buildNotificationIcon(BuildContext context) {
     return Stack(
       children: [
-        _buildIcon(Icons.notifications_none),
+        _buildIcon(context, Icons.notifications_none),
 
         if (notificationCount > 0)
           Positioned(
@@ -122,7 +124,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   /// 🔥 أيقونات مع Animation
-  Widget _buildIcon(IconData icon) {
+  Widget _buildIcon(BuildContext context, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
@@ -131,7 +133,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(30),
-        onTap: () {},
+        onTap: () {
+          if (icon == Icons.notifications_none) {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const NotificationSheet(),
+            );
+          } else if (icon == Icons.search) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SearchScreen()),
+            );
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Icon(icon, size: 20),

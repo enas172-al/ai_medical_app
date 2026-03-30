@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 class NotificationSheet extends StatelessWidget {
   const NotificationSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
         children: [
 
           // 🔝 Header
           Container(
             padding: const EdgeInsets.all(15),
             decoration: const BoxDecoration(
-              color: Color(0xFF1FB6A6),
+              color: AppColors.primary,
               borderRadius:
               BorderRadius.vertical(top: Radius.circular(20)),
             ),
@@ -77,13 +80,14 @@ class NotificationSheet extends StatelessWidget {
                 const Center(
                   child: Text(
                     "عرض جميع الإشعارات",
-                    style: TextStyle(color: Color(0xFF1FB6A6)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -7,7 +7,7 @@ import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
-import 'package:ai_medical_app/features/home/screens/home_screen.dart';
+
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
 void main() {
@@ -30,7 +30,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
-        '/home': (context) => HomeScreen(),
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
         '/search': (context) => SearchScreen(),
