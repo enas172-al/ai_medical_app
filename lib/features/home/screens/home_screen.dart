@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ai_medical_app/features/results/view/screens/result_screen.dart';
+import 'home_detail_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart'; // 🔥 مهم
 
 class HomeScreen extends StatelessWidget {
@@ -106,14 +106,14 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                   TextButton(
-                  onPressed: () {
-            Navigator.push(
-            context,
-            MaterialPageRoute(
-            builder: (_) => const ResultScreen(),
-            ),
-            );
-            },
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HomeDetailScreen(),
+                        ),
+                      );
+                    },
               child: const Text(
                 "عرض التفاصيل",
                 style: TextStyle(color: Color(0xFF1FB6A6)),

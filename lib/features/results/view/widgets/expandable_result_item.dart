@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 
 class ExpandableCard extends StatefulWidget {
   final String title;
+  final String subtitle;
   final String value;
   final String unit;
   final String status;
+  final String normalRange;
+  final String interpretation;
+  final String recommendation;
 
   const ExpandableCard({
     super.key,
     required this.title,
+    required this.subtitle,
     required this.value,
     required this.unit,
     required this.status,
+    required this.normalRange,
+    required this.interpretation,
+    required this.recommendation,
   });
 
   @override
@@ -126,14 +134,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
                             Text(
                               widget.title,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
-                            const Text(
-                              "Glucose",
-                              style: TextStyle(
-                                fontSize: 11,
+                            Text(
+                              widget.subtitle,
+                              style: const TextStyle(
+                                fontSize: 13,
                                 color: Colors.grey,
                               ),
                             ),
@@ -159,45 +167,78 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   /// المعدل الطبيعي
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
-                      borderRadius:
-                      BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      "المعدل الطبيعي: 70 - 100 mg/dL",
-                      textAlign: TextAlign.right,
+                    child: Text(
+                      "المعدل الطبيعي\n${widget.normalRange}",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black87),
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
 
                   /// التفسير
-                  const Text(
-                    "التفسير",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text(
+                        "التفسير",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF1FB6A6),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Text(
-                    "القيمة ضمن المعدل الطبيعي.",
+                  const SizedBox(height: 5),
+                  Text(
+                    widget.interpretation,
                     textAlign: TextAlign.right,
+                    style: TextStyle(color: Colors.grey.shade800, height: 1.5),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
 
                   /// التوصيات
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE7F6F1),
-                      borderRadius:
-                      BorderRadius.circular(12),
+                      color: const Color(0xFFEBFAF5),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      "استمر على نمط حياة صحي.",
-                      textAlign: TextAlign.right,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          "التوصيات",
+                          style: TextStyle(
+                              color: Color(0xFF0C5D4F),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          widget.recommendation,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            color: Color(0xFF167564),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
