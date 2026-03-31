@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -9,140 +8,176 @@ class SearchScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-      backgroundColor: AppColors.background,
-
-      // 🔙 AppBar
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: Colors.black),
-        title: const Text("بحث", style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-      ),
-
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              // 🧾 Title
-              Text(
-                "ابحث عن التحاليل 🔍",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-
-              Text(
-                "اكتب اسم التحليل لمعرفة التفاصيل",
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              SizedBox(height: 20),
-
-              // 🔍 Search Box (🔥 مطور)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                
+                // 🔝 Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          "labby",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1FB6A6),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.science,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Back button for navigation
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.black87),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: "مثال: سكر الدم",
-                    prefixIcon: Icon(Icons.search, color: AppColors.primary),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(15),
+                const SizedBox(height: 30),
+
+                // 🧾 Title
+                const Text(
+                  "بحث عن التحاليل",
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
 
-              SizedBox(height: 20),
-
-              // ✨ Suggested Title
-              Text(
-                "تحاليل شائعة",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-
-              SizedBox(height: 10),
-
-              // 📋 List
-              Expanded(
-                child: ListView(
-                  children: [
-                    searchCard("سكر الدم", "Glucose", Icons.water_drop, Colors.blue),
-                    searchCard("الهيموجلوبين", "Hemoglobin", Icons.bloodtype, Colors.red),
-                    searchCard("الكوليسترول", "Cholesterol", Icons.favorite, Colors.orange),
-                    searchCard("فيتامين د", "Vitamin D", Icons.wb_sunny, Colors.amber),
-                  ],
+                // 📋 Subtitle
+                const Text(
+                  "اكتشف معاني التحاليل والقيم الطبيعية",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // 🔍 Search Box
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                      hintText: "ابحث عن تحليل...",
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 📋 List
+                Expanded(
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      _buildTestCard("سكر الدم", "Glucose", "السكريات"),
+                      _buildTestCard("الهيموجلوبين", "Hemoglobin", "الدم"),
+                      _buildTestCard("الكوليسترول الكلي", "Total Cholesterol", "الدهون"),
+                      _buildTestCard("فيتامين د", "Vitamin D", "الفيتامينات"),
+                      _buildTestCard("الكرياتينين", "Creatinine", "الكلى"),
+                      _buildTestCard("إنزيم الكبد ALT", "ALT (SGPT)", "الكبد"),
+                      _buildTestCard("خلايا الدم البيضاء", "White Blood Cells (WBC)", "الدم"),
+                      _buildTestCard("الصفائح الدموية", "Platelets", "الدم"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      ),
     );
   }
 
-  // 🔎 Card مطور
-  Widget searchCard(String title, String sub, IconData icon, Color color) {
+  // 🔎 Card
+  Widget _buildTestCard(String title, String subtitle, String category) {
     return Container(
-      margin: EdgeInsets.only(bottom: 15),
-      padding: EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200, width: 1.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5F3),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Color(0xFF1FB6A6),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.arrow_back, 
+            color: Colors.grey, 
+            size: 24,
+            textDirection: TextDirection.ltr, // Ensures it points to the left like the image
           ),
         ],
       ),
-      child: Row(
-          children: [
-
-      // 🔥 Icon Circle
-      Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: color),
-    ),
-
-    SizedBox(width: 15),
-
-    // 🧾 Text
-    Expanded(
-    child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-    Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-    Text(sub, style: TextStyle(color: Colors.grey)),
-    SizedBox(height: 5),
-    Text(
-    "القيم الطبيعية متوفرة",
-    style: const TextStyle(
-    color: AppColors.primary,
-    fontSize: 12,),
-    ),
-    ],
-    ),
-    ),
-
-            // ➡️ Arrow
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-          ],
-      ),
     );
   }
-}
+}
