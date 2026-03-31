@@ -67,88 +67,91 @@ class _ExpandableCardState extends State<ExpandableCard> {
               child: Row(
                 children: [
 
-                  /// 🔥 السهم
-                  Icon(
-                    isOpen
-                        ? Icons.keyboard_arrow_down
-                        : Icons.keyboard_arrow_left,
-                    color: Colors.grey,
-                  ),
-
-                  const SizedBox(width: 10),
-
                   /// 🔥 المحتوى
                   Expanded(
                     child: Row(
                       children: [
-
-                        /// 🔹 الحالة
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: getColor().withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            widget.status,
-                            style: TextStyle(
-                              color: getColor(),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        /// 🔹 اسم التحليل + subtitle (On the RIGHT in RTL)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.subtitle,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
-                        const SizedBox(width: 10),
-
-                        /// 🔹 القيمة + الوحدة
+                        /// 🔹 القيمة + الوحدة (Middle)
                         Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
                               widget.value,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 18,
                               ),
                             ),
                             Text(
                               widget.unit,
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: Colors.grey,
                               ),
                             ),
                           ],
                         ),
 
-                        const Spacer(),
+                        const SizedBox(width: 20),
 
-                        /// 🔹 اسم التحليل + subtitle
-                        Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              widget.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                        /// 🔹 الحالة (Left of Middle)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: getColor().withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                widget.status,
+                                style: TextStyle(
+                                  color: getColor(),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              widget.subtitle,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Icon(Icons.remove, color: getColor(), size: 14),
+                            ],
+                          ),
                         ),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  /// 🔥 السهم (On the FAR LEFT in RTL)
+                  Icon(
+                    isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: Colors.grey,
                   ),
                 ],
               ),

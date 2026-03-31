@@ -10,57 +10,112 @@ class HomeDetailScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: const BackButton(color: Colors.black),
-        ),
+        backgroundColor: Colors.white,
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
-              // share and save buttons at the top
+              const SizedBox(height: 10),
+              
+              // 🔝 Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        "labby",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1FB6A6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.science,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.black87),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+
+              // 🧾 Title
+              const Text(
+                "نتائج التحاليل",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "20 مارس 2026",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Buttons
               Row(
                 children: [
+                  // حفظ Button (Right in RTL)
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Colors.grey.shade300, width: 1.5),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.share_outlined, size: 20),
+                          Icon(Icons.bookmark_border, size: 20, color: Colors.black87),
                           SizedBox(width: 8),
                           Text(
-                            "مشاركة",
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                            "حفظ",
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                           ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 15),
+                  // مشاركة Button (Left in RTL)
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Colors.grey.shade300, width: 1.5),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.bookmark_border, size: 20),
+                          Icon(Icons.share_outlined, size: 20, color: Colors.black87),
                           SizedBox(width: 8),
                           Text(
-                            "حفظ",
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                            "مشاركة",
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                           ),
                         ],
                       ),
@@ -68,7 +123,7 @@ class HomeDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Glucose
               const ExpandableCard(
