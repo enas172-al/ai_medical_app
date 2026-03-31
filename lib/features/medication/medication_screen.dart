@@ -492,7 +492,7 @@ class _AddMedicationDialogState
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.right,
             decoration: InputDecoration(
               hintText: hint,
               border: InputBorder.none,
