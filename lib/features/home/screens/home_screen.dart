@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_detail_screen.dart';
-import 'package:ai_medical_app/features/scan/scan_screen.dart'; // 🔥 مهم
+import 'package:ai_medical_app/features/scan/scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,14 +10,17 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
 
-        body: SafeArea(
+        body:
+    Directionality(
+    textDirection: TextDirection.rtl,
+    child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
-                /// 👋 ترحيب
+                ///  ترحيب
                 const Text(
                 "مرحباً أحمد 👋",
                 style: TextStyle(
@@ -35,7 +38,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              /// ✨ AI Tag
+
               Container(
                 padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -53,7 +56,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// 📷 Scan Card (🔥 تم التعديل هنا)
+              ///  Scan Card
               GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
@@ -103,7 +106,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// 🔥 آخر تحليل Card (طابق الصورة)
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -115,7 +118,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     // Header
                     Row(
@@ -155,7 +158,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// 🔔 التنبيهات والتذكيرات
+              ///  التنبيهات والتذكيرات
               Row(
                 mainAxisAlignment: MainAxisAlignment.start, // RTL start is right
                 children: const [
@@ -190,6 +193,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    )
     );
   }
 
