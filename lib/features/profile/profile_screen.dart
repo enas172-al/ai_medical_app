@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'notification_settings_screen.dart';
+import 'privacy_security_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -93,8 +95,22 @@ class ProfileScreen extends StatelessWidget {
                     buildCard(
                       title: "الإعدادات",
                       children: [
-                        settingRow("الإشعارات"),
-                        settingRow("الخصوصية والأمان"),
+                        settingRow("الإشعارات", onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationSettingsScreen(),
+                            ),
+                          );
+                        }),
+                        settingRow("الخصوصية والأمان", onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PrivacySecurityScreen(),
+                            ),
+                          );
+                        }),
                         settingRow("اللغة"),
                         settingRow("المساعدة والدعم"),
                       ],
@@ -265,16 +281,20 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // ⚙️ Settings Row
-  Widget settingRow(String title) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          const Icon(Icons.arrow_back_ios, size: 16),
-          const Spacer(),
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w500, fontSize: 14)),
-        ],
+  Widget settingRow(String title, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.arrow_back_ios, size: 16),
+            const Spacer(),
+            Text(title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w500, fontSize: 14)),
+          ],
+        ),
       ),
     );
   }
