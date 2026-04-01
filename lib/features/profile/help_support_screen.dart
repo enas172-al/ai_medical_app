@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'user_guide_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_of_use_screen.dart';
@@ -138,11 +139,44 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildContactRow("الدردشة المباشرة", "متاح من 9 صباحاً إلى 9 مساءً", Icons.chat_bubble_outline, const Color(0xFF1FB6A6)),
+                    _buildContactRow(
+                      "الدردشة المباشرة", 
+                      "متاح من 9 صباحاً إلى 9 مساءً", 
+                      Icons.chat_bubble_outline, 
+                      const Color(0xFF1FB6A6),
+                      onTap: () async {
+                        final Uri url = Uri.parse('https://wa.me/966501234567');
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                          debugPrint('Could not launch $url');
+                        }
+                      },
+                    ),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildContactRow("البريد الإلكتروني", "support@labby.app", Icons.email_outlined, Colors.blueAccent),
+                    _buildContactRow(
+                      "البريد الإلكتروني", 
+                      "support@labby.app", 
+                      Icons.email_outlined, 
+                      Colors.blueAccent,
+                      onTap: () async {
+                        final Uri url = Uri.parse('mailto:support@labby.app');
+                        if (!await launchUrl(url)) {
+                          debugPrint('Could not launch $url');
+                        }
+                      },
+                    ),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildContactRow("الاتصال الهاتفي", "+966 50 123 4567", Icons.call_outlined, Colors.purpleAccent),
+                    _buildContactRow(
+                      "الاتصال الهاتفي", 
+                      "+966 50 123 4567", 
+                      Icons.call_outlined, 
+                      Colors.purpleAccent,
+                      onTap: () async {
+                        final Uri url = Uri.parse('tel:+966501234567');
+                        if (!await launchUrl(url)) {
+                          debugPrint('Could not launch $url');
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -372,7 +406,12 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final Uri url = Uri.parse('tel:997');
+                          if (!await launchUrl(url)) {
+                            debugPrint('Could not launch $url');
+                          }
+                        },
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -404,9 +443,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  Widget _buildContactRow(String title, String subtitle, IconData icon, Color iconColor) {
+  Widget _buildContactRow(String title, String subtitle, IconData icon, Color iconColor, {VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Row(
         children: [
           Container(
