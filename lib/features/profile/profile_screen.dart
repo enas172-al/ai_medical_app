@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
 import 'language_screen.dart';
+import 'help_support_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -120,7 +121,14 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           );
                         }),
-                        settingRow("المساعدة والدعم"),
+                        settingRow("المساعدة والدعم", onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HelpSupportScreen(),
+                            ),
+                          );
+                        }),
                       ],
                     ),
 
