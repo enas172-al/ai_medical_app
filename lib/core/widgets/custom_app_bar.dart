@@ -6,19 +6,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final bool isHome;
   final int notificationCount;
+  final bool showBack;
 
   const CustomAppBar({
     super.key,
     this.title,
     this.isHome = false,
     this.notificationCount = 2,
+    this.showBack = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -27,23 +28,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-
         child: Material(
           color: Colors.white,
-
           elevation: 1.5,
           child: SafeArea(
             child: Container(
               height: 65,
               padding: const EdgeInsets.symmetric(horizontal: 16),
 
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: showBack
+              /// 🟢 حالة صفحة البحث
+                  ? Row(
                 children: [
 
-
+                  /// اليمين (logo + labby)
                   Row(
                     children: [
+
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -56,7 +58,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 20),
                       const Text(
                         "labby",
                         style: TextStyle(
@@ -68,7 +70,55 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ],
                   ),
 
-                  /// 🔹 اليمين
+                  const Spacer(),
+
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              )
+
+              /// 🟢 باقي الصفحات (كما كان)
+                  : Row(
+                children: [
+
+                  /// السهم (لو موجود)
+                  showBack
+                      ? IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                      : const SizedBox(width: 8),
+
+                  /// اللوقو
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1FB6A6),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.science,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  /// النص
+                  const Text(
+                    "labby",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+
+                  /// العنوان أو الأيقونات
+                  const Spacer(),
                   isHome
                       ? Row(
                     children: [
@@ -93,12 +143,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  /// 🔔 أيقونة إشعارات مع Badge
+  /// 🔔 إشعارات
   Widget _buildNotificationIcon(BuildContext context) {
     return Stack(
       children: [
         _buildIcon(context, Icons.notifications_none),
-
         if (notificationCount > 0)
           Positioned(
             right: 6,
@@ -123,7 +172,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  /// 🔥 أيقونات مع Animation
+  /// 🔹 أيقونات
   Widget _buildIcon(BuildContext context, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(left: 8),
@@ -144,7 +193,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           } else if (icon == Icons.search) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SearchScreen()),
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
+              ),
             );
           }
         },

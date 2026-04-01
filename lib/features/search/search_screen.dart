@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/widgets/custom_app_bar.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -9,92 +10,73 @@ class SearchScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
+
+        /// 🔹 AppBar
+        appBar: const CustomAppBar(
+          title: "",
+          showBack: true,
+        ),
+
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                
-                // 🔝 Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          "labby",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1FB6A6),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.science,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Back button for navigation
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.black87),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
 
-                // 🧾 Title
+                const SizedBox(height: 10),
+
+
+                const SizedBox(height: 10),
+
+                /// 🧾 Title
                 const Text(
                   "بحث عن التحاليل",
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
+
                 const SizedBox(height: 8),
 
-                // 📋 Subtitle
+                /// 📋 Subtitle
                 const Text(
                   "اكتشف معاني التحاليل والقيم الطبيعية",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.grey,
                   ),
                 ),
-                const SizedBox(height: 24),
 
-                // 🔍 Search Box
+                const SizedBox(height: 20),
+
+                /// 🔍 Search Box
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9FAFB),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const TextField(
+                    textDirection: TextDirection.rtl,
                     decoration: InputDecoration(
                       hintText: "ابحث عن تحليل...",
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
                       prefixIcon: Icon(Icons.search, color: Colors.grey),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
 
-                // 📋 List
+                const SizedBox(height: 15),
+
+                /// 📋 List
                 Expanded(
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
@@ -118,11 +100,11 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  // 🔎 Card
+  /// 🔎 Card
   Widget _buildTestCard(String title, String subtitle, String category) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -138,7 +120,7 @@ class SearchScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -147,13 +129,14 @@ class SearchScreen extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 15,
                     color: Colors.grey.shade600,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 3),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8F5F3),
                     borderRadius: BorderRadius.circular(20),
@@ -171,13 +154,13 @@ class SearchScreen extends StatelessWidget {
             ),
           ),
           const Icon(
-            Icons.arrow_back, 
-            color: Colors.grey, 
+            Icons.arrow_back,
+            color: Colors.grey,
             size: 24,
-            textDirection: TextDirection.ltr, // Ensures it points to the left like the image
+            textDirection: TextDirection.ltr,
           ),
         ],
       ),
     );
   }
-}
+}

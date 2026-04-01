@@ -1,6 +1,60 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
+final List<Map<String, dynamic>> allNotifications = [
+  {
+    "title": "موعد الدواء",
+    "subtitle": "حان وقت تناول دواء الضغط",
+    "time": "منذ 5 دقائق",
+    "icon": Icons.medication,
+    "color": Colors.orange,
+  },
+  {
+    "title": "تذكير بالتحليل",
+    "subtitle": "حان موعد إجراء تحليل السكر التراكمي",
+    "time": "منذ ساعة",
+    "icon": Icons.notifications,
+    "color": Colors.blue,
+  },
+  {
+    "title": "نتيجة جديدة",
+    "subtitle": "تم تحليل نتائجك بنجاح",
+    "time": "منذ 3 ساعات",
+    "icon": Icons.check_circle,
+    "color": Colors.green,
+  },
+  {
+    "title": "نتيجة جديدة",
+    "subtitle": "تم تحليل نتائجك بنجاح",
+    "time": "منذ 3 ساعات",
+    "icon": Icons.check_circle,
+    "color": Colors.green,
+  },
+  {
+    "title": "نتيجة جديدة",
+    "subtitle": "تم تحليل نتائجك بنجاح",
+    "time": "منذ 3 ساعات",
+    "icon": Icons.check_circle,
+    "color": Colors.green,
+  },
+  {
+    "title": "نتيجة جديدة",
+    "subtitle": "تم تحليل نتائجك بنجاح",
+    "time": "منذ 3 ساعات",
+    "icon": Icons.check_circle,
+    "color": Colors.green,
+  },
+  {
+    "title": "نتيجة جديدة",
+    "subtitle": "تم تحليل نتائجك بنجاح",
+    "time": "منذ 3 ساعات",
+    "icon": Icons.check_circle,
+    "color": Colors.green,
+  },
+
+];
+
+
 class NotificationSheet extends StatelessWidget {
   const NotificationSheet({super.key});
 
@@ -77,10 +131,23 @@ class NotificationSheet extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                const Center(
-                  child: Text(
-                    "عرض جميع الإشعارات",
-                    style: TextStyle(color: AppColors.primary),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AllNotificationsScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "عرض جميع الإشعارات",
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -92,7 +159,7 @@ class NotificationSheet extends StatelessWidget {
     );
   }
 
-  // 🔥 عنصر الإشعار
+  //  عنصر الإشعار
   Widget notificationItem(
       BuildContext context,
       String title,
@@ -105,9 +172,9 @@ class NotificationSheet extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
 
-          /// 🔥 إصلاح التنقل
+
           if (title == "نتيجة جديدة") {
-            Navigator.pushNamed(context, '/result'); // ✅ صح
+            Navigator.pushNamed(context, '/result');
           } else if (title == "تذكير بالتحليل") {
             Navigator.pushNamed(context, '/history');
           } else {
@@ -157,6 +224,64 @@ class NotificationSheet extends StatelessWidget {
               ],
           ),
         ),
+    );
+  }
+}
+
+class AllNotificationsScreen extends StatelessWidget {
+  const AllNotificationsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("كل الإشعارات"),
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(15),
+        itemCount: allNotifications.length,
+        itemBuilder: (context, index) {
+          final n = allNotifications[index];
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.shade100,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: n["color"].withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(n["icon"], color: n["color"]),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(n["title"],
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(n["subtitle"]),
+                      const SizedBox(height: 4),
+                      Text(
+                        n["time"],
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
