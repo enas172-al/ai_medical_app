@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
+import 'language_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -111,7 +112,14 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           );
                         }),
-                        settingRow("اللغة"),
+                        settingRow("اللغة", onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LanguageScreen(),
+                            ),
+                          );
+                        }),
                         settingRow("المساعدة والدعم"),
                       ],
                     ),
