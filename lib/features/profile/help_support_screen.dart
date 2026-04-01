@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'user_guide_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'terms_of_use_screen.dart';
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -256,7 +257,19 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       },
                     ),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildLinkRow(context, "شروط الاستخدام", Icons.article_outlined),
+                    _buildLinkRow(
+                      context, 
+                      "شروط الاستخدام", 
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsOfUseScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
