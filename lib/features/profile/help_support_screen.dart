@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'user_guide_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -219,20 +221,42 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "روابط مفيدة",
+                      "الدعم والمعلومات",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildLinkRow("دليل المستخدم", Icons.article_outlined),
+                    _buildLinkRow(
+                      context,
+                      "دليل المستخدم",
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UserGuideScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildLinkRow("سياسة الخصوصية", Icons.article_outlined),
+                    _buildLinkRow(
+                      context, 
+                      "سياسة الخصوصية", 
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildLinkRow("شروط الاستخدام", Icons.article_outlined),
-                    const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildLinkRow("الأسئلة الشائعة الكاملة", Icons.open_in_new),
+                    _buildLinkRow(context, "شروط الاستخدام", Icons.article_outlined),
                   ],
                 ),
               ),
@@ -409,9 +433,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
-  Widget _buildLinkRow(String title, IconData icon) {
+  Widget _buildLinkRow(BuildContext context, String title, IconData icon, {VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Row(
         children: [
           Icon(icon, color: const Color(0xFF1FB6A6), size: 24),
