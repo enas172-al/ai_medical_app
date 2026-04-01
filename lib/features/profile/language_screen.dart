@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
@@ -8,7 +9,13 @@ class LanguageScreen extends StatefulWidget {
 }
 
 class _LanguageScreenState extends State<LanguageScreen> {
-  String selectedLanguage = 'ar'; // Default Arabic
+  late String selectedLanguage;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    selectedLanguage = context.locale.languageCode;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,25 +25,20 @@ class _LanguageScreenState extends State<LanguageScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          "اللغة",
-          style: TextStyle(
+        title: Text(
+          "language".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: Directionality(
-          textDirection: TextDirection.ltr,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Column(
-          children: [
+      body: Column(
+        children: [
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -56,29 +58,29 @@ class _LanguageScreenState extends State<LanguageScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1FB6A6).withOpacity(0.3),
+                            color: const Color(0xFF1FB6A6).withValues(alpha: 0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           )
                         ],
                       ),
                       child: Column(
-                        children: const [
-                          Icon(Icons.language, color: Colors.white, size: 52),
-                          SizedBox(height: 12),
+                        children: [
+                          const Icon(Icons.language, color: Colors.white, size: 52),
+                          const SizedBox(height: 12),
                           Text(
-                            "اختر لغتك المفضلة",
-                            style: TextStyle(
+                            "choose_language".tr(),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
-                            "سيتم تطبيق اللغة على جميع أجزاء التطبيق",
+                            "language_applied_globally".tr(),
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
                             ),
@@ -95,7 +97,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -105,17 +107,17 @@ class _LanguageScreenState extends State<LanguageScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "اللغات المتاحة",
-                            style: TextStyle(
+                          Text(
+                            "available_languages".tr(),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildLanguageTile('ar', 'العربية', 'Arabic', '🇸🇦'),
+                          _buildLanguageTile('ar', "arabic".tr(), 'Arabic', '🇸🇦'),
                           const Divider(height: 20, color: Color(0xFFEEEEEE)),
-                          _buildLanguageTile('en', 'English', 'English', '🇺🇸'),
+                          _buildLanguageTile('en', "english".tr(), 'English', '🇺🇸'),
                         ],
                       ),
                     ),
@@ -145,19 +147,19 @@ class _LanguageScreenState extends State<LanguageScreen> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  "ملاحظة",
-                                  style: TextStyle(
+                                  "note".tr(),
+                                  style: const TextStyle(
                                     color: Color(0xFF1A4582),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                   ),
                                 ),
-                                SizedBox(height: 6),
+                                const SizedBox(height: 6),
                                 Text(
-                                  "عند تغيير اللغة، سيتم إعادة تشغيل التطبيق لتطبيق التغييرات. جميع بياناتك وإعداداتك ستبقى محفوظة.",
-                                  style: TextStyle(
+                                  "language_restart_note".tr(),
+                                  style: const TextStyle(
                                     color: Color(0xFF335C94),
                                     fontSize: 12,
                                     height: 1.5,
@@ -185,7 +187,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Simple return logic for UI purpose
+                  context.setLocale(Locale(selectedLanguage));
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1FB6A6),
@@ -195,9 +198,9 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  "حفظ التغييرات",
-                  style: TextStyle(
+                child: Text(
+                  "save_changes".tr(),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -207,8 +210,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildLanguageTile(String code, String title, String subtitle, String emoji) {
@@ -223,10 +225,10 @@ class _LanguageScreenState extends State<LanguageScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1FB6A6).withOpacity(0.05) : Colors.transparent,
+          color: isSelected ? const Color(0xFF1FB6A6).withValues(alpha: 0.05) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: isSelected
-              ? Border.all(color: const Color(0xFF1FB6A6).withOpacity(0.4))
+              ? Border.all(color: const Color(0xFF1FB6A6).withValues(alpha: 0.4))
               : Border.all(color: Colors.transparent),
         ),
         child: Row(
