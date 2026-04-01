@@ -60,7 +60,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
                   const SizedBox(height: 10),
@@ -195,12 +195,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Row(
               children: [
                 
-                // 🔘 سهم لليسار (Far Left)
+                // 🔘 سهم (Right in RTL)
                 const Icon(Icons.arrow_back, color: Colors.grey, size: 20),
 
                 const SizedBox(width: 12),
 
-                // 🔢 دائرة النتائج (Middle Left)
+                // 🔢 دائرة النتائج (Middle)
                 Container(
                   width: 55,
                   height: 55,
@@ -212,9 +212,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           "12",
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xFF1FB6A6),
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -231,7 +231,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 const Spacer(),
 
-                // 📄 النص والمعلومات (Right Side)
+                // 📄 النص والمعلومات (Left in RTL)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
