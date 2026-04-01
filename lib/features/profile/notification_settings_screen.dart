@@ -10,7 +10,6 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
   bool pushEnabled = true;
   bool emailEnabled = true;
-  bool smsEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -84,15 +83,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       value: emailEnabled,
                       onChanged: (val) => setState(() => emailEnabled = val),
                     ),
-                    const Divider(height: 30, color: Color(0xFFEEEEEE)),
-                    _buildToggleRow(
-                      title: "SMS رسائل",
-                      subtitle: "Text Messages",
-                      icon: Icons.chat_bubble_outline,
-                      iconColor: Colors.grey,
-                      value: smsEnabled,
-                      onChanged: (val) => setState(() => smsEnabled = val),
-                    ),
                   ],
                 ),
               ),
@@ -108,7 +98,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         setState(() {
                           pushEnabled = false;
                           emailEnabled = false;
-                          smsEnabled = false;
                         });
                       },
                       style: OutlinedButton.styleFrom(
@@ -136,7 +125,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         setState(() {
                           pushEnabled = true;
                           emailEnabled = true;
-                          smsEnabled = true;
                         });
                       },
                       style: OutlinedButton.styleFrom(
