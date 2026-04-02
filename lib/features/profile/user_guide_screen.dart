@@ -19,9 +19,9 @@ class UserGuideScreen extends StatelessWidget {
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: TextDirection.rtl,
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),

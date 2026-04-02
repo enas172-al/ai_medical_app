@@ -17,17 +17,18 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       backgroundColor: const Color(0xFFEAF4FB), // Adjusted for the light cyan background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true, // Though RTL might shift it, we set true or just title
         title: const Text(
           "الإشعارات",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),

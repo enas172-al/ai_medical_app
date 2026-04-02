@@ -18,17 +18,19 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       backgroundColor: const Color(0xFFEAF4FB),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true,
         title: const Text(
           "المساعدة والدعم",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
+
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -114,7 +116,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
               const SizedBox(height: 24),
 
-              // 📞 Contact Us
+
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -132,48 +134,54 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "تواصل معنا",
+                      "الدعم",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
+
                     _buildContactRow(
-                      "الدردشة المباشرة", 
-                      "متاح من 9 صباحاً إلى 9 مساءً", 
-                      Icons.chat_bubble_outline, 
-                      const Color(0xFF1FB6A6),
-                      onTap: () async {
-                        final Uri url = Uri.parse('https://wa.me/966501234567');
-                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                          debugPrint('Could not launch $url');
-                        }
-                      },
-                    ),
-                    const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildContactRow(
-                      "البريد الإلكتروني", 
-                      "support@labby.app", 
-                      Icons.email_outlined, 
+                      "البريد الإلكتروني",
+                      "support@labby.app",
+                      Icons.email_outlined,
                       Colors.blueAccent,
                       onTap: () async {
-                        final Uri url = Uri.parse('mailto:support@labby.app');
-                        if (!await launchUrl(url)) {
-                          debugPrint('Could not launch $url');
+                        final Uri url = Uri.parse(
+                            'mailto:support@labby.app?subject=طلب%20مساعدة&body=مرحبًا،%20أحتاج%20مساعدة...'
+                        );
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تعذر فتح تطبيق البريد الإلكتروني'),
+                            ),
+                          );
                         }
                       },
                     ),
+
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
+
                     _buildContactRow(
-                      "الاتصال الهاتفي", 
-                      "+966 50 123 4567", 
-                      Icons.call_outlined, 
+                      "الاتصال الهاتفي",
+                      "+966 50 123 4567",
+                      Icons.call_outlined,
                       Colors.purpleAccent,
                       onTap: () async {
                         final Uri url = Uri.parse('tel:+966501234567');
-                        if (!await launchUrl(url)) {
-                          debugPrint('Could not launch $url');
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تعذر فتح تطبيق الاتصال'),
+                            ),
+                          );
                         }
                       },
                     ),
@@ -183,7 +191,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
               const SizedBox(height: 24),
 
-              // ❓ FAQ Section
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -368,7 +375,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
               const SizedBox(height: 24),
 
-              // 🚨 Emergency Section
+              // Emergency Section
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -436,7 +443,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ),
 
               const SizedBox(height: 40),
-            ],
+
+                ],
           ),
         ),
       ),
@@ -479,7 +487,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ],
             ),
           ),
-          const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
         ],
       ),
     );
@@ -501,7 +509,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ),
             ),
           ),
-          const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
         ],
       ),
     );

@@ -24,17 +24,18 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       backgroundColor: const Color(0xFFEAF4FB),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true,
         title: const Text(
           "الخصوصية والأمان",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -398,7 +399,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               ],
             ),
           ),
-          const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
         ],
       ),
     );
@@ -479,7 +480,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               ],
             ),
           ),
-          const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
         ],
       ),
     );

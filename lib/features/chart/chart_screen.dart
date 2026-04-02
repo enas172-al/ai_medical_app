@@ -27,7 +27,7 @@ class ChartScreen extends StatelessWidget {
           elevation: 0,
           title: const Text(
             "جميع النتائج",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 18,),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -40,7 +40,7 @@ class ChartScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
                 const Text(
@@ -209,4 +209,4 @@ class ChartScreen extends StatelessWidget {
       ),
     );
   }
-}
+}

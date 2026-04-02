@@ -9,19 +9,20 @@ class TermsOfUseScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFEAF4FB),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true,
         title: const Text(
           "شروط الاستخدام",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         leading: Directionality(
           textDirection: TextDirection.ltr,
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),

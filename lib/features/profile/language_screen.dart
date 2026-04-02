@@ -23,13 +23,14 @@ class _LanguageScreenState extends State<LanguageScreen> {
       backgroundColor: const Color(0xFFEAF4FB),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true,
         title: Text(
           "language".tr(),
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         leading: IconButton(

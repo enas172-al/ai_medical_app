@@ -69,9 +69,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               const Text(
                 "سجل التحاليل",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
+
                 ),
               ),
 
@@ -166,7 +167,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // 🔥 الكارد المطور (Image 1 Style)
+
   Widget _buildHistoryCard(BuildContext context, Map<String, dynamic> test) {
     return InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -231,7 +232,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 const Spacer(),
 
-                // 📄 النص والمعلومات (Left in RTL)
+
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -271,4 +272,4 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
     );
   }
-}
+}

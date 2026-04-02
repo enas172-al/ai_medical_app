@@ -166,10 +166,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
                         const SizedBox(width: 16),
 
-                        /// 🔥 تفاصيل (منتصف)
+                        /// تفاصيل (منتصف)
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 med['name'],
