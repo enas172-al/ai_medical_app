@@ -27,8 +27,8 @@ class _MainScreenState extends State<MainScreen> {
   final List<String> titles = [
     "",
     "السجل",
-    "أدويتي ",
-    "الملف الشخصي ",
+    "أدويتي",
+    "الملف الشخصي",
   ];
 
   @override
