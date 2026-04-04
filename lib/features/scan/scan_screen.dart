@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/scan_results_screen.dart';
 
 class ScanScreen extends StatelessWidget {
   const ScanScreen({super.key});
@@ -113,15 +114,10 @@ class ScanScreen extends StatelessWidget {
             /// 📸 Capture (🔥 أهم تعديل هنا)
             GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/result',
-                    arguments: {
-                      "name": "سكر الدم",
-                      "value": "95",
-                      "status": "طبيعي",
-                    },
-                  );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ScanResultsScreen()),
+                    );
                 },
                 child: Container(
                   width: 70,
@@ -147,4 +143,4 @@ class ScanScreen extends StatelessWidget {
         ),
     );
   }
-}
+}
