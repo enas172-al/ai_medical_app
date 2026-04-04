@@ -130,13 +130,42 @@ class DashboardScreen extends StatelessWidget {
               _buildPressureChart(),
               const SizedBox(height: 30),
               
-               // Analytical Distribution
-              const Text(
-                "توزيع التحاليل",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // Analytical Distribution
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   const Text(
+                    "توزيع التحاليل",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const Icon(Icons.analytics_outlined, color: Color(0xFF1FB6A6)),
+                ],
               ),
               const SizedBox(height: 16),
               _buildDistributionChart(),
+              const SizedBox(height: 30),
+
+              // Latest Analysis Section
+              _buildSectionHeader("آخر التحاليل", "عرض الكل", () {}),
+              const SizedBox(height: 16),
+              _buildAnalysisCard("تحليل دم شامل", "2026-04-01", "طبيعي", Icons.water_drop_outlined, Colors.green),
+              _buildAnalysisCard("تحليل سكر تراكمي", "2026-03-28", "ممتاز", Icons.bolt, Colors.blue),
+              _buildAnalysisCard("فيتامين D", "2026-03-25", "منخفض", Icons.error_outline, Colors.orange),
+              
+              const SizedBox(height: 30),
+
+              // Action Banners
+              _buildActionBanner(
+                title: "تصوير تحليل جديد",
+                subtitle: "قم بتصوير نتائج تحاليلك للحصول على تحليل فوري",
+                icon: Icons.camera_alt_outlined,
+                color: const Color(0xFF1FB6A6),
+              ),
+              const SizedBox(height: 16),
+              _buildTipBanner(
+                title: "نصيحة اليوم",
+                tips: "حافظ على شرب 8 أكواب من الماء يومياً لتحسين صحتك العامة وتعزيز وظائف الجسم. الماء ضروري لصحة الكلى وتحسين التركيز!",
+              ),
               const SizedBox(height: 40),
             ],
           ),
@@ -368,10 +397,11 @@ class DashboardScreen extends StatelessWidget {
                 sectionsSpace: 4,
                 centerSpaceRadius: 30,
                 sections: [
-                  PieChartSectionData(color: const Color(0xFF1FB6A6), value: 40, title: "40%", radius: 40, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                  PieChartSectionData(color: Colors.blueAccent, value: 30, title: "30%", radius: 40, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                  PieChartSectionData(color: Colors.orangeAccent, value: 20, title: "20%", radius: 40, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                  PieChartSectionData(color: Colors.redAccent, value: 10, title: "10%", radius: 40, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  PieChartSectionData(color: const Color(0xFF1FB6A6), value: 35, title: "35%", radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  PieChartSectionData(color: Colors.blueAccent, value: 25, title: "25%", radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  PieChartSectionData(color: Colors.purpleAccent, value: 20, title: "20%", radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  PieChartSectionData(color: Colors.orangeAccent, value: 15, title: "15%", radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  PieChartSectionData(color: Colors.pinkAccent, value: 5, title: "5%", radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 ],
               ),
             ),
@@ -381,10 +411,11 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLegendItem("تحليل دم", const Color(0xFF1FB6A6)),
-              _buildLegendItem("سكر", Colors.blueAccent),
-              _buildLegendItem("كوليسترول", Colors.orangeAccent),
-              _buildLegendItem("أخرى", Colors.redAccent),
+              _buildLegendItem("تحليل دم", const Color(0xFF1FB6A6), "35%"),
+              _buildLegendItem("تحليل سكر", Colors.blueAccent, "25%"),
+              _buildLegendItem("فيتامينات", Colors.purpleAccent, "20%"),
+              _buildLegendItem("هرمونات", Colors.orangeAccent, "15%"),
+              _buildLegendItem("أخرى", Colors.pinkAccent, "5%"),
             ],
           ),
         ],
@@ -392,14 +423,148 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendItem(String title, Color color) {
+  Widget _buildLegendItem(String title, Color color, String percent) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(percent, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+           const SizedBox(width: 12),
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+           const SizedBox(width: 8),
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String linkText, VoidCallback onTap) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.history_toggle_off, color: Color(0xFF1FB6A6), size: 18),
+            const SizedBox(width: 8),
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        GestureDetector(
+          onTap: onTap,
+          child: Row(
+            children: [
+              const Icon(Icons.arrow_back_ios, color: Color(0xFF1FB6A6), size: 14),
+              const SizedBox(width: 4),
+              Text(linkText, style: const TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalysisCard(String title, String date, String status, IconData icon, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 5, offset: const Offset(0, 2))],
+      ),
       child: Row(
         children: [
-          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 8),
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+           Container(
+             padding: const EdgeInsets.all(10),
+             decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+             child: Icon(icon, color: color, size: 22),
+           ),
+           const SizedBox(width: 16),
+           Expanded(
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                 const SizedBox(height: 4),
+                 Row(
+                   children: [
+                     const Icon(Icons.calendar_today_outlined, color: Colors.grey, size: 12),
+                     const SizedBox(width: 4),
+                     Text(date, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                   ],
+                 ),
+               ],
+             ),
+           ),
+           Container(
+             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+             decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(10), border: Border.all(color: color.withOpacity(0.1))),
+             child: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+           ),
+           const SizedBox(width: 12),
+           const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 14),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBanner({required String title, required String subtitle, required IconData icon, required Color color}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipBanner({required String title, required String tips}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFFFB347).withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(title, style: const TextStyle(color: Color(0xFFD48806), fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(width: 8),
+              const Icon(Icons.lightbulb_outline, color: Color(0xFFFFB347)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            tips,
+            style: const TextStyle(color: Color(0xFFD48806), fontSize: 13, height: 1.5),
+            textAlign: TextAlign.start,
+          ),
         ],
       ),
     );
