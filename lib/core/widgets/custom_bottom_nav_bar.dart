@@ -38,12 +38,7 @@ class CustomBottomNavBar extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: "الرئيسية",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.medication_outlined),
-            activeIcon: Icon(Icons.medication),
-            label: "الدواء",
+            label: "الصفحة الرئيسية",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history_outlined),
@@ -51,9 +46,14 @@ class CustomBottomNavBar extends StatelessWidget {
             label: "السجل",
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.medication_outlined),
+            activeIcon: Icon(Icons.medication),
+            label: "الدواء",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: "الملف الشخصي ",
+            label: "الملف الشخصي",
           ),
         ],
       ),

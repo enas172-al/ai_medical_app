@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_detail_screen.dart';
+import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -22,7 +23,7 @@ class HomeScreen extends StatelessWidget {
 
                 ///  ترحيب
                 const Text(
-                "مرحباً أحمد 👋",
+                "مرحباً، أحمد 👋",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -43,8 +44,9 @@ class HomeScreen extends StatelessWidget {
                 padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: const Text(
                   "✨ الذكاء الاصطناعي في الطب",
@@ -54,9 +56,74 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(height: 25),
+
+              ///  Dashboard Card (Purple)
+              GestureDetector(
+                onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF8E54E9), Color(0xFF4776E6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                        
+                      /// Icon Right
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.bar_chart, color: Colors.white, size: 28),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      /// Text
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "لوحة المتابعة الصحية",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              "تتبع صحتك بشكل شامل ومفصل",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      /// Arrow Left
+                      const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
-              ///  Scan Card
+              ///  Scan Card (Teal)
               GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
@@ -71,16 +138,22 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF1FB6A6), Color(0xFF14917E)],
+                      colors: [Color(0xFF00CED1), Color(0xFF20B2AA)],
                     ),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
-                    children: const [
-                      Icon(Icons.camera_alt,
-                          color: Colors.white, size: 36),
-                      SizedBox(height: 12),
-                      Text(
+                    children: [
+                       Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF20B2AA), size: 36),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
                         "صور التحاليل الطبية",
                         style: TextStyle(
                           color: Colors.white,
@@ -88,8 +161,8 @@ class HomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
+                      const SizedBox(height: 8),
+                      const Text(
                         "التقط صورة واضحة للحصول على تحليل فوري",
                         style: TextStyle(
                           color: Colors.white70,
@@ -104,63 +177,9 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const SizedBox(height: 24),
-
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("آخر تحليل", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeDetailScreen()));
-                          },
-                          child: Row(
-                            children: const [
-                              Text("عرض التفاصيل", style: TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 13)),
-                              SizedBox(width: 4),
-                              Icon(Icons.arrow_back, color: Color(0xFF1FB6A6), size: 14, textDirection: TextDirection.ltr),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Items
-                    _buildLatestTestItem("سكر الدم (Glucose)", "95", "mg/dL", "طبيعي"),
-                    const SizedBox(height: 12),
-                    _buildLatestTestItem("الهيموجلوبين", "15.2", "g/dL", "طبيعي"),
-                    const SizedBox(height: 16),
-                    // Date
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // In RTL, end is Left
-                      children: const [
-                        Text("20 مارس 2026", style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              ///  التنبيهات والتذكيرات
+              ///  التنبيهات والتذكيرات (Old content preserved below main dashboard)
               Row(
-                mainAxisAlignment: MainAxisAlignment.start, // RTL start is right
+                mainAxisAlignment: MainAxisAlignment.start, 
                 children: const [
                   Text("التنبيهات والتذكيرات", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],

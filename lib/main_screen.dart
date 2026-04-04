@@ -19,15 +19,15 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> pages = const [
     HomeScreen(),
-    MedicationScreen(),
     HistoryScreen(),
+    MedicationScreen(),
     ProfileScreen(),
   ];
 
   final List<String> titles = [
     "",
-    "أدويتي ",
     "السجل",
+    "أدويتي ",
     "الملف الشخصي ",
   ];
 
