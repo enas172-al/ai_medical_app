@@ -38,7 +38,7 @@ class CustomBottomNavBar extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: "الصفحة الرئيسية",
+            label: "الرئيسية",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history_outlined),
