@@ -4,10 +4,27 @@ import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final bool isDashboardVisible;
+  final Function(bool)? onToggleDashboard;
+
+  const HomeScreen({
+    super.key,
+    this.isDashboardVisible = false,
+    this.onToggleDashboard,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (isDashboardVisible) {
+      return DashboardScreen(
+        onBack: () {
+          if (onToggleDashboard != null) {
+            onToggleDashboard!(false);
+          }
+        },
+      );
+    }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -18,9 +35,9 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ///  ترحيب
+                /// 👋 ترحيب
                 const Text(
-                  "مرحباً أحمد 👋",
+                  "مرحباً أحمد",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -48,10 +65,12 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 25),
 
-                ///  Dashboard Card (Purple)
+                /// 📊 لوحة المتابعة الصحية (Purple)
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
+                    if (onToggleDashboard != null) {
+                      onToggleDashboard!(true);
+                    }
                   },
                   child: Container(
                     width: double.infinity,
@@ -105,34 +124,30 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                ///  Scan Card (Teal)
+                /// 📷 صور التحاليل الطبية (Teal)
                 GestureDetector(
                   onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.black,
-                      builder: (_) => const ScanScreen(),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ScanScreen()),
                     );
                   },
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00CED1), Color(0xFF20B2AA)],
-                      ),
+                      color: const Color(0xFF1FB6A6),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF20B2AA), size: 36),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 40),
                         ),
                         const SizedBox(height: 16),
                         const Text(
@@ -143,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         const Text(
                           "التقط صورة واضحة للحصول على تحليل فوري",
                           style: TextStyle(
@@ -156,58 +171,65 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
 
-                ///  Latest Analysis Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("آخر تحليل", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeDetailScreen()));
-                            },
-                            child: Row(
-                              children: const [
-                                Text("عرض التفاصيل", style: TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 13)),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_back, color: Color(0xFF1FB6A6), size: 14, textDirection: TextDirection.ltr),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      _buildLatestTestItem("سكر الدم (Glucose)", "95", "mg/dL", "طبيعي"),
-                      const SizedBox(height: 12),
-                      _buildLatestTestItem("الهيموجلوبين", "15.2", "g/dL", "طبيعي"),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                /// 🧪 آخر تحليل
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomeDetailScreen()),
+                        );
+                      },
+                      child: Row(
                         children: const [
-                          Text("20 مارس 2026", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          Icon(Icons.arrow_back, color: Color(0xFF1FB6A6), size: 16),
+                          SizedBox(width: 4),
+                          Text("عرض التفاصيل", style: TextStyle(color: Color(0xFF1FB6A6))),
                         ],
                       ),
-                    ],
+                    ),
+                    const Text(
+                      "آخر تحليل",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+
+                _buildResultCard("سكر الدم (Glucose)", "mg/dL 95", "طبيعي"),
+                _buildResultCard("الهيموجلوبين", "g/dL 15.2", "طبيعي"),
+
+                const SizedBox(height: 10),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 20),
+                    child: Text(
+                      "20 مارس 2026",
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
 
-                ///  التنبيهات والتذكيرات
-                const Text("التنبيهات والتذكيرات", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 30),
+
+                /// 🔔 التنبيهات والتذكيرات
+                const Text(
+                  "التنبيهات والتذكيرات",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 15),
+
                 _buildReminderCard(
                   title: "موعد الدواء",
                   subtitle: "حان وقت تناول دواء الضغط - 4:00 مساءً",
@@ -225,7 +247,7 @@ class HomeScreen extends StatelessWidget {
                   backgroundColor: const Color(0xFFF0F7FF),
                   borderColor: const Color(0xFFBBDEFB),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -234,12 +256,20 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLatestTestItem(String title, String value, String unit, String status) {
+  Widget _buildResultCard(String title, String value, String status) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,31 +277,33 @@ class HomeScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: Colors.grey.shade800, fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(
+                title,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
               const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                  const SizedBox(width: 4),
-                  Text(unit, style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold, height: 1.5)),
-                ],
+              Text(
+                value,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFF6FFED),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.green.shade100),
+              border: Border.all(color: const Color(0xFFB7EB8F)),
             ),
             child: Row(
               children: const [
-                Text("طبيعي", style: TextStyle(color: Color(0xFF4CAF50), fontSize: 13, fontWeight: FontWeight.bold)),
-                SizedBox(width: 4),
-                Icon(Icons.check, color: Color(0xFF4CAF50), size: 16),
+                Text("طبيعي",
+                    style: TextStyle(
+                        color: Color(0xFF52C41A),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(width: 6),
+                Icon(Icons.check, color: Color(0xFF52C41A), size: 16),
               ],
             ),
           ),
@@ -280,7 +312,14 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReminderCard({required String title, required String subtitle, required IconData icon, required Color color, required Color backgroundColor, required Color borderColor}) {
+  Widget _buildReminderCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required Color backgroundColor,
+    required Color borderColor,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -290,11 +329,7 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-            child: Icon(icon, color: color, size: 24),
-          ),
+          Icon(icon, color: color, size: 26),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
