@@ -16,31 +16,43 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
+  bool _isDashboardVisible = false;
 
-  final List<Widget> pages = const [
-    HomeScreen(),
-    HistoryScreen(),
-    MedicationScreen(),
-    ProfileScreen(),
-  ];
-
-  final List<String> titles = [
-    "",
-    "السجل",
-    "أدويتي",
-    "الملف الشخصي",
-  ];
+  void _toggleDashboard(bool visible) {
+    setState(() {
+      _isDashboardVisible = visible;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      ///  AppBar الموحد
-      appBar: CustomAppBar(
-        isHome: currentIndex == 0,
-        title: titles[currentIndex],
-        notificationCount: 3,
+    // We define pages inside build to capture the _toggleDashboard callback
+    final List<Widget> pages = [
+      HomeScreen(
+        isDashboardVisible: _isDashboardVisible,
+        onToggleDashboard: _toggleDashboard,
       ),
+      const HistoryScreen(),
+      const MedicationScreen(),
+      const ProfileScreen(),
+    ];
 
+    final List<String> titles = [
+      "",
+      "السجل",
+      "أدويتي",
+      "الملف الشخصي",
+    ];
+
+    return Scaffold(
+      ///  AppBar الموحد - يختفي عند عرض لوحة التحكم المطورة
+      appBar: (currentIndex == 0 && _isDashboardVisible)
+          ? null
+          : CustomAppBar(
+              isHome: currentIndex == 0,
+              title: titles[currentIndex],
+              notificationCount: 3,
+            ),
 
       body: IndexedStack(
         index: currentIndex,
@@ -55,6 +67,10 @@ class _MainScreenState extends State<MainScreen> {
 
           setState(() {
             currentIndex = index;
+            // إغلاق لوحة التحكم عند التنقل لتبويب آخر
+            if (index != 0) {
+              _isDashboardVisible = false;
+            }
           });
         },
       ),
