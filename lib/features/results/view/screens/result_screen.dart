@@ -1,252 +1,367 @@
 import 'package:flutter/material.dart';
+import 'analysis_detail_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-    /// 🔥 Mock Data (مؤقت حتى تربطي AI)
+    /// 🔥 Mock Data (محدثة لتطابق البيانات الموحدة)
     final results = [
       {
-        "name": "الهيموجلوبين",
-        "value": "18.2",
-        "status": "high",
-        "interpretation": "ارتفاع في نسبة الهيموجلوبين وقد يدل على نقص السوائل أو مشاكل في الدم",
-        "advice": "ينصح بشرب كميات كافية من الماء ومراجعة الطبيب"
-      },
-      {
-        "name": "السكر",
-        "value": "150",
-        "status": "high",
-        "interpretation": "ارتفاع مستوى السكر في الدم",
-        "advice": "تقليل السكريات ومتابعة الطبيب"
-      },
-      {
-        "name": "الكالسيوم",
-        "value": "9.4",
+        "name": "السكر الصائم",
+        "value": "95",
+        "unit": "mg/dL",
         "status": "normal",
-        "interpretation": "المستوى طبيعي",
-        "advice": "استمر على نظامك الغذائي"
+        "icon": Icons.bolt,
+        "interpretation": "مستوى السكر في الدم ضمن النطاق الطبيعي للصائم.",
+        "advice": "حافظ على نظامك الغذائي المتوازن."
+      },
+      {
+        "name": "الهيموجلوبين",
+        "value": "15.2",
+        "unit": "g/dL",
+        "status": "normal",
+        "icon": Icons.water_drop_outlined,
+        "interpretation": "نسبة الهيموجلوبين جيدة جداً، مما يشير إلى عدم وجود فقر دم.",
+        "advice": "استمر في تناول الأغذية الغنية بالحديد."
+      },
+      {
+        "name": "الكوليسترول",
+        "value": "220",
+        "unit": "mg/dL",
+        "status": "high",
+        "icon": Icons.warning_amber_rounded,
+        "interpretation": "ارتفاع بسيط في مستوى الكوليسترول الكلي.",
+        "advice": "ينصح بتقليل الدهون المشبعة وممارسة الرياضة ومراجعة الطبيب."
+      },
+      {
+        "name": "فيتامين D",
+        "value": "18",
+        "unit": "ng/mL",
+        "status": "low",
+        "icon": Icons.wb_sunny_outlined,
+        "interpretation": "نقص في مستويات فيتامين د.",
+        "advice": "ينصح بالتعرض للشمس وتناول المكملات الغذائية بعد استشارة الطبيب."
+      },
+      {
+        "name": "خلايا الدم البيضاء",
+        "value": "7.5",
+        "unit": "x10^9/L",
+        "status": "normal",
+        "icon": Icons.biotech_outlined,
+        "interpretation": "عدد خلايا الدم البيضاء سليم، مما يشير إلى عدم وجود التهابات حالية.",
+        "advice": "جهاز المناعة يعمل بشكل جيد."
+      },
+      {
+        "name": "ضغط الدم",
+        "value": "120/80",
+        "unit": "mmHg",
+        "status": "normal",
+        "icon": Icons.water_drop_outlined,
+        "interpretation": "ضغط الدم ضمن المعدل المثالي.",
+        "advice": "حافظ على ممارسة النشاط البدني وادارة القلق."
       }
     ];
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FB),
-
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-
-              /// 🔙 Back
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              /// 🧪 Logo + Title
-              Center(
-                child: Column(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF7F9FB),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                /// 🔙 Back + Branding
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1FB6A6), Color(0xFF14917E)],
-                        ),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: const Icon(
-                        Icons.science,
-                        color: Colors.white,
-                        size: 30,
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
+                      onPressed: () => Navigator.pop(context),
                     ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "نتائج التحليل الذكي",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          "labby",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1FB6A6),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.science_outlined, color: Colors.white, size: 18),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 25),
+                const SizedBox(height: 15),
 
-              /// 📊 النتائج
-              Expanded(
-                child: ListView.builder(
-                  itemCount: results.length,
-                  itemBuilder: (context, index) {
-                    final item = results[index];
-
-                    return _buildItem(
-                      title: item["name"] ?? "غير معروف",
-                      value: item["value"] ?? "-",
-                      color: _getColor(item["status"]!),
-                      status: _getStatusText(item["status"] ?? "normal"),
-                      interpretation: item["interpretation"] ?? "لا يوجد تفسير",
-                      advice: item["advice"] ?? "لا توجد نصيحة",
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              /// 💡 ملاحظة
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1FB6A6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  "💡 هذه النتائج مقدمة بواسطة الذكاء الاصطناعي، ننصح بمراجعة الطبيب للتأكيد.",
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: Color(0xFF1FB6A6),
-                    fontWeight: FontWeight.w500,
+                /// 🧪 Title
+                const Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "نتائج التحاليل",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "20 مارس 2026",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 20),
+
+                /// 🔘 Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionButton("حفظ", Icons.save_alt_outlined),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildActionButton("مشاركة", Icons.share_outlined),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 25),
+
+                /// 📊 النتائج
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: results.length,
+                    itemBuilder: (context, index) {
+                      final item = results[index];
+                      return _buildItem(
+                        context: context,
+                        title: item["name"] as String,
+                        value: item["value"] as String,
+                        unit: item["unit"] as String,
+                        statusKey: item["status"] as String,
+                        icon: item["icon"] as IconData,
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                /// 💡 ملاحظة
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1FB6A6).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    "💡 ملاحظة: هذه النتائج تم تحليلها بواسطة الذكاء الاصطناعي، يرجى مراجعة الطبيب المختص للحصول على تقييم دقيق ومتابعة طبية.",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Color(0xFF1FB6A6),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// 🔴🟡🟢 اللون
-  Color _getColor(String status) {
-    switch (status) {
-      case "high":
-        return Colors.red;
-      case "low":
-        return Colors.orange;
-      default:
-        return Colors.green;
-    }
-  }
-
-  /// 🏷️ النص
-  String _getStatusText(String status) {
-    switch (status) {
-      case "high":
-        return "🔴 مرتفع";
-      case "low":
-        return "🟡 منخفض";
-      default:
-        return "🟢 طبيعي";
-    }
-  }
-
-  /// 🔥 Card
-  Widget _buildItem({
-    required String title,
-    required String value,
-    required Color color,
-    required String status,
-    required String interpretation,
-    required String advice,
-  }) {
+  Widget _buildActionButton(String label, IconData icon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
-          Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-
-              const Spacer(),
-
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
+          Icon(icon, size: 18, color: const Color(0xFF1F2937)),
+          const SizedBox(width: 8),
           Text(
-            status,
-            style: TextStyle(
-              color: color,
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF1F2937),
               fontWeight: FontWeight.bold,
             ),
           ),
-
-          const SizedBox(height: 12),
-
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text("🧠 $interpretation"),
-          ),
-
-          const SizedBox(height: 8),
-
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1FB6A6).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text("💡 $advice"),
-          ),
         ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case "high":
+        return const Color(0xFFF5222D);
+      case "low":
+        return const Color(0xFFFAAD14);
+      default:
+        return const Color(0xFF52C41A);
+    }
+  }
+
+  Color _getStatusBg(String status) {
+    switch (status) {
+      case "high":
+        return const Color(0xFFFFF1F0);
+      case "low":
+        return const Color(0xFFFFF7E6);
+      default:
+        return const Color(0xFFF6FFED);
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case "high":
+        return "مرتفع";
+      case "low":
+        return "منخفض";
+      default:
+        return "طبيعي";
+    }
+  }
+
+  Widget _buildItem({
+    required BuildContext context,
+    required String title,
+    required String value,
+    required String unit,
+    required String statusKey,
+    required IconData icon,
+  }) {
+    final statusColor = _getStatusColor(statusKey);
+    final statusBg = _getStatusBg(statusKey);
+    final statusText = _getStatusText(statusKey);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AnalysisDetailScreen(
+              name: title,
+              value: value,
+              unit: unit,
+              status: statusText,
+              date: "2026-03-20",
+              statusColor: statusColor,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20),
+            const Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  unit,
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+              ],
+            ),
+            const SizedBox(width: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                Text(
+                  title == "السكر الصائم" ? "Glucose" : 
+                  title == "الهيموجلوبين" ? "Hemoglobin" :
+                  title == "الكوليسترول" ? "Cholesterol" :
+                  title == "فيتامين D" ? "Vitamin D" : 
+                  title == "ضغط الدم" ? "Blood Pressure" : "White Blood Cells",
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
