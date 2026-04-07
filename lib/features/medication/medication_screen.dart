@@ -34,6 +34,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'frequency': 'يومياً',
       'color': Colors.orange,
     },
+    {
+      'name': 'نوبين',
+      'dose': '10 ملغ',
+      'time': '12:33',
+      'frequency': 'ثلاث مرات يومياً',
+      'color': Colors.red,
+      'image': 'assets/images/nopain_medication.png',
+    },
   ];
 
   void _deleteMedication(int index) {
@@ -174,17 +182,26 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       children: [
                         /// 🔥 أيقونة (يمين)
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: med['image'] != null ? 56 : 48,
+                          height: med['image'] != null ? 56 : 48,
                           decoration: BoxDecoration(
-                            color: med['color'],
+                            color: med['image'] != null ? Colors.white : med['color'],
                             borderRadius: BorderRadius.circular(14),
+                            border: med['image'] != null ? Border.all(color: Colors.grey.shade200) : null,
                           ),
-                          child: const Icon(
-                            Icons.medication_outlined,
-                            color: Colors.white,
-                            size: 26,
-                          ),
+                          child: med['image'] != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Image.asset(
+                                    med['image'],
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.medication_outlined,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
                         ),
 
                         const SizedBox(width: 16),
@@ -196,6 +213,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
                             children: [
                               Text(
                                 med['name'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 17,
@@ -239,7 +258,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(width: 8),
 
                         /// 🔥 حذف (يسار)
                         GestureDetector(
