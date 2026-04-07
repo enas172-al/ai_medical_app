@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_detail_screen.dart';
 import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
+import '../../results/view/screens/analysis_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final bool isDashboardVisible;
@@ -203,9 +204,37 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                _buildResultCard("سكر الدم (Glucose)", "mg/dL 95", "طبيعي"),
-                _buildResultCard("الهيموجلوبين", "g/dL 15.2", "طبيعي"),
+                _buildResultCard(
+                  context,
+                  "السكر الصائم",
+                  "95",
+                  "mg/dL",
+                  "طبيعي",
+                  const Color(0xFF52C41A),
+                  const Color(0xFFF6FFED),
+                  const Color(0xFFB7EB8F),
+                ),
+                _buildResultCard(
+                  context,
+                  "الكوليسترول",
+                  "220",
+                  "mg/dL",
+                  "مرتفع",
+                  const Color(0xFFF5222D),
+                  const Color(0xFFFFF1F0),
+                  const Color(0xFFFFA39E),
+                ),
 
+                _buildResultCard(
+                  context,
+                  "ضغط الدم",
+                  "120/80",
+                  "mmHg",
+                  "طبيعي",
+                  const Color(0xFF52C41A),
+                  const Color(0xFFF6FFED),
+                  const Color(0xFFB7EB8F),
+                ),
                 const SizedBox(height: 10),
                 const Align(
                   alignment: Alignment.centerLeft,
@@ -256,58 +285,88 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResultCard(String title, String value, String status) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF6FFED),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFB7EB8F)),
+  Widget _buildResultCard(
+    BuildContext context,
+    String title,
+    String value,
+    String unit,
+    String status,
+    Color statusColor,
+    Color statusBg,
+    Color borderColor,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AnalysisDetailScreen(
+              name: title,
+              value: value,
+              unit: unit,
+              status: status,
+              date: "2024-04-01",
+              statusColor: statusColor,
             ),
-            child: Row(
-              children: const [
-                Text("طبيعي",
-                    style: TextStyle(
-                        color: Color(0xFF52C41A),
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(width: 6),
-                Icon(Icons.check, color: Color(0xFF52C41A), size: 16),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "$unit $value",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: borderColor),
+              ),
+              child: Row(
+                children: [
+                  Text(status,
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 6),
+                  Icon(
+                    status == "طبيعي" ? Icons.check : Icons.error_outline,
+                    color: statusColor,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
