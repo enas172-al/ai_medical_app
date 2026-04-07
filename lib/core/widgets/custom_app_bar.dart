@@ -33,7 +33,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           elevation: 1.5,
           child: SafeArea(
             child: Container(
-              height: 65,
+              height: 75,
               padding: const EdgeInsets.symmetric(horizontal: 16),
 
               child: showBack
@@ -41,22 +41,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ? Row(
                 children: [
 
+
                   /// اليمين (logo + labby)
                   Row(
                     children: [
 
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1FB6A6),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.science,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
                       ),
                       const SizedBox(width: 20),
                       const Text(
@@ -92,17 +88,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       : const SizedBox(width: 8),
 
                   /// اللوقو
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1FB6A6),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.science,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
                   ),
 
                   const SizedBox(width: 20),
@@ -208,5 +199,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(65);
+  Size get preferredSize => const Size.fromHeight(75);
 }
