@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../results/view/screens/analysis_detail_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -43,7 +44,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 25),
 
                 // 7. Latest Analysis (آخر التحاليل)
-                _buildLatestAnalysisSection(),
+                _buildLatestAnalysisSection(context),
 
                 const SizedBox(height: 25),
 
@@ -502,7 +503,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLatestAnalysisSection() {
+  Widget _buildLatestAnalysisSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -517,7 +518,7 @@ class DashboardScreen extends StatelessWidget {
                     Icon(Icons.arrow_back_ios,
                         color: Color(0xFF1FB6A6), size: 14),
                     SizedBox(width: 4),
-                    Text("عرض الكل",
+                    Text("عرض جميع التحاليل",
                         style: TextStyle(
                             color: Color(0xFF1FB6A6),
                             fontWeight: FontWeight.bold)),
@@ -531,88 +532,127 @@ class DashboardScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(width: 8),
-                  Icon(Icons.edit_note, color: Colors.green),
+                  Icon(Icons.edit, color: Colors.green, size: 20),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 16),
           _buildAnalysisItem(
-              "تحليل دم شامل",
-              "2026-04-01",
+              context,
+              "السكر الصائم",
+              "2024-04-01",
               "طبيعي",
+              "95",
+              "mg/dL",
+              const Color(0xFF52C41A),
+              const Color(0xFFF6FFED),
+              Icons.bolt),
+          _buildAnalysisItem(
+              context,
+              "الكوليسترول",
+              "2024-03-28",
+              "مرتفع",
+              "220",
+              "mg/dL",
+              const Color(0xFFF5222D),
+              const Color(0xFFFFF1F0),
+              Icons.warning_amber_rounded),
+          _buildAnalysisItem(
+              context,
+              "ضغط الدم",
+              "2024-04-05",
+              "طبيعي",
+              "120/80",
+              "mmHg",
               const Color(0xFF52C41A),
               const Color(0xFFF6FFED),
               Icons.water_drop_outlined),
-          _buildAnalysisItem(
-              "تحليل سكر تراكمي",
-              "2026-03-28",
-              "ممتاز",
-              const Color(0xFF1890FF),
-              const Color(0xFFE6F7FF),
-              Icons.show_chart),
-          _buildAnalysisItem("فيتامين D", "2026-03-25", "منخفض",
-              const Color(0xFFF5222D), const Color(0xFFFFF1F0), Icons.error_outline),
         ],
       ),
     );
   }
 
-  Widget _buildAnalysisItem(String title, String date, String status,
-      Color statusColor, Color statusBg, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.01),
-              blurRadius: 5,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-                color: statusBg, borderRadius: BorderRadius.circular(12)),
-            child: Text(status,
-                style: TextStyle(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13)),
+  Widget _buildAnalysisItem(
+      BuildContext context,
+      String title,
+      String date,
+      String status,
+      String value,
+      String unit,
+      Color statusColor,
+      Color statusBg,
+      IconData icon) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AnalysisDetailScreen(
+              name: title,
+              value: value,
+              unit: unit,
+              status: status,
+              date: date,
+              statusColor: statusColor,
+            ),
           ),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(date,
-                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.calendar_today,
-                      color: Colors.grey, size: 12),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(width: 15),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: statusBg, shape: BoxShape.circle),
-            child: Icon(icon, color: statusColor, size: 24),
-          ),
-        ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.01),
+                blurRadius: 5,
+                offset: const Offset(0, 2))
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                  color: statusBg, borderRadius: BorderRadius.circular(12)),
+              child: Text(status,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13)),
+            ),
+            const SizedBox(width: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(date,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.calendar_today,
+                        color: Colors.grey, size: 12),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(width: 15),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: statusBg, shape: BoxShape.circle),
+              child: Icon(icon, color: statusColor, size: 24),
+            ),
+          ],
+        ),
       ),
     );
   }
