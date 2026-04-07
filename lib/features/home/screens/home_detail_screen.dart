@@ -127,8 +127,8 @@ class HomeDetailScreen extends StatelessWidget {
 
               // Glucose
               const ExpandableCard(
-                title: "سكر الدم",
-                subtitle: "Glucose",
+                title: "السكر الصائم",
+                subtitle: "Fasting Sugar",
                 value: "95",
                 unit: "mg/dL",
                 status: "طبيعي",
@@ -151,7 +151,7 @@ class HomeDetailScreen extends StatelessWidget {
 
               // Cholesterol
               const ExpandableCard(
-                title: "الكوليسترول الكلي",
+                title: "الكوليسترول",
                 subtitle: "Cholesterol",
                 value: "220",
                 unit: "mg/dL",
@@ -183,6 +183,18 @@ class HomeDetailScreen extends StatelessWidget {
                 normalRange: "μL/10³x 4.5-11.0",
                 interpretation: "عدد خلايا الدم البيضاء طبيعي، مما يشير إلى صحة الجهاز المناعي.",
                 recommendation: "حافظ على نمط حياة صحي لدعم الجهاز المناعي.",
+              ),
+
+              // Blood Pressure
+              const ExpandableCard(
+                title: "ضغط الدم",
+                subtitle: "Blood Pressure",
+                value: "120/80",
+                unit: "mmHg",
+                status: "طبيعي",
+                normalRange: "mmHg 120/80 >",
+                interpretation: "ضغط الدم في النطاق الصحي والمثالي.",
+                recommendation: "استمر في ممارسة الرياضة والتقليل من الصوديوم في الطعام.",
               ),
 
               const SizedBox(height: 10),
