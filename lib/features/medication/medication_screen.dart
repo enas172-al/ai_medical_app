@@ -19,6 +19,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'time': '08:00 صباحاً',
       'frequency': 'يومياً',
       'color': Colors.blue,
+      'userName': 'أحمد محمد',
+      'entryDateTime': DateTime(2026, 4, 1, 8, 30),
     },
     {
       'name': 'ميتفورمين',
@@ -26,6 +28,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'time': '12:00 ظهراً',
       'frequency': 'يومياً',
       'color': Colors.purple,
+      'userName': 'د. سارة علي',
+      'entryDateTime': DateTime(2026, 3, 28, 14, 15),
     },
     {
       'name': 'فيتامين د',
@@ -33,6 +37,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'time': '09:00 صباحاً',
       'frequency': 'يومياً',
       'color': Colors.orange,
+      'userName': 'أحمد محمد',
+      'entryDateTime': DateTime(2026, 4, 5, 10, 0),
     },
     {
       'name': 'نوبين',
@@ -41,6 +47,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'frequency': 'ثلاث مرات يومياً',
       'color': Colors.red,
       'image': 'assets/images/nopain_medication.png',
+      'userName': 'أحمد محمد',
+      'entryDateTime': DateTime(2026, 4, 7, 12, 33),
     },
   ];
 
@@ -192,10 +200,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           child: med['image'] != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(14),
-                                  child: Image.asset(
-                                    med['image'],
-                                    fit: BoxFit.contain,
-                                  ),
+                                  child: med['image'] is File
+                                      ? Image.file(
+                                          med['image'] as File,
+                                          fit: BoxFit.contain,
+                                        )
+                                      : Image.asset(
+                                          med['image'] as String,
+                                          fit: BoxFit.contain,
+                                        ),
                                 )
                               : const Icon(
                                   Icons.medication_outlined,
@@ -250,6 +263,33 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                     style: const TextStyle(
                                       color: Color(0xFF9CA3AF),
                                       fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.person_outline, size: 14, color: Color(0xFF9CA3AF)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    med['userName'] ?? "مجهول",
+                                    style: const TextStyle(
+                                      color: Color(0xFF9CA3AF),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF9CA3AF)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    med['entryDateTime'] is DateTime
+                                        ? "${(med['entryDateTime'] as DateTime).year}/${(med['entryDateTime'] as DateTime).month.toString().padLeft(2, '0')}/${(med['entryDateTime'] as DateTime).day.toString().padLeft(2, '0')}"
+                                        : "-",
+                                    style: const TextStyle(
+                                      color: Color(0xFF9CA3AF),
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
@@ -666,8 +706,9 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                           ? "00:00"
                           : "${selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')}",
                       'frequency': frequency,
-                      'userName': _userNameController.text,
+                      'userName': _userNameController.text.isNotEmpty ? _userNameController.text : "أحمد محمد",
                       'entryDateTime': _entryDateTime,
+                      'image': _selectedImage, // Saves the actual File object
                       'color': Colors.teal,
                     });
                     Navigator.pop(context);
