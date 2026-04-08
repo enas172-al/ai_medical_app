@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../results/view/widgets/expandable_result_item.dart';
 
 class HomeDetailScreen extends StatelessWidget {
@@ -23,15 +22,6 @@ class HomeDetailScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        "labby",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -42,6 +32,15 @@ class HomeDetailScreen extends StatelessWidget {
                           Icons.science,
                           color: Colors.white,
                           size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "labby",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: Color(0xFF1F2937),
                         ),
                       ),
                     ],

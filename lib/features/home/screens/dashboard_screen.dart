@@ -68,29 +68,8 @@ class DashboardScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              const Text(
-                "labby",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1FB6A6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.science_outlined, color: Colors.white, size: 24),
-              ),
-            ],
-          ),
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F2937), size: 24),
+            icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF1F2937), size: 24),
             onPressed: () {
               if (onBack != null) {
                 onBack!();
@@ -111,7 +90,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
                 color: Color(0xFF1FB6A6),
                 shape: BoxShape.circle,
@@ -122,7 +101,7 @@ class DashboardScreen extends StatelessWidget {
             const Text(
               "labby",
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
               ),
@@ -142,7 +121,7 @@ class DashboardScreen extends StatelessWidget {
             Text(
               "لوحة المتابعة الصحية",
               style: TextStyle(
-                fontSize: 26,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
               ),
@@ -151,7 +130,7 @@ class DashboardScreen extends StatelessWidget {
             Text(
               "مرحباً بك، أحمد محمد",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 color: Colors.grey,
               ),
             ),
@@ -168,7 +147,7 @@ class DashboardScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
                 "الحالة العامة",
@@ -181,7 +160,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             decoration: BoxDecoration(
               color: const Color(0xFFFFFBE6),
               borderRadius: BorderRadius.circular(24),
@@ -192,7 +171,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   "تحتاج انتباه بسيط",
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFD48806),
                   ),
@@ -221,7 +200,7 @@ class DashboardScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
                 "التنبيهات",
@@ -302,7 +281,7 @@ class DashboardScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
                 "الرسم البياني",
@@ -511,20 +490,6 @@ class DashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: () {},
-                child: Row(
-                  children: const [
-                    Icon(Icons.arrow_back_ios,
-                        color: Color(0xFF1FB6A6), size: 14),
-                    SizedBox(width: 4),
-                    Text("عرض جميع التحاليل",
-                        style: TextStyle(
-                            color: Color(0xFF1FB6A6),
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
               Row(
                 children: const [
                   Text(
@@ -614,8 +579,34 @@ class DashboardScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.arrow_back_ios, color: Colors.grey, size: 16),
-            const Spacer(),
+            // الأيقونة (أقصى اليسار)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: statusBg, shape: BoxShape.circle),
+              child: Icon(icon, color: statusColor, size: 24),
+            ),
+            const SizedBox(width: 15),
+            // الاسم والتاريخ (جهة اليسار)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today,
+                        color: Colors.grey, size: 12),
+                    const SizedBox(width: 4),
+                    Text(date,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+            const Spacer(), // يدفع الحالة والسهم لليمين
+            // الحالة (جهة اليمين)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -627,30 +618,8 @@ class DashboardScreen extends StatelessWidget {
                       fontSize: 13)),
             ),
             const SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(date,
-                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.calendar_today,
-                        color: Colors.grey, size: 12),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(width: 15),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: statusBg, shape: BoxShape.circle),
-              child: Icon(icon, color: statusColor, size: 24),
-            ),
+            // السهم (أقصى اليمين)
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
           ],
         ),
       ),
@@ -663,7 +632,7 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
                 "النصيحة",
@@ -686,8 +655,16 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                          color: Color(0xFFD48806), shape: BoxShape.circle),
+                      child:
+                      const Icon(Icons.bolt, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 10),
                     const Text(
                       "نصيحة اليوم",
                       style: TextStyle(
@@ -695,14 +672,8 @@ class DashboardScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: Color(0xFFD48806)),
                     ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                          color: Color(0xFFD48806), shape: BoxShape.circle),
-                      child:
-                          const Icon(Icons.bolt, color: Colors.white, size: 20),
-                    ),
+
+
                   ],
                 ),
                 const SizedBox(height: 12),

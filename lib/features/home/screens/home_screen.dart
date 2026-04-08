@@ -118,7 +118,7 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                        const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
                       ],
                     ),
                   ),

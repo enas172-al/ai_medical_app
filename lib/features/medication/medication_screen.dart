@@ -188,7 +188,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     ),
                     child: Row(
                       children: [
-                        /// 🔥 أيقونة (يمين)
                         Container(
                           width: med['image'] != null ? 56 : 48,
                           height: med['image'] != null ? 56 : 48,
@@ -300,7 +299,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
                         const SizedBox(width: 8),
 
-                        /// 🔥 حذف (يسار)
                         GestureDetector(
                           onTap: () => _deleteMedication(index),
                           child: Container(
@@ -472,7 +470,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 label,
@@ -523,7 +521,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// Header
               Row(
@@ -570,16 +568,16 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
+                      const Icon(Icons.access_time, color: Color(0xFF9CA3AF), size: 20),
+                      const Spacer(),
                       Text(
                         selectedTime == null
                             ? ""
                             : "${selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')}",
                         style: const TextStyle(color: Color(0xFF1F2937), fontSize: 16),
                       ),
-                      const Spacer(),
-                      const Icon(Icons.access_time, color: Color(0xFF9CA3AF), size: 20),
                     ],
                   ),
                 ),
@@ -632,7 +630,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         "${_entryDateTime.year}/${_entryDateTime.month.toString().padLeft(2, '0')}/${_entryDateTime.day.toString().padLeft(2, '0')} , ${_entryDateTime.hour > 12 ? _entryDateTime.hour - 12 : _entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')} ${_entryDateTime.hour >= 12 ? 'م' : 'ص'}",
@@ -915,4 +913,4 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
       ),
     );
   }
-}
+}
