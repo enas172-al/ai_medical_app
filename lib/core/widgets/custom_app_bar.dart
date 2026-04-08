@@ -90,8 +90,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   /// اللوقو
                   Image.asset(
                     'assets/images/logo.png',
-                    width: 64,
-                    height: 64,
+                    width: 45,
+                    height: 45,
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.high,
                   ),
