@@ -22,18 +22,7 @@ class HomeDetailScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1FB6A6),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.science,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
+                      Image.asset('assets/images/logo.png', width: 40, height: 40),
                       const SizedBox(width: 8),
                       const Text(
                         "labby",
