@@ -80,10 +80,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.science,
-                    color: Color(0xFF1FB6A6),
-                    size: 35,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 35,
+                    height: 35,
+                    fit: BoxFit.contain,
                   ),
                 ),
 
