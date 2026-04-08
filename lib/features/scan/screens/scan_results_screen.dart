@@ -86,12 +86,8 @@ class ScanResultsScreen extends StatelessWidget {
           centerTitle: true,
           actions: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFF1FB6A6).withOpacity(0.1), shape: BoxShape.circle),
-                child: const Icon(Icons.science_outlined, color: Color(0xFF1FB6A6), size: 20),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Image.asset('assets/images/logo.png', width: 48, height: 48),
             ),
           ],
         ),
