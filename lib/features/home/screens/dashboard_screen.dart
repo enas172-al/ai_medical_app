@@ -89,14 +89,7 @@ class DashboardScreen extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1FB6A6),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.favorite, color: Colors.white, size: 32),
-            ),
+            Image.asset('assets/images/logo.png', width: 56, height: 56),
             const SizedBox(height: 12),
             const Text(
               "labby",
