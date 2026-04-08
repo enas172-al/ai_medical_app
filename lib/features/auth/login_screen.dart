@@ -23,10 +23,11 @@ class LoginScreen extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
-                  Icons.science,
-                  color: Color(0xFF1FB6A6),
-                  size: 45,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 45,
+                  height: 45,
+                  fit: BoxFit.contain,
                 ),
               ),
 
