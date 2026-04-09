@@ -93,14 +93,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1FB6A6),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.science_outlined, color: Colors.white, size: 18),
-                        ),
+                        Image.asset('assets/images/logo.png', width: 38, height: 38),
                       ],
                     ),
                   ],
