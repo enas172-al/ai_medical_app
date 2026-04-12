@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import '../../results/view/widgets/expandable_result_item.dart';
 
 class HomeDetailScreen extends StatelessWidget {
@@ -7,7 +9,7 @@ class HomeDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -24,9 +26,9 @@ class HomeDetailScreen extends StatelessWidget {
                     children: [
                       Image.asset('assets/images/logo.png', width: 40, height: 40),
                       const SizedBox(width: 8),
-                      const Text(
-                        "labby",
-                        style: TextStyle(
+                      Text(
+                        "app_title".tr(),
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 22,
                           color: Color(0xFF1F2937),
@@ -43,18 +45,18 @@ class HomeDetailScreen extends StatelessWidget {
               const SizedBox(height: 30),
 
               // 🧾 Title
-              const Text(
-                "نتائج التحاليل",
-                style: TextStyle(
+              Text(
+                "analysis_results".tr(),
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                "20 مارس 2026",
-                style: TextStyle(
+              Text(
+                "example_dob".tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
@@ -75,12 +77,12 @@ class HomeDetailScreen extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.bookmark_border, size: 20, color: Colors.black87),
-                          SizedBox(width: 8),
+                        children: [
+                          const Icon(Icons.bookmark_border, size: 20, color: Colors.black87),
+                          const SizedBox(width: 8),
                           Text(
-                            "حفظ",
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
+                            "save_btn".tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                           ),
                         ],
                       ),
@@ -98,12 +100,12 @@ class HomeDetailScreen extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.share_outlined, size: 20, color: Colors.black87),
-                          SizedBox(width: 8),
+                        children: [
+                          const Icon(Icons.share_outlined, size: 20, color: Colors.black87),
+                          const SizedBox(width: 8),
                           Text(
-                            "مشاركة",
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
+                            "share_btn".tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                           ),
                         ],
                       ),
@@ -114,75 +116,75 @@ class HomeDetailScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Glucose
-              const ExpandableCard(
-                title: "السكر الصائم",
+              ExpandableCard(
+                title: "fasting_sugar".tr(),
                 subtitle: "Fasting Sugar",
                 value: "95",
                 unit: "mg/dL",
-                status: "طبيعي",
+                status: "normal_status".tr(),
                 normalRange: "mg/dL 70-100",
-                interpretation: "مستوى السكر في الدم ضمن المعدل الطبيعي، مما يشير إلى صحة جيدة لعملية التمثيل الغذائي للجلوكوز.",
-                recommendation: "حافظ على نمط حياة صحي مع نظام غذائي متوازن وممارسة الرياضة بانتظام.",
+                interpretation: "fasting_sugar_interp".tr(),
+                recommendation: "balanced_diet_advice".tr(),
               ),
 
               // Hemoglobin
-              const ExpandableCard(
-                title: "الهيموجلوبين",
+              ExpandableCard(
+                title: "hemoglobin".tr(),
                 subtitle: "Hemoglobin",
                 value: "15.2",
                 unit: "g/dL",
-                status: "طبيعي",
+                status: "normal_status".tr(),
                 normalRange: "g/dL 13.5-17.5",
-                interpretation: "مستوى الهيموجلوبين طبيعي، مما يعني أن قدرة الدم على نقل الأكسجين جيدة.",
-                recommendation: "استمر في تناول الأطعمة الغنية بالحديد مثل اللحوم الحمراء والخضروات الورقية.",
+                interpretation: "hemoglobin_interp".tr(),
+                recommendation: "iron_foods_advice".tr(),
               ),
 
               // Cholesterol
-              const ExpandableCard(
-                title: "الكوليسترول",
+              ExpandableCard(
+                title: "cholesterol".tr(),
                 subtitle: "Cholesterol",
                 value: "220",
                 unit: "mg/dL",
-                status: "مرتفع",
+                status: "high_status".tr(),
                 normalRange: "mg/dL 200 >",
-                interpretation: "مستوى الكوليسترول أعلى قليلاً من الطبيعي، مما قد يزيد من خطر الإصابة بأمراض القلب والأوعية الدموية.",
-                recommendation: "يُنصح بتقليل تناول الدهون المشبعة، وزيادة النشاط البدني، واستشارة الطبيب لمتابعة الحالة.",
+                interpretation: "cholesterol_interp".tr(),
+                recommendation: "reduce_fat_advice".tr(),
               ),
 
               // Vitamin D
-              const ExpandableCard(
-                title: "فيتامين د",
+              ExpandableCard(
+                title: "vitamin_d".tr(),
                 subtitle: "Vitamin D",
                 value: "18",
                 unit: "ng/mL",
-                status: "منخفض",
+                status: "low_status".tr(),
                 normalRange: "ng/mL 30-100",
-                interpretation: "مستوى فيتامين د منخفض، مما قد يؤثر على صحة العظام والجهاز المناعي.",
-                recommendation: "يُنصح بالتعرض لأشعة الشمس لمدة 15-20 دقيقة يومياً، وتناول مكملات فيتامين د بعد استشارة الطبيب.",
+                interpretation: "vitamin_d_interp".tr(),
+                recommendation: "sun_exposure_advice".tr(),
               ),
 
               // White Blood Cells
-              const ExpandableCard(
-                title: "خلايا الدم البيضاء",
+              ExpandableCard(
+                title: "wbc".tr(),
                 subtitle: "White Blood Cells",
                 value: "7.5",
                 unit: "μL/10³x",
-                status: "طبيعي",
+                status: "normal_status".tr(),
                 normalRange: "μL/10³x 4.5-11.0",
-                interpretation: "عدد خلايا الدم البيضاء طبيعي، مما يشير إلى صحة الجهاز المناعي.",
-                recommendation: "حافظ على نمط حياة صحي لدعم الجهاز المناعي.",
+                interpretation: "wbc_interp".tr(),
+                recommendation: "immune_system_good_advice".tr(),
               ),
 
               // Blood Pressure
-              const ExpandableCard(
-                title: "ضغط الدم",
+              ExpandableCard(
+                title: "blood_pressure".tr(),
                 subtitle: "Blood Pressure",
                 value: "120/80",
                 unit: "mmHg",
-                status: "طبيعي",
+                status: "normal_status".tr(),
                 normalRange: "mmHg 120/80 >",
-                interpretation: "ضغط الدم في النطاق الصحي والمثالي.",
-                recommendation: "استمر في ممارسة الرياضة والتقليل من الصوديوم في الطعام.",
+                interpretation: "bp_interp".tr(),
+                recommendation: "exercise_stress_advice".tr(),
               ),
 
               const SizedBox(height: 10),
@@ -194,9 +196,9 @@ class HomeDetailScreen extends StatelessWidget {
                   color: const Color(0xFFF0F7FF),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Text(
-                  "ملاحظة: هذه النتائج تم تحليلها بواسطة الذكاء الاصطناعي. يُرجى استشارة الطبيب المختص للحصول على تقييم دقيق ومتابعة طبية.",
-                  style: TextStyle(
+                child: Text(
+                  "ai_analysis_note".tr(),
+                  style: const TextStyle(
                     color: Color(0xFF4B8DCF),
                     fontWeight: FontWeight.w500,
                   ),

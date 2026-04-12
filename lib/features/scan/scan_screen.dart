@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'screens/scan_results_screen.dart';
 
 class ScanScreen extends StatelessWidget {
@@ -28,9 +29,9 @@ class ScanScreen extends StatelessWidget {
                 child: const Icon(Icons.close, color: Colors.white),
               ),
 
-              const Text(
-                "تصوير التحاليل",
-                style: TextStyle(
+              Text(
+                "scan_title".tr(),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -64,9 +65,9 @@ class ScanScreen extends StatelessWidget {
                   color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  "ضع ورقة التحاليل داخل الإطار وتأكد من وضوح النص",
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  "scan_instructions".tr(),
+                  style: const TextStyle(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
               ),

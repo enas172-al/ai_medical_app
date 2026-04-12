@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -26,16 +28,16 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         backgroundColor: Colors.transparent,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
-          "الخصوصية والأمان",
-          style: TextStyle(
+        title: Text(
+          "privacy_and_security".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -43,7 +45,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -69,22 +71,22 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ],
                 ),
                 child: Column(
-                  children: const [
-                    Icon(Icons.security_outlined, color: Colors.white, size: 52),
-                    SizedBox(height: 12),
+                  children: [
+                    const Icon(Icons.security_outlined, color: Colors.white, size: 52),
+                    const SizedBox(height: 12),
                     Text(
-                      "حسابك محمي",
-                      style: TextStyle(
+                      "account_protected".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     Text(
-                      "جميع بياناتك مشفرة ومحمية بأعلى معايير الأمان",
+                      "data_security_guarantee".tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                       ),
@@ -113,12 +115,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Icon(Icons.lock_outline, color: Color(0xFF1FB6A6)),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.lock_outline, color: Color(0xFF1FB6A6)),
+                        const SizedBox(width: 8),
                         Text(
-                          "المصادقة والأمان",
-                          style: TextStyle(
+                          "auth_and_security".tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -127,8 +129,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     const SizedBox(height: 20),
                     _buildIconToggleRow(
-                      title: "المصادقة البيومترية",
-                      subtitle: "بصمة الإصبع أو التعرف على الوجه",
+                      title: "biometric_auth".tr(),
+                      subtitle: "biometric_desc".tr(),
                       icon: Icons.fingerprint,
                       iconColor: const Color(0xFF1FB6A6),
                       value: biometricAuth,
@@ -136,8 +138,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildIconToggleRow(
-                      title: "المصادقة الثنائية",
-                      subtitle: "حماية إضافية عند تسجيل الدخول",
+                      title: "two_factor_auth".tr(),
+                      subtitle: "two_factor_desc".tr(),
                       icon: Icons.phone_iphone_outlined,
                       iconColor: Colors.purple.shade300,
                       value: twoFactorAuth,
@@ -145,8 +147,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildIconToggleRow(
-                      title: "القفل التلقائي",
-                      subtitle: "قفل التطبيق عند عدم الاستخدام",
+                      title: "auto_lock".tr(),
+                      subtitle: "auto_lock_desc".tr(),
                       icon: Icons.lock_outline,
                       iconColor: Colors.blueAccent,
                       value: autoLock,
@@ -154,8 +156,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildArrowActionRow(
-                      title: "تغيير كلمة المرور",
-                      subtitle: "تحديث كلمة المرور الخاصة بك",
+                      title: "change_password".tr(),
+                      subtitle: "change_password_desc".tr(),
                       icon: Icons.key_outlined,
                       iconColor: Colors.orange.shade400,
                       onTap: () => _showChangePasswordDialog(context),
@@ -184,12 +186,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Icon(Icons.remove_red_eye_outlined, color: Color(0xFF1FB6A6)),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.remove_red_eye_outlined, color: Color(0xFF1FB6A6)),
+                        const SizedBox(width: 8),
                         Text(
-                          "إعدادات الخصوصية",
-                          style: TextStyle(
+                          "privacy_settings".tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -198,35 +200,35 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     const SizedBox(height: 20),
                     _buildTextToggleRow(
-                      title: "تشفير البيانات",
-                      subtitle: "تشفير جميع البيانات الطبية",
+                      title: "data_encryption_toggle".tr(),
+                      subtitle: "data_encryption_desc".tr(),
                       value: dataEncryption,
                       onChanged: (val) => setState(() => dataEncryption = val),
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextToggleRow(
-                      title: "مشاركة مع العائلة",
-                      subtitle: "السماح للعائلة بعرض بياناتك",
+                      title: "family_share".tr(),
+                      subtitle: "family_share_desc".tr(),
                       value: familyShare,
                       onChanged: (val) => setState(() => familyShare = val),
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextToggleRow(
-                      title: "بيانات التحليلات",
-                      subtitle: "مشاركة بيانات مجهولة لتحسين الخدمة",
+                      title: "analytics_data".tr(),
+                      subtitle: "analytics_data_desc".tr(),
                       value: analyticsData,
                       onChanged: (val) => setState(() => analyticsData = val),
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextArrowRow(
-                      title: "تحميل بياناتي",
-                      subtitle: "تصدير نسخة من جميع بياناتك",
+                      title: "download_my_data".tr(),
+                      subtitle: "download_my_data_desc".tr(),
                       onTap: () => _showDownloadDataDialog(context),
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextArrowRow(
-                      title: "حذف حسابي",
-                      subtitle: "حذف حسابك وجميع بياناتك نهائياً",
+                      title: "delete_my_account".tr(),
+                      subtitle: "delete_my_account_desc".tr(),
                       isDestructive: true,
                       onTap: () => _showDeleteAccountDialog(context),
                     ),
@@ -248,12 +250,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Icon(Icons.lock, color: Color(0xFFD4A017), size: 24),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.lock, color: Color(0xFFD4A017), size: 24),
+                        const SizedBox(width: 8),
                         Text(
-                          "نصائح الأمان",
-                          style: TextStyle(
+                          "security_tips".tr(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF6B4D00),
@@ -262,13 +264,13 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildTipRow("استخدم كلمة مرور قوية ومعقدة"),
+                    _buildTipRow("tip_strong_password".tr()),
                     const SizedBox(height: 10),
-                    _buildTipRow("لا تشارك معلومات حسابك مع أحد"),
+                    _buildTipRow("tip_dont_share".tr()),
                     const SizedBox(height: 10),
-                    _buildTipRow("فعّل المصادقة الثنائية لحماية إضافية"),
+                    _buildTipRow("tip_enable_2fa".tr()),
                     const SizedBox(height: 10),
-                    _buildTipRow("راجع نشاط حسابك بانتظام"),
+                    _buildTipRow("tip_review_activity".tr()),
                   ],
                 ),
               ),
@@ -317,7 +319,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: iconColor),
@@ -348,7 +350,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: Colors.white,
+          activeThumbColor: Colors.white,
           activeTrackColor: Colors.black87,
           inactiveThumbColor: Colors.white,
           inactiveTrackColor: Colors.grey.shade300,
@@ -371,7 +373,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor),
@@ -438,7 +440,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: Colors.white,
+          activeThumbColor: Colors.white,
           activeTrackColor: Colors.black87,
           inactiveThumbColor: Colors.white,
           inactiveTrackColor: Colors.grey.shade300,
@@ -491,7 +493,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       context: context,
       builder: (context) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             titlePadding: const EdgeInsets.all(20),
@@ -500,9 +502,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "تغيير كلمة المرور",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                Text(
+                  "change_password".tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -515,11 +517,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildPasswordField("كلمة المرور الحالية", showVisibilityIcon: true),
+                _buildPasswordField("current_password".tr(), showVisibilityIcon: true),
                 const SizedBox(height: 16),
-                _buildPasswordField("كلمة المرور الجديدة"),
+                _buildPasswordField("new_password".tr()),
                 const SizedBox(height: 16),
-                _buildPasswordField("تأكيد كلمة المرور"),
+                _buildPasswordField("confirm_password".tr()),
                 const SizedBox(height: 8),
               ],
             ),
@@ -534,7 +536,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
-                  child: const Text("حفظ كلمة المرور", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  child: Text("save_password".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                 ),
               )
             ],
@@ -572,7 +574,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       context: context,
       builder: (context) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             titlePadding: const EdgeInsets.all(20),
@@ -582,12 +584,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
+                  children: [
+                    const Icon(Icons.delete_outline, color: Colors.red),
+                    const SizedBox(width: 8),
                     Text(
-                      "حذف الحساب",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
+                      "delete_my_account".tr(),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
                     ),
                   ],
                 ),
@@ -608,43 +610,43 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF0F0),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withOpacity(0.2)),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        children: const [
-                          Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                          SizedBox(width: 8),
-                          Text(
-                            "تحذير هام",
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                          ),
+                        children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                        const SizedBox(width: 8),
+                        Text(
+                          "important_warning".tr(),
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                        ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildBulletPoint("سيتم حذف جميع بياناتك الطبية نهائياً", Colors.red),
-                      _buildBulletPoint("لن تتمكن من استرجاع حسابك أو بياناتك", Colors.red),
-                      _buildBulletPoint("سيتم إلغاء جميع الاشتراكات المرتبطة", Colors.red),
-                      _buildBulletPoint("هذا الإجراء لا يمكن التراجع عنه", Colors.red),
+                      _buildBulletPoint("delete_warning_1".tr(), Colors.red),
+                      _buildBulletPoint("delete_warning_2".tr(), Colors.red),
+                      _buildBulletPoint("delete_warning_3".tr(), Colors.red),
+                      _buildBulletPoint("delete_warning_4".tr(), Colors.red),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text.rich(
+                Text.rich(
                   TextSpan(
-                    text: "للتأكيد، اكتب: ",
+                    text: "delete_confirmation_text".tr(),
                     children: [
-                      TextSpan(text: "حذف حسابي", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      TextSpan(text: "delete_confirm_phrase".tr(), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  style: TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   decoration: InputDecoration(
-                    hintText: "اكتب: حذف حسابي",
+                    hintText: "delete_confirm_phrase".tr(),
                     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
@@ -670,7 +672,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
-                      child: const Text("حذف الحساب نهائياً", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                      child: Text("delete_account_permanently".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -683,7 +685,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         side: BorderSide(color: Colors.grey.shade300),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text("إلغاء", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
+                      child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
                     ),
                   ),
                 ],
@@ -709,7 +711,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 12, color: color.withOpacity(0.9), height: 1.4),
+              style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.9), height: 1.4),
             ),
           ),
         ],
@@ -722,7 +724,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       context: context,
       builder: (context) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             titlePadding: const EdgeInsets.all(20),
@@ -732,12 +734,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.download_rounded, color: Color(0xFF1FB6A6)),
-                    SizedBox(width: 8),
+                  children: [
+                    const Icon(Icons.download_rounded, color: Color(0xFF1FB6A6)),
+                    const SizedBox(width: 8),
                     Text(
-                      "تحميل بياناتي",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      "download_my_data".tr(),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                   ],
                 ),
@@ -755,13 +757,13 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1FB6A6).withOpacity(0.05),
+                    color: const Color(0xFF1FB6A6).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF1FB6A6).withOpacity(0.2)),
+                    border: Border.all(color: const Color(0xFF1FB6A6).withValues(alpha: 0.2)),
                   ),
-                  child: const Text(
-                    "سيتم تجميع كافة بياناتك (الالتقارير الطبية، التحاليل، والإعدادات) في ملف آمن وتجهيزها للتنزيل. قد تستغرق هذه العملية بضع دقائق.",
-                    style: TextStyle(
+                  child: Text(
+                    "download_data_process_desc".tr(),
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black87,
                       height: 1.5,
@@ -782,7 +784,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
-                      child: const Text("استخراج النسخة", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                      child: Text("extract_copy".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -794,7 +796,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         side: BorderSide(color: Colors.grey.shade300),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text("إلغاء", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
+                      child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
                     ),
                   ),
                 ],

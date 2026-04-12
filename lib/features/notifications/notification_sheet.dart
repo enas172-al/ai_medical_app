@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import '../../core/theme/app_colors.dart';
 
 final List<Map<String, dynamic>> allNotifications = [
@@ -61,7 +63,7 @@ class NotificationSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: const BoxDecoration(
@@ -104,27 +106,27 @@ class NotificationSheet extends StatelessWidget {
 
                 notificationItem(
                   context,
-                  "موعد الدواء",
-                  "حان وقت تناول دواء الضغط",
-                  "منذ 5 دقائق",
+                  "medication_time".tr(),
+                  "bp_med_reminder_simple".tr(),
+                  "since_5_minutes".tr(),
                   Icons.medication,
                   Colors.orange,
                 ),
 
                 notificationItem(
                   context,
-                  "تذكير بالتحليل",
-                  "حان موعد إجراء تحليل السكر التراكمي",
-                  "منذ ساعة",
+                  "test_reminder".tr(),
+                  "hba1c_reminder_simple".tr(),
+                  "since_1_hour".tr(),
                   Icons.notifications,
                   Colors.blue,
                 ),
 
                 notificationItem(
                   context,
-                  "نتيجة جديدة",
-                  "تم تحليل نتائجك بنجاح",
-                  "منذ 3 ساعات",
+                  "new_result".tr(),
+                  "analysis_success".tr(),
+                  "since_3_hours".tr(),
                   Icons.check_circle,
                   Colors.green,
                 ),
@@ -141,9 +143,9 @@ class NotificationSheet extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text(
-                      "عرض جميع الإشعارات",
-                      style: TextStyle(
+                    child: Text(
+                      "view_all_notifications".tr(),
+                      style: const TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
@@ -173,9 +175,9 @@ class NotificationSheet extends StatelessWidget {
         onTap: () {
 
 
-          if (title == "نتيجة جديدة") {
+          if (title == "new_result".tr()) {
             Navigator.pushNamed(context, '/result');
-          } else if (title == "تذكير بالتحليل") {
+          } else if (title == "test_reminder".tr()) {
             Navigator.pushNamed(context, '/history');
           } else {
             Navigator.pushNamed(context, '/home');
@@ -235,7 +237,7 @@ class AllNotificationsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("كل الإشعارات"),
+        title: Text("all_notifications".tr()),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(15),

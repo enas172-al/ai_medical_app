@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -9,7 +10,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   int _selectedTab = 1;
-  String _currentUser = 'محمد أحمد';
+  String _currentUser = 'example_name'.tr();
   bool isPersonal = true;
   void switchUser(String userName, bool personal) {
     setState(() {
@@ -20,36 +21,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   final List<Map<String, dynamic>> _allTests = [
     {
-      'title': 'سكر الدم',
+      'title': 'fasting_sugar'.tr(),
       'sub': 'Glucose',
       'value': '98',
       'unit': 'mg/dL',
-      'status': 'طبيعي',
-      'date': '20 مارس 2026',
+      'status': 'normal_status'.tr(),
+      'date': 'example_dob'.tr(),
     },
     {
-      'title': 'الهيموجلوبين',
+      'title': 'hemoglobin'.tr(),
       'sub': 'Hemoglobin',
       'value': '14.2',
       'unit': 'g/dL',
-      'status': 'طبيعي',
-      'date': '20 مارس 2026',
+      'status': 'normal_status'.tr(),
+      'date': 'example_dob'.tr(),
     },
     {
-      'title': 'الكوليسترول',
+      'title': 'cholesterol'.tr(),
       'sub': 'Cholesterol',
       'value': '185',
       'unit': 'mg/dL',
-      'status': 'مرتفع',
-      'date': '18 مارس 2026',
+      'status': 'high_status'.tr(),
+      'date': 'example_dob'.tr(),
     },
     {
-      'title': 'فيتامين د',
+      'title': 'vitamin_d'.tr(),
       'sub': 'Vitamin D',
       'value': '32',
       'unit': 'ng/mL',
-      'status': 'ناقص',
-      'date': '15 مارس 2026',
+      'status': 'low_status'.tr(),
+      'date': 'example_dob'.tr(),
     },
   ];
 
@@ -101,9 +102,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "أنت تتابع",
-                                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                                  Text(
+                                    "you_are_tracking".tr(),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                                   ),
                                   Text(
                                     _currentUser,
@@ -125,7 +126,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 backgroundColor: Colors.white.withAlpha(50),
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text("رجوع"),
+                              child: Text("cancel".tr()),
                             )
                           ],
                         ),
@@ -133,7 +134,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               // 🧾 Title
               Text(
-                isPersonal ? "سجل التحاليل" : "سجل تحاليل $_currentUser",
+                isPersonal ? "history_title".tr() : "user_history_title".tr(args: [_currentUser]),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -144,9 +145,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               const SizedBox(height: 6),
 
-              const Text(
-                "جميع تحاليلك السابقة في مكان واحد",
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+              Text(
+                "history_subtitle".tr(),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
 
               const SizedBox(height: 25),
@@ -170,7 +171,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              "جميع التحاليل",
+                              "all_tests_tab".tr(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: _selectedTab == 1
@@ -199,7 +200,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              "الأحدث",
+                              "latest_tab".tr(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: _selectedTab == 0
@@ -287,9 +288,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             fontSize: 16,
                           ),
                         ),
-                        const Text(
-                          "نتيجة",
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        Text(
+                          "results_count".tr(args: ["12"]),
+                          style: const TextStyle(fontSize: 10, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -321,7 +322,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Row(
                       children: [
                         Text(
-                          "آخر تحديث: ${test['date']}",
+                          "last_update".tr() + ": ${test['date']}",
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,

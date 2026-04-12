@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class ScanResultsScreen extends StatelessWidget {
   const ScanResultsScreen({super.key});
@@ -8,68 +10,68 @@ class ScanResultsScreen extends StatelessWidget {
     final List<Map<String, dynamic>> results = [
       {
         "id": "1",
-        "name": "سكر الدم",
-        "subName": "Glucose",
+        "name": "fasting_sugar".tr(),
+        "subName": "glucose_sub".tr(),
         "value": "95",
         "unit": "mg/dL",
         "range": "70-100",
-        "status": "طبيعي",
+        "status": "normal_status".tr(),
         "statusColor": Colors.green,
-        "interpretation": "مستوى السكر في الدم ضمن المعدل الطبيعي، مما يشير إلى صحة جيدة لعملية التمثيل الغذائي للجلوكوز.",
-        "advice": "حافظ على نمط حياة صحي مع نظام غذائي متوازن وممارسة الرياضة بانتظام."
+        "interpretation": "glucose_interpretation".tr(),
+        "advice": "glucose_advice".tr()
       },
       {
         "id": "2",
-        "name": "الهيموجلوبين",
-        "subName": "Hemoglobin",
+        "name": "hemoglobin".tr(),
+        "subName": "hemoglobin_sub".tr(),
         "value": "15.2",
         "unit": "g/dL",
         "range": "13.5-17.5",
-        "status": "طبيعي",
+        "status": "normal_status".tr(),
         "statusColor": Colors.green,
-        "interpretation": "مستوى الهيموجلوبين طبيعي، مما يعني أن قدرة الدم على نقل الأكسجين جيدة.",
-        "advice": "استمر في تناول الأطعمة الغنية بالحديد مثل اللحوم الحمراء والخضروات الورقية."
+        "interpretation": "hemoglobin_interpretation".tr(),
+        "advice": "hemoglobin_advice".tr()
       },
       {
         "id": "3",
-        "name": "الكوليسترول الكلي",
-        "subName": "Cholesterol",
+        "name": "cholesterol".tr(),
+        "subName": "cholesterol_sub".tr(),
         "value": "220",
         "unit": "mg/dL",
         "range": "< 200",
-        "status": "مرتفع",
+        "status": "high_status".tr(),
         "statusColor": Colors.red,
-        "interpretation": "مستوى الكوليسترول أعلى قليلاً من الطبيعي، مما قد يزيد من خطر الإصابة بأمراض القلب والأوعية الدموية.",
-        "advice": "يُنصح بتقليل تناول الدهون المشبعة، وزيادة النشاط البدني، واستشارة الطبيب لمتابعة الحالة."
+        "interpretation": "cholesterol_interpretation".tr(),
+        "advice": "cholesterol_advice".tr()
       },
       {
         "id": "4",
-        "name": "فيتامين د",
-        "subName": "Vitamin D",
+        "name": "vitamin_d".tr(),
+        "subName": "vitamin_d_sub".tr(),
         "value": "18",
         "unit": "ng/mL",
         "range": "30-100",
-        "status": "منخفض",
+        "status": "low_status".tr(),
         "statusColor": Colors.orange,
-        "interpretation": "مستوى فيتامين د منخفض، مما قد يؤثر على صحة العظام والجهاز المناعي.",
-        "advice": "يُنصح بالتعرض لأشعة الشمس لمدة 15-20 دقيقة يومياً، وتناول مكملات فيتامين د بعد استشارة الطبيب."
+        "interpretation": "vitamin_d_interpretation".tr(),
+        "advice": "vitamin_d_advice".tr()
       },
       {
         "id": "5",
-        "name": "خلايا الدم البيضاء",
-        "subName": "White Blood Cells",
+        "name": "wbc".tr(),
+        "subName": "wbc_sub".tr(),
         "value": "7.5",
         "unit": "µL/10³",
         "range": "4.5-11.0",
-        "status": "طبيعي",
+        "status": "normal_status".tr(),
         "statusColor": Colors.green,
-        "interpretation": "تعداد خلايا الدم البيضاء ضمن النطاق الطبيعي، مما يشير إلى وظيفة مناعية جيدة.",
-        "advice": "استمر في اتباع العادات الصحية لتعزيز جهازك المناعي."
+        "interpretation": "wbc_interpretation".tr(),
+        "advice": "wbc_advice".tr()
       },
     ];
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F9FC),
         appBar: AppBar(
@@ -79,9 +81,9 @@ class ScanResultsScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
-            "نتائج التحاليل",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          title: Text(
+            "scan_results_title".tr(),
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
           actions: [
@@ -98,15 +100,15 @@ class ScanResultsScreen extends StatelessWidget {
             children: [
               Center(
                 child: Column(
-                  children: const [
-                     Text(
-                      "labby | لابي",
-                      style: TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    SizedBox(height: 8),
+                  children: [
                     Text(
-                      "20 مارس 2026",
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                      "labby_title".tr(),
+                      style: const TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "example_dob".tr(),
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ],
                 ),
@@ -117,11 +119,11 @@ class ScanResultsScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _buildActionButton(Icons.share_outlined, "مشاركة", Colors.black87),
+                    child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildActionButton(Icons.save_outlined, "حفظ", Colors.black87),
+                    child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
                   ),
                 ],
               ),
@@ -135,12 +137,12 @@ class ScanResultsScreen extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 ),
                 child: Row(
-                  children: const [
-                    Expanded(flex: 3, child: Text("اسم التحليل", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("القيمة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("الوحدة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("المعدل الطبيعي", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                    SizedBox(width: 30),
+                  children: [
+                    Expanded(flex: 3, child: Text("test_name_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                    Expanded(flex: 2, child: Text("value_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                    Expanded(flex: 2, child: Text("unit_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                    Expanded(flex: 2, child: Text("normal_range_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                    const SizedBox(width: 30),
                   ],
                 ),
               ),
@@ -176,7 +178,7 @@ class ScanResultsScreen extends StatelessWidget {
                           height: 24,
                           decoration: BoxDecoration(color: res["statusColor"].withOpacity(0.1), shape: BoxShape.circle),
                           child: Icon(
-                            res["status"] == "طبيعي" ? Icons.check : (res["status"] == "مرتفع" ? Icons.trending_up : Icons.trending_down),
+                            res["status"] == "normal_status".tr() ? Icons.check : (res["status"] == "high_status".tr() ? Icons.trending_up : Icons.trending_down),
                             color: res["statusColor"],
                             size: 14,
                           ),
@@ -193,9 +195,9 @@ class ScanResultsScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.info_outline, color: Color(0xFF1FB6A6), size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    "التفسيرات والنصائح",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    "interpretations_and_advice".tr(),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -252,7 +254,7 @@ class ScanResultsScreen extends StatelessWidget {
                   decoration: BoxDecoration(color: res["statusColor"].withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
                   child: Row(
                     children: [
-                       Icon(res["status"] == "طبيعي" ? Icons.check_circle_outline : Icons.error_outline, color: res["statusColor"], size: 14),
+                       Icon(res["status"] == "normal_status".tr() ? Icons.check_circle_outline : Icons.error_outline, color: res["statusColor"], size: 14),
                        const SizedBox(width: 4),
                        Text(res["status"], style: TextStyle(color: res["statusColor"], fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
@@ -282,9 +284,9 @@ class ScanResultsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Expanded(child: _buildMetricItem("المعدل الطبيعي", "${res["unit"]} ${res["range"]}")),
+                Expanded(child: _buildMetricItem("normal_range_label".tr(), "${res["unit"]} ${res["range"]}")),
                 const SizedBox(width: 12),
-                Expanded(child: _buildMetricItem("القيمة المقاسة", "${res["unit"]} ${res["value"]}")),
+                Expanded(child: _buildMetricItem("measured_value_label".tr(), "${res["unit"]} ${res["value"]}")),
               ],
             ),
           ),
@@ -303,10 +305,10 @@ class ScanResultsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.circle, color: Colors.blue, size: 8),
-                    SizedBox(width: 8),
-                    Text("التفسير الطبي", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 15)),
+                  children: [
+                    const Icon(Icons.circle, color: Colors.blue, size: 8),
+                    const SizedBox(width: 8),
+                    Text("medical_interpretation_label".tr(), style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 15)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -329,10 +331,10 @@ class ScanResultsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
-                    SizedBox(width: 8),
-                    Text("النصائح والتوصيات", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                    const SizedBox(width: 8),
+                    Text("advice_and_recommendations_label".tr(), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
                   ],
                 ),
                 const SizedBox(height: 8),

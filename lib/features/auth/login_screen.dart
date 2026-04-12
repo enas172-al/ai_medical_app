@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -34,19 +35,19 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 10),
 
               Text(
-                "labby",
-                style: TextStyle(
+                "app_title".tr(),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
 
               Text(
-                "رفيقك في رحلة الصحة",
-                style: TextStyle(
+                "your_health_companion".tr(),
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
                 ),
@@ -70,8 +71,8 @@ class LoginScreen extends StatelessWidget {
                       // عنوان
                       Center(
                         child: Text(
-                          "تسجيل الدخول",
-                          style: TextStyle(
+                          "login_title".tr(),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -81,8 +82,8 @@ class LoginScreen extends StatelessWidget {
                       SizedBox(height: 25),
 
                       // البريد الإلكتروني
-                      Text("البريد الإلكتروني"),
-                      SizedBox(height: 6),
+                      Text("email".tr()),
+                      const SizedBox(height: 6),
                       TextField(
                         decoration: InputDecoration(
                           hintText: "example@email.com",
@@ -99,8 +100,8 @@ class LoginScreen extends StatelessWidget {
                       SizedBox(height: 15),
 
                       // كلمة المرور
-                      Text("كلمة المرور"),
-                      SizedBox(height: 6),
+                      Text("password".tr()),
+                      const SizedBox(height: 6),
                       TextField(
                         obscureText: true,
                         decoration: InputDecoration(
@@ -132,8 +133,8 @@ class LoginScreen extends StatelessWidget {
                             Navigator.pushReplacementNamed(context, '/home');
                           },
                           child: Text(
-                            "دخول",
-                            style: TextStyle(fontSize: 16),
+                            "login_btn".tr(),
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ),
                       ),
@@ -147,8 +148,8 @@ class LoginScreen extends StatelessWidget {
                             Navigator.pushNamed(context, '/register');
                           },
                           child: Text(
-                            "ليس لديك حساب؟ إنشاء حساب",
-                            style: TextStyle(
+                            "no_account_register".tr(),
+                            style: const TextStyle(
                               color: Color(0xFF1FB6A6),
                               fontSize: 14,
                             ),

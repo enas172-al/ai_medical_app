@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 
 class TermsOfUseScreen extends StatelessWidget {
   const TermsOfUseScreen({super.key});
@@ -20,7 +21,7 @@ class TermsOfUseScreen extends StatelessWidget {
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -28,7 +29,7 @@ class TermsOfUseScreen extends StatelessWidget {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(

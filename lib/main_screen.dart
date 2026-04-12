@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ai_medical_app/features/medication/medication_screen.dart';
 import 'package:ai_medical_app/features/history/history_screen.dart';
 import 'package:ai_medical_app/features/profile/profile_screen.dart';
@@ -39,9 +40,9 @@ class _MainScreenState extends State<MainScreen> {
 
     final List<String> titles = [
       "",
-      "السجل",
-      "أدويتي",
-      "الملف الشخصي",
+      "nav_history".tr(),
+      "nav_medication".tr(),
+      "nav_profile".tr(),
     ];
 
     return Scaffold(

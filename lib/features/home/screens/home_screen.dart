@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import 'home_detail_screen.dart';
 import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
@@ -27,7 +29,7 @@ class HomeScreen extends StatelessWidget {
     }
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
         body: SafeArea(
@@ -37,17 +39,17 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ///  ترحيب
-                const Text(
-                  "مرحباً أحمد",
-                  style: TextStyle(
+                Text(
+                  "welcome_user".tr(),
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  "كيف حالك اليوم؟",
-                  style: TextStyle(color: Colors.grey),
+                Text(
+                  "how_are_you_today".tr(),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 15),
 
@@ -57,9 +59,9 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    "✨ الذكاء الاصطناعي في الطب",
-                    style: TextStyle(
+                  child: Text(
+                    "ai_in_medicine".tr(),
+                    style: const TextStyle(
                       color: Color(0xFF1FB6A6),
                     ),
                   ),
@@ -98,19 +100,19 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
-                                "لوحة المتابعة الصحية",
-                                style: TextStyle(
+                                "health_tracking_dashboard".tr(),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                "تتبع صحتك بشكل شامل وسريع",
-                                style: TextStyle(
+                                "track_health_comprehensively".tr(),
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
                                 ),
@@ -151,18 +153,18 @@ class HomeScreen extends StatelessWidget {
                           child: const Icon(Icons.camera_alt, color: Colors.white, size: 40),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          "صور التحاليل الطبية",
-                          style: TextStyle(
+                        Text(
+                          "scan_medical_tests".tr(),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          "التقط صورة واضحة للحصول على تحليل فوري",
-                          style: TextStyle(
+                        Text(
+                          "capture_clear_image_for_analysis".tr(),
+                          style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
                           ),
@@ -186,16 +188,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                       child: Row(
-                        children: const [
-                          Icon(Icons.arrow_back, color: Color(0xFF1FB6A6), size: 16),
-                          SizedBox(width: 4),
-                          Text("عرض التفاصيل", style: TextStyle(color: Color(0xFF1FB6A6))),
+                        children: [
+                          const Icon(Icons.arrow_back, color: Color(0xFF1FB6A6), size: 16),
+                          const SizedBox(width: 4),
+                          Text("view_details".tr(), style: const TextStyle(color: Color(0xFF1FB6A6))),
                         ],
                       ),
                     ),
-                    const Text(
-                      "آخر تحليل",
-                      style: TextStyle(
+                    Text(
+                      "latest_analysis".tr(),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -206,20 +208,20 @@ class HomeScreen extends StatelessWidget {
 
                 _buildResultCard(
                   context,
-                  "السكر الصائم",
+                  "fasting_sugar".tr(),
                   "95",
                   "mg/dL",
-                  "طبيعي",
+                  "normal_status".tr(),
                   const Color(0xFF52C41A),
                   const Color(0xFFF6FFED),
                   const Color(0xFFB7EB8F),
                 ),
                 _buildResultCard(
                   context,
-                  "الكوليسترول",
+                  "cholesterol".tr(),
                   "220",
                   "mg/dL",
-                  "مرتفع",
+                  "high_status".tr(),
                   const Color(0xFFF5222D),
                   const Color(0xFFFFF1F0),
                   const Color(0xFFFFA39E),
@@ -227,10 +229,10 @@ class HomeScreen extends StatelessWidget {
 
                 _buildResultCard(
                   context,
-                  "ضغط الدم",
+                  "blood_pressure".tr(),
                   "120/80",
                   "mmHg",
-                  "طبيعي",
+                  "normal_status".tr(),
                   const Color(0xFF52C41A),
                   const Color(0xFFF6FFED),
                   const Color(0xFFB7EB8F),
@@ -250,9 +252,9 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 /// 🔔 التنبيهات والتذكيرات
-                const Text(
-                  "التنبيهات والتذكيرات",
-                  style: TextStyle(
+                Text(
+                  "alerts_and_reminders".tr(),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -260,8 +262,8 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 15),
 
                 _buildReminderCard(
-                  title: "موعد الدواء",
-                  subtitle: "حان وقت تناول دواء الضغط - 4:00 مساءً",
+                  title: "medication_time".tr(),
+                  subtitle: "bp_med_reminder".tr(),
                   icon: Icons.notifications_none,
                   color: const Color(0xFFC77800),
                   backgroundColor: const Color(0xFFFFFDF5),
@@ -269,8 +271,8 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _buildReminderCard(
-                  title: "تذكير بالتحليل",
-                  subtitle: "حان موعد إجراء تحليل السكر التراكمي (HbA1c)",
+                  title: "test_reminder".tr(),
+                  subtitle: "hba1c_reminder".tr(),
                   icon: Icons.notifications_none,
                   color: const Color(0xFF1565C0),
                   backgroundColor: const Color(0xFFF0F7FF),
@@ -358,7 +360,7 @@ class HomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold)),
                   const SizedBox(width: 6),
                   Icon(
-                    status == "طبيعي" ? Icons.check : Icons.error_outline,
+                    status == "normal_status".tr() ? Icons.check : Icons.error_outline,
                     color: statusColor,
                     size: 16,
                   ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -19,16 +21,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         backgroundColor: Colors.transparent,
         elevation: 1,
         centerTitle: true, // Though RTL might shift it, we set true or just title
-        title: const Text(
-          "الإشعارات",
-          style: TextStyle(
+        title: Text(
+          "notifications".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -36,7 +38,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -59,17 +61,17 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "طرق الإشعارات",
-                      style: TextStyle(
+                    Text(
+                      "notification_methods".tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
                     _buildToggleRow(
-                      title: "إشعارات فورية",
-                      subtitle: "Push Notifications",
+                      title: "push_notifications".tr(),
+                      subtitle: "push_notifications_desc".tr(),
                       icon: Icons.notifications_none,
                       iconColor: const Color(0xFF1FB6A6),
                       value: pushEnabled,
@@ -77,8 +79,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildToggleRow(
-                      title: "البريد الإلكتروني",
-                      subtitle: "Email Notifications",
+                      title: "email_notifications".tr(),
+                      subtitle: "email_notifications_desc".tr(),
                       icon: Icons.email_outlined,
                       iconColor: Colors.blueAccent,
                       value: emailEnabled,
@@ -110,7 +112,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       ),
                       icon: Icon(Icons.notifications_off_outlined, color: Colors.grey.shade600),
                       label: Text(
-                        "إيقاف الكل",
+                        "disable_all".tr(),
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontWeight: FontWeight.bold,
@@ -136,9 +138,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         ),
                       ),
                       icon: const Icon(Icons.notifications_none, color: Color(0xFF1FB6A6)),
-                      label: const Text(
-                        "تفعيل الكل",
-                        style: TextStyle(
+                      label: Text(
+                        "enable_all".tr(),
+                        style: const TextStyle(
                           color: Color(0xFF1FB6A6),
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -174,19 +176,19 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            "معلومة مهمة",
-                            style: TextStyle(
+                            "important_info".tr(),
+                            style: const TextStyle(
                               color: Color(0xFF1A4582),
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
-                            "يمكنك التحكم في الإشعارات في أي وقت من الإعدادات. بعض الإشعارات المهمة المتعلقة بالأمان لا يمكن إيقافها.",
-                            style: TextStyle(
+                            "notification_control_desc".tr(),
+                            style: const TextStyle(
                               color: Color(0xFF335C94),
                               fontSize: 12,
                               height: 1.5,
@@ -248,7 +250,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: Colors.white,
+          activeThumbColor: Colors.white,
           activeTrackColor: Colors.black87,
           inactiveThumbColor: Colors.white,
           inactiveTrackColor: Colors.grey.shade300,

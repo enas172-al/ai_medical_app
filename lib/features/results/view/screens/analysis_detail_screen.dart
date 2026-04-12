@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class AnalysisDetailScreen extends StatelessWidget {
   final String name;
@@ -21,7 +23,7 @@ class AnalysisDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
         appBar: AppBar(
@@ -49,9 +51,9 @@ class AnalysisDetailScreen extends StatelessWidget {
                       color: Color(0xFF1F2937),
                     ),
                   ),
-                  const Text(
-                    "آخر تحليل",
-                    style: TextStyle(
+                  Text(
+                    "latest_analysis".tr(),
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
@@ -81,9 +83,9 @@ class AnalysisDetailScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      "النتيجة",
-                      style: TextStyle(
+                    Text(
+                      "result".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
                         fontWeight: FontWeight.w500,
@@ -119,7 +121,7 @@ class AnalysisDetailScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          status == "طبيعي" ? Icons.check_circle_outline : Icons.error_outline,
+                          status == "normal_status".tr() ? Icons.check_circle_outline : Icons.error_outline,
                           color: statusColor,
                           size: 20,
                         ),
@@ -141,7 +143,7 @@ class AnalysisDetailScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "تاريخ التحليل: $date",
+                          "analysis_date".tr(args: [date]),
                           style: const TextStyle(
                             fontSize: 14,
                             color: Color(0xFF4B5563),
@@ -162,9 +164,9 @@ class AnalysisDetailScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Additional Info Card
-              const Text(
-                "معلومات إضافية",
-                style: TextStyle(
+              Text(
+                "additional_info".tr(),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1F2937),
@@ -181,13 +183,13 @@ class AnalysisDetailScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildInfoRow("اسم التحليل", name),
+                    _buildInfoRow("test_name_col".tr(), name),
                     const Divider(height: 32),
-                    _buildInfoRow("القيمة", "$unit $value"),
+                    _buildInfoRow("value_col".tr(), "$unit $value"),
                     const Divider(height: 32),
-                    _buildInfoRow("الحالة", status, valueColor: statusColor),
+                    _buildInfoRow("status".tr(), status, valueColor: statusColor),
                     const Divider(height: 32),
-                    _buildInfoRow("التاريخ", date),
+                    _buildInfoRow("date".tr(), date),
                   ],
                 ),
               ),

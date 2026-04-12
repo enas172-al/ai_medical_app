@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ExpandableCard extends StatefulWidget {
   final String title;
@@ -30,15 +31,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
   bool isOpen = false;
 
   Color getColor() {
-    switch (widget.status) {
-      case "طبيعي":
-        return const Color(0xFF2E7D32);
-      case "مرتفع":
-        return const Color(0xFFD32F2F);
-      case "منخفض":
-        return const Color(0xFFF57C00);
-      default:
-        return Colors.grey;
+    if (widget.status == "normal_status".tr()) {
+      return const Color(0xFF2E7D32);
+    } else if (widget.status == "high_status".tr()) {
+      return const Color(0xFFD32F2F);
+    } else if (widget.status == "low_status".tr()) {
+      return const Color(0xFFF57C00);
+    } else {
+      return Colors.grey;
     }
   }
 
@@ -174,7 +174,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      "المعدل الطبيعي\n${widget.normalRange}",
+                      "${"normal_range_label".tr()}\n${widget.normalRange}",
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.black87),
                     ),
@@ -186,9 +186,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Text(
-                        "التفسير",
-                        style: TextStyle(
+                      Text(
+                        "medical_interpretation_label".tr(),
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16),
                       ),
@@ -223,9 +223,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "التوصيات",
-                          style: TextStyle(
+                        Text(
+                          "advice_and_recommendations_label".tr(),
+                          style: const TextStyle(
                               color: Color(0xFF0C5D4F),
                               fontWeight: FontWeight.bold,
                               fontSize: 16),

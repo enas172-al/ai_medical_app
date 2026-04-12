@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -11,16 +13,16 @@ class PrivacyPolicyScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
-          "سياسة الخصوصية",
-          style: TextStyle(
+        title: Text(
+          "privacy_policy_title".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: ui.TextDirection.ltr,
           child: IconButton(
             icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -28,7 +30,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -66,19 +68,19 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      "خصوصيتك تهمنا",
-                      style: TextStyle(
+                    Text(
+                      "privacy_priority".tr(),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1A4582),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "نحن ملتزمون بحماية بياناتك الصحية وخصوصيتك",
+                    Text(
+                      "privacy_guarantee".tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                         height: 1.5,
@@ -99,10 +101,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.blue.withOpacity(0.1)),
                 ),
-                child: const Text(
-                  "آخر تحديث: 1 أبريل 2026",
+                child: Text(
+                  "last_update".tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.blueAccent,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -116,36 +118,36 @@ class PrivacyPolicyScreen extends StatelessWidget {
               _buildInfoCard(
                 icon: Icons.dns_outlined,
                 iconColor: const Color(0xFF1FB6A6),
-                title: "جمع البيانات",
-                text: "نقوم بجمع بيانات التحاليل الطبية التي يقوم المستخدم بإدخالها أو تصويرها فقط. لا نجمع أي بيانات إضافية بدون موافقتك الصريحة.",
+                title: "data_collection".tr(),
+                text: "data_collection_desc".tr(),
               ),
               _buildInfoCard(
                 icon: Icons.description_outlined,
                 iconColor: Colors.blueAccent,
-                title: "استخدام البيانات",
-                text: "تستخدم البيانات لتحليل النتائج وتقديم نصائح صحية ذكية تساعدك في فهم حالتك الصحية.",
+                title: "data_usage".tr(),
+                text: "data_usage_desc".tr(),
                 bullets: [
-                  "لا يتم استخدام البيانات لأي أغراض تجارية",
-                  "لا يتم بيع بياناتك لأطراف ثالثة",
-                  "تبقي بياناتك ملكاً خاصاً لك",
+                  "no_commercial_usage".tr(),
+                  "no_selling_data".tr(),
+                  "data_ownership".tr(),
                 ],
               ),
               _buildInfoCard(
                 icon: Icons.lock_outline,
                 iconColor: Colors.purpleAccent,
-                title: "حماية البيانات",
-                text: "نلتزم بأعلى معايير الأمان لحماية بياناتك الصحية.",
+                title: "data_protection".tr(),
+                text: "data_protection_desc".tr(),
                 bullets: [
-                  "يتم تشفير جميع البيانات",
-                  "يتم حفظ البيانات بشكل آمن على خوادم محمية",
-                  "لا يتم مشاركة البيانات مع أي طرف ثالث",
+                  "data_encryption".tr(),
+                  "secure_servers".tr(),
+                  "no_sharing".tr(),
                 ],
               ),
               _buildInfoCard(
                 icon: Icons.check_circle_outline,
                 iconColor: const Color(0xFF4CAF50),
-                title: "موافقة المستخدم",
-                text: "باستخدام التطبيق، يوافق المستخدم على سياسة الخصوصية هذه. يمكنك حذف بياناتك في أي وقت من إعدادات الملف الشخصي.",
+                title: "user_consent".tr(),
+                text: "user_consent_desc".tr(),
               ),
 
               // Rights Card
@@ -166,19 +168,19 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "حقوقك",
-                      style: TextStyle(
+                    Text(
+                      "your_rights".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildRightRow("حق الوصول", "يمكنك الوصول إلى جميع بياناتك في أي وقت"),
+                    _buildRightRow("right_to_access".tr(), "right_to_access_desc".tr()),
                     const SizedBox(height: 16),
-                    _buildRightRow("حق التعديل", "يمكنك تعديل أو تحديث بياناتك في أي وقت"),
+                    _buildRightRow("right_to_edit".tr(), "right_to_edit_desc".tr()),
                     const SizedBox(height: 16),
-                    _buildRightRow("حق الحذف", "يمكنك حذف جميع بياناتك نهائياً من التطبيق"),
+                    _buildRightRow("right_to_delete".tr(), "right_to_delete_desc".tr()),
                   ],
                 ),
               ),
@@ -207,18 +209,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "هل لديك أسئلة؟",
-                      style: TextStyle(
+                    Text(
+                      "have_questions".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "إذا كان لديك أي استفسار حول سياسة الخصوصية، لا تتردد في التواصل معنا",
-                      style: TextStyle(
+                    Text(
+                      "privacy_questions_desc".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         height: 1.5,
@@ -238,9 +240,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          "تواصل معنا",
-                          style: TextStyle(
+                        child: Text(
+                          "contact_us".tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),

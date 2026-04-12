@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChartScreen extends StatelessWidget {
   const ChartScreen({super.key});
@@ -12,12 +13,11 @@ class ChartScreen extends StatelessWidget {
     if (args == null || args is! Map) {
       return Scaffold(
         body: Center(
-          child: Text("لا توجد بيانات"),
+          child: Text("no_data_found".tr()),
         ),
       );
     }
 
-    final test = args;
 
     return Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
@@ -25,9 +25,9 @@ class ChartScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text(
-            "جميع النتائج",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 18,),
+          title: Text(
+            "all_results_title".tr(),
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 18,),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -43,9 +43,9 @@ class ChartScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                const Text(
-                  "الرسم البياني",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  "chart_card_title".tr(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 16),
@@ -86,11 +86,11 @@ class ChartScreen extends StatelessWidget {
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
                                 switch (value.toInt()) {
-                                  case 0: return const Text("1 فب", style: TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 1: return const Text("15 فب", style: TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 2: return const Text("1 مار", style: TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 3: return const Text("15 مار", style: TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 4: return const Text("20 مار", style: TextStyle(fontSize: 10, color: Colors.grey));
+                                  case 0: return Text("1 ${"feb_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
+                                  case 1: return Text("15 ${"feb_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
+                                  case 2: return Text("1 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
+                                  case 3: return Text("15 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
+                                  case 4: return Text("20 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
                                   default: return const Text("");
                                 }
                               },
@@ -136,19 +136,19 @@ class ChartScreen extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
-                const Text(
-                  "نتائج سابقة",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  "previous_results_title".tr(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 15),
 
                 // 📄 قائمة النتائج (Image 2 Style)
-                _buildResultItem("mg/dL 95", "20 مارس", "طبيعي", const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 95", "15 مارس", "طبيعي", const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 98", "1 مارس", "طبيعي", const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 110", "15 فبراير", "مرتفع", const Color(0xFFEF4444)),
-                _buildResultItem("mg/dL 95", "1 فبراير", "طبيعي", const Color(0xFF10B981)),
+                _buildResultItem("mg/dL 95", "20 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
+                _buildResultItem("mg/dL 95", "15 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
+                _buildResultItem("mg/dL 98", "1 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
+                _buildResultItem("mg/dL 110", "15 ${"feb_short".tr()}", "high_status".tr(), const Color(0xFFEF4444)),
+                _buildResultItem("mg/dL 95", "1 ${"feb_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
 
                 const SizedBox(height: 20),
               ],

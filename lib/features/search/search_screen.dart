@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import '../../core/widgets/custom_app_bar.dart';
 import '../analysis/analysis_details_screen.dart';
 
@@ -8,7 +10,7 @@ class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
 
@@ -30,9 +32,9 @@ class SearchScreen extends StatelessWidget {
                 const SizedBox(height: 10),
 
                 ///  Title
-                const Text(
-                  "بحث عن التحاليل",
-                  style: TextStyle(
+                Text(
+                  "search_tests_title".tr(),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -42,9 +44,9 @@ class SearchScreen extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 /// 📋 Subtitle
-                const Text(
-                  "اكتشف معاني التحاليل والقيم الطبيعية",
-                  style: TextStyle(
+                Text(
+                  "search_tests_subtitle".tr(),
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
                   ),
@@ -58,17 +60,17 @@ class SearchScreen extends StatelessWidget {
                     color: const Color(0xFFF9FAFB),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const TextField(
-                    textDirection: TextDirection.rtl,
+                  child: TextField(
+                    textDirection: Directionality.of(context),
                     decoration: InputDecoration(
-                      hintText: "ابحث عن تحليل...",
-                      hintStyle: TextStyle(
+                      hintText: "search_tests_hint".tr(),
+                      hintStyle: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
                       ),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
@@ -83,82 +85,82 @@ class SearchScreen extends StatelessWidget {
 
                       _buildTestCard(
                         context,
-                        "سكر الدم",
+                        "fasting_sugar".tr(),
                         "Glucose",
-                        "السكريات",
+                        "cat_sugars".tr(),
                         "70-100 mg/dL",
-                        "قد يشير إلى مرض السكري أو مقاومة الأنسولين.",
-                        "قد يدل على انخفاض السكر ويحتاج تدخل سريع.",
+                        "glucose_high_desc".tr(),
+                        "glucose_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "الهيموجلوبين",
+                        "hemoglobin".tr(),
                         "Hemoglobin",
-                        "الدم",
+                        "cat_blood".tr(),
                         "13-17 g/dL",
-                        "قد يدل على الجفاف أو أمراض الدم.",
-                        "قد يشير إلى فقر الدم (أنيميا).",
+                        "hemoglobin_high_desc".tr(),
+                        "hemoglobin_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "الكوليسترول الكلي",
+                        "cholesterol".tr(),
                         "Total Cholesterol",
-                        "الدهون",
+                        "cat_fats".tr(),
                         "< 200 mg/dL",
-                        "يزيد خطر أمراض القلب.",
-                        "نادرًا ما يكون منخفض ويشير لسوء تغذية.",
+                        "cholesterol_high_desc".tr(),
+                        "cholesterol_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "فيتامين د",
+                        "vitamin_d".tr(),
                         "Vitamin D",
-                        "الفيتامينات",
+                        "cat_vitamins".tr(),
                         "20-50 ng/mL",
-                        "قد يسبب ضعف العظام.",
-                        "قد يؤدي إلى مشاكل في امتصاص الكالسيوم.",
+                        "vitamin_d_high_desc".tr(),
+                        "vitamin_d_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "الكرياتينين",
+                        "creatinine".tr(),
                         "Creatinine",
-                        "الكلى",
+                        "cat_kidney".tr(),
                         "0.6-1.3 mg/dL",
-                        "قد يدل على ضعف وظائف الكلى.",
-                        "نادراً ما يكون منخفض.",
+                        "creatinine_high_desc".tr(),
+                        "creatinine_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "إنزيم الكبد ALT",
+                        "alt_enzyme".tr() == "alt_enzyme" ? "إنزيم الكبد ALT" : "alt_enzyme".tr(),
                         "ALT (SGPT)",
-                        "الكبد",
+                        "cat_liver".tr(),
                         "7-56 U/L",
-                        "قد يشير إلى التهاب الكبد.",
-                        "غالباً لا يكون له دلالة مهمة.",
+                        "alt_high_desc".tr(),
+                        "alt_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "خلايا الدم البيضاء",
+                        "wbc".tr(),
                         "WBC",
-                        "الدم",
+                        "cat_blood".tr(),
                         "4,000-11,000 /µL",
-                        "قد يدل على وجود عدوى.",
-                        "قد يشير إلى ضعف المناعة.",
+                        "wbc_high_desc".tr(),
+                        "wbc_low_desc".tr(),
                       ),
 
                       _buildTestCard(
                         context,
-                        "الصفائح الدموية",
+                        "platelets".tr(),
                         "Platelets",
-                        "الدم",
+                        "cat_blood".tr(),
                         "150,000-450,000 /µL",
-                        "قد يسبب جلطات.",
-                        "قد يسبب نزيف.",
+                        "platelets_high_desc".tr(),
+                        "platelets_low_desc".tr(),
                       ),
                     ],
                   ),
@@ -252,7 +254,7 @@ class SearchScreen extends StatelessWidget {
               Icons.arrow_back,
               color: Colors.grey,
               size: 24,
-              textDirection: TextDirection.ltr,
+              textDirection: ui.TextDirection.ltr,
             ),
           ],
         ),

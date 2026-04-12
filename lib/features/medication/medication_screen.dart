@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -12,84 +14,84 @@ class MedicationScreen extends StatefulWidget {
 }
 
 class _MedicationScreenState extends State<MedicationScreen> {
-  String _currentUser = 'محمد أحمد';
-  String _loggedInUser = 'محمد أحمد';
-  String _loggedInUserRole = 'مرافق';
+  String _currentUser = 'example_name'.tr();
+  String _loggedInUser = 'example_name'.tr();
+  String _loggedInUserRole = 'companion_role'.tr();
 
   final List<Map<String, dynamic>> _accounts = [
     {
-      'name': 'أحمد محمد',
+      'name': 'example_family_member_2'.tr(),
       'type': 'dependent',
-      'age': '65 سنة',
-      'tag': 'عضو في العائلة',
+      'age': 'years_old'.tr(args: ['65']),
+      'tag': 'family_member_tag'.tr(),
     },
     {
-      'name': 'محمد أحمد',
+      'name': 'example_name'.tr(),
       'type': 'personal',
-      'age': '35 سنة',
-      'tag': 'حسابي',
+      'age': 'years_old'.tr(args: ['35']),
+      'tag': 'my_account_tag'.tr(),
     },
   ];
 
   final List<Map<String, dynamic>> _medications = [
     {
       'id': '1',
-      'name': 'أسبرين',
-      'dose': '100 ملغ',
-      'time': '08:00 صباحاً',
-      'frequency': 'يومياً',
+      'name': 'med_aspirin'.tr(),
+      'dose': 'dose_mg'.tr(args: ['100']),
+      'time': '08:00 ' + 'am'.tr(),
+      'frequency': 'daily'.tr(),
       'color': Colors.blue,
-      'userName': 'أحمد محمد',
+      'userName': 'example_family_member_2'.tr(),
       'entryDateTime': DateTime(2026, 4, 1, 8, 30),
     },
     {
       'id': '2',
-      'name': 'ميتفورمين',
-      'dose': '500 ملغ',
-      'time': '12:00 ظهراً',
-      'frequency': 'يومياً',
+      'name': 'med_metformin'.tr(),
+      'dose': 'dose_mg'.tr(args: ['500']),
+      'time': '12:00 ' + 'pm'.tr(),
+      'frequency': 'daily'.tr(),
       'color': Colors.purple,
-      'userName': 'د. سارة علي',
+      'userName': 'Dr. Sarah Ali',
       'entryDateTime': DateTime(2026, 3, 28, 14, 15),
     },
     {
       'id': '3',
-      'name': 'فيتامين د',
-      'dose': '1000 وحدة',
-      'time': '09:00 صباحاً',
-      'frequency': 'يومياً',
+      'name': 'med_vitamin_d'.tr(),
+      'dose': 'dose_units'.tr(args: ['1000']),
+      'time': '09:00 ' + 'am'.tr(),
+      'frequency': 'daily'.tr(),
       'color': Colors.orange,
-      'userName': 'أحمد محمد',
+      'userName': 'example_family_member_2'.tr(),
       'entryDateTime': DateTime(2026, 4, 5, 10, 0),
     },
     {
       'id': '4',
-      'name': 'نوبين',
-      'dose': '10 ملغ',
+      'name': 'med_nubain'.tr(),
+      'dose': 'dose_mg'.tr(args: ['10']),
       'time': '12:33',
-      'frequency': 'ثلاث مرات يومياً',
+      'frequency': 'three_times_daily'.tr(),
       'color': Colors.red,
-      'userName': 'أحمد محمد',
+      'userName': 'example_family_member_2'.tr(),
       'entryDateTime': DateTime(2026, 4, 7, 12, 33),
     },
     {
       'id': '5',
-      'name': 'فيتامين سي',
-      'dose': '1000 ملغ',
-      'time': '09:00 صباحاً',
-      'frequency': 'يومياً',
+      'name': 'med_vitamin_c'.tr(),
+      'dose': 'dose_mg'.tr(args: ['1000']),
+      'time': '09:00 ' + 'am'.tr(),
+      'frequency': 'daily'.tr(),
       'color': Colors.green,
-      'userName': 'محمد أحمد',
+      'userName': 'example_name'.tr(),
       'entryDateTime': DateTime(2026, 4, 8, 9, 0),
     },
     {
       'id': '6',
-      'name': 'أوميجا 3',
-      'dose': 'كبسولة واحدة',
-      'time': '02:00 ظهراً',
-      'frequency': 'يومياً',
+      'name': 'med_omega3'.tr(),
+      'dose': 'dose_capsule'.tr(),
+      'time': '02:00 ' + 'pm'.tr(),
+      'frequency': 'daily'.tr(),
       'color': Colors.amber,
-      'userName': 'محمد أحمد',
+      'userName': 'example_name'.tr(),
       'entryDateTime': DateTime(2026, 4, 8, 14, 0),
     },
   ];
@@ -115,27 +117,24 @@ class _MedicationScreenState extends State<MedicationScreen> {
   void _deleteMedication(Map<String, dynamic> med) {
     showDialog(
       context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: const Text("تأكيد الحذف"),
-          content: const Text("هل أنت متأكد من حذف هذا الدواء؟"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("إلغاء", style: TextStyle(color: Colors.grey)),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _medications.removeWhere((m) => m['id'] == med['id'] || m == med);
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("حذف", style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        ),
+      builder: (context) => AlertDialog(
+        title: Text("confirm_delete".tr()),
+        content: Text("confirm_delete_msg".tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("cancel".tr(), style: const TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _medications.removeWhere((m) => m['id'] == med['id'] || m == med);
+              });
+              Navigator.pop(context);
+            },
+            child: Text("delete".tr(), style: const TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -144,7 +143,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: "Add Medication",
+      barrierLabel: "add_new_med".tr(),
       pageBuilder: (context, anim1, anim2) => Center(
         child: AddMedicationDialog(
           initialMed: initialMed,
@@ -177,86 +176,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  void _showLinkAccountDialog() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: "Link Account",
-      pageBuilder: (context, anim1, anim2) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: 320,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("ربط حساب عائلي", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close, color: Colors.grey, size: 20),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text("أدخل كود العائلة", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: const TextField(
-                      textAlign: TextAlign.left,
-                      decoration: InputDecoration(
-                        hintText: "FAM-2026-XXXXXX",
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1FB6A6),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context); // Close dialog
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال طلب الربط بنجاح')));
-                      },
-                      child: const Text("ربط الحساب", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      transitionDuration: const Duration(milliseconds: 200),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return FadeTransition(opacity: anim1, child: ScaleTransition(scale: anim1, child: child));
-      },
-    );
-  }
-
   void _showUserSelection() {
     showModalBottomSheet(
       context: context,
@@ -264,7 +183,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: Container(
             height: MediaQuery.of(context).size.height * 0.9,
             decoration: const BoxDecoration(
@@ -308,9 +227,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 const SizedBox(height: 20),
                 
                 /// Title
-                const Text("اختر الحساب", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+                Text("select_account".tr(), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
                 const SizedBox(height: 4),
-                const Text("اختر من تريد متابعته", style: TextStyle(fontSize: 16, color: Colors.grey)),
+                Text("choose_who_to_track".tr(), style: const TextStyle(fontSize: 16, color: Colors.grey)),
                 
                 const SizedBox(height: 32),
                 
@@ -334,7 +253,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text("أنت مسجل الدخول كـ", style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
+                                  Text("you_are_logged_in_as".tr(), style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
                                     const SizedBox(height: 6),
                                     Text(_loggedInUser, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
                                     const SizedBox(height: 4),
@@ -357,7 +276,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         ),
                         
                         const SizedBox(height: 32),
-                        const Text("الحسابات المتاحة", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+                        Text("available_accounts".tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
                         const SizedBox(height: 16),
                         
                         /// Accounts List
@@ -471,7 +390,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             onPressed: () => Navigator.pop(context),
-                            child: const Text("العودة للملف الشخصي", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: Text("return_to_profile".tr(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(height: 40),
@@ -496,7 +415,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     bool isPersonal = currentUserObj['type'] == 'personal';
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
         body: SafeArea(
@@ -534,7 +453,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(isPersonal ? "الحساب الشخصي" : "أنت تتابع", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              Text(isPersonal ? "personal_account".tr() : "you_are_tracking".tr(), style: const TextStyle(color: Colors.white70, fontSize: 13)),
                               Text(_currentUser, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
@@ -548,7 +467,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           ),
-                          child: const Text("تبديل الحساب", style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text("switch_account_btn".tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                         )
                       ]
                     )
@@ -563,7 +482,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                        Text(
-                        isPersonal ? "الأدوية والمكملات" : "أدوية $_currentUser",
+                        isPersonal ? "medications_title".tr() : "user_medications_title".tr(args: [_currentUser]),
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -571,10 +490,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         ),
                       ),
                        const SizedBox(height: 4),
-                       const Text(
-                        "تتبع مواعيد أدويتك ومكملاتك الغذائية",
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                        textAlign: TextAlign.right,
+                       Text(
+                        "medications_subtitle".tr(),
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                        textAlign: TextAlign.start,
                       ),
                     ],
                   ),
@@ -607,14 +526,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     onPressed: () {
                       _openAddMedication(context);
                     },
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add, size: 22),
+                        const Icon(Icons.add, size: 22),
                         SizedBox(width: 8),
                         Text(
-                          "إضافة دواء جديد",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          "add_new_med".tr(),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -626,10 +545,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 /// 🔥 القائمة
                 Expanded(
                   child: filteredMeds.isEmpty 
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          "لا توجد أدوية",
-                          style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
+                          "no_meds".tr(),
+                          style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
                       )
                     : ListView.builder(
@@ -733,7 +652,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                   const Icon(Icons.person_outline, size: 14, color: Color(0xFF9CA3AF)),
                                   const SizedBox(width: 4),
                                   Text(
-                                    med['userName'] ?? "مجهول",
+                                    med['userName'] ?? "anonymous_user".tr(),
                                     style: const TextStyle(
                                       color: Color(0xFF9CA3AF),
                                       fontSize: 11,
@@ -822,7 +741,7 @@ class AddMedicationDialog extends StatefulWidget {
 }
 
 class _AddMedicationDialogState extends State<AddMedicationDialog> {
-  String frequency = "يومياً";
+  String frequency = "daily";
   TimeOfDay? selectedTime;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _doseController = TextEditingController();
@@ -833,6 +752,17 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
 
   final ImagePicker _picker = ImagePicker();
 
+  String _mapFrequencyToKey(String? freq) {
+    if (freq == null) return "daily";
+    final f = freq.toLowerCase().trim();
+    if (f == "daily" || f == "يومياً" || f == "يوميا") return "daily";
+    if (f == "twice_daily" || f == "مرتين يومياً" || f == "مرتين يوميا") return "twice_daily";
+    if (f == "three_times_daily" || f == "ثلاث مرات يومياً" || f == "ثلاث مرات يوميا") return "three_times_daily";
+    if (f == "weekly" || f == "أسبوعياً" || f == "اسبوعيا") return "weekly";
+    if (f == "monthly" || f == "شهرياً" || f == "شهريا") return "monthly";
+    return "daily"; // Default
+  }
+
   @override
   void initState() {
     super.initState();
@@ -840,7 +770,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
       _nameController.text = widget.initialMed!['name'] ?? '';
       _doseController.text = widget.initialMed!['dose'] ?? '';
       _userNameController.text = widget.initialMed!['userName'] ?? '';
-      frequency = widget.initialMed!['frequency'] ?? "يومياً";
+      frequency = _mapFrequencyToKey(widget.initialMed!['frequency']);
       _entryDateTime = widget.initialMed!['entryDateTime'] is DateTime ? widget.initialMed!['entryDateTime'] : DateTime.now();
       
       try {
@@ -946,7 +876,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
             children: [
               _sourceOption(
                 icon: Icons.insert_photo_outlined,
-                label: "مكتبة الصور",
+                label: "image_library".tr(),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -954,7 +884,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               _sourceOption(
                 icon: Icons.camera_alt_outlined,
-                label: "التقاط صورة",
+                label: "capture_image".tr(),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
@@ -962,7 +892,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               _sourceOption(
                 icon: Icons.folder_open_outlined,
-                label: "اختيار ملف",
+                label: "choose_file".tr(),
                 onTap: () {
                   Navigator.pop(context);
                   _pickFile();
@@ -1055,7 +985,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                     constraints: const BoxConstraints(),
                   ),
                   Text(
-                    widget.initialMed != null ? "تعديل الدواء" : "إضافة دواء جديد",
+                    widget.initialMed != null ? "edit_medication".tr() : "add_new_medication".tr(),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -1067,17 +997,17 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               const SizedBox(height: 24),
 
-              _fieldLabel("اسم الدواء"),
+              _fieldLabel("med_name".tr()),
               const SizedBox(height: 8),
-              _textField(_nameController, "مثال: أسبرين"),
+              _textField(_nameController, "example_med_hint".tr()),
               const SizedBox(height: 20),
 
-              _fieldLabel("الجرعة"),
+              _fieldLabel("dose".tr()),
               const SizedBox(height: 8),
-              _textField(_doseController, "مثال: 100 ملغ"),
+              _textField(_doseController, "example_dose_hint".tr()),
               const SizedBox(height: 20),
 
-              _fieldLabel("الوقت"),
+              _fieldLabel("time".tr()),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickTime,
@@ -1105,7 +1035,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               const SizedBox(height: 20),
 
-              _fieldLabel("التكرار"),
+              _fieldLabel("frequency".tr()),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -1120,12 +1050,12 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                   underline: const SizedBox(),
                   icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF9CA3AF)),
                   alignment: Alignment.centerRight,
-                  items: ["يومياً", "مرتين يومياً", "ثلات مرات يومياً", "أسبوعيا ", "شهرياً"]
+                  items: ["daily", "twice_daily", "three_times_daily", "weekly", "monthly"]
                       .map((String val) => DropdownMenuItem(
                             value: val,
                             child: Align(
                               alignment: Alignment.centerRight,
-                              child: Text(val, style: const TextStyle(color: Color(0xFF1F2937))),
+                              child: Text(val.tr(), style: const TextStyle(color: Color(0xFF1F2937))),
                             ),
                           ))
                       .toList(),
@@ -1134,12 +1064,12 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               const SizedBox(height: 20),
 
-              _fieldLabel("اسم الشخص المُدخل"),
+              _fieldLabel("person_name".tr()),
               const SizedBox(height: 8),
-              _textField(_userNameController, "مثال: أحمد محمد"),
+              _textField(_userNameController, "example_user_hint".tr()),
               const SizedBox(height: 20),
 
-              _fieldLabel("تاريخ ووقت الإدخال"),
+              _fieldLabel("entry_date_time".tr()),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickEntryDateTime,
@@ -1153,8 +1083,8 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        "${_entryDateTime.year}/${_entryDateTime.month.toString().padLeft(2, '0')}/${_entryDateTime.day.toString().padLeft(2, '0')} , ${_entryDateTime.hour > 12 ? _entryDateTime.hour - 12 : _entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')} ${_entryDateTime.hour >= 12 ? 'م' : 'ص'}",
+                       Text(
+                        "${_entryDateTime.year}/${_entryDateTime.month.toString().padLeft(2, '0')}/${_entryDateTime.day.toString().padLeft(2, '0')} , ${_entryDateTime.hour > 12 ? _entryDateTime.hour - 12 : _entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')} ${_entryDateTime.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
                         style: const TextStyle(color: Color(0xFF1F2937), fontSize: 16),
                       ),
                       const Spacer(),
@@ -1165,7 +1095,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               const SizedBox(height: 20),
 
-              _fieldLabel("صورة الدواء"),
+              _fieldLabel("med_image".tr()),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _showImageSourceDialog,
@@ -1181,10 +1111,10 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                     children: [
                       Text(
                         _selectedImage != null
-                            ? "تم اختيار صورة"
+                            ? "image_selected".tr()
                             : _fileName != null
-                                ? "تم اختيار ملف"
-                                : "أضف صورة",
+                                ? "file_selected".tr()
+                                : "add_image".tr(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -1214,7 +1144,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                   onPressed: () {
                     if (_nameController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("يرجى إدخال اسم الدواء")),
+                        SnackBar(content: Text("enter_med_name_error".tr())),
                       );
                       return;
                     }
@@ -1223,7 +1153,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                       'dose': _doseController.text,
                       'time': selectedTime == null
                           ? "00:00"
-                          : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'م' : 'ص'}",
+                          : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
                       'frequency': frequency,
                       'userName': _userNameController.text.isNotEmpty ? _userNameController.text : "أحمد محمد",
                       'entryDateTime': _entryDateTime,
@@ -1233,7 +1163,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                     Navigator.pop(context);
                   },
                   child: Text(
-                    widget.initialMed != null ? "حفظ التعديلات" : "إضافة",
+                    widget.initialMed != null ? "save_btn".tr() : "save_btn".tr(),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -1376,14 +1306,14 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        "${_selectedTime.hour > 12 ? _selectedTime.hour - 12 : _selectedTime.hour == 0 ? 12 : _selectedTime.hour}:${_selectedTime.minute.toString().padLeft(2, '0')} ${_selectedTime.hour >= 12 ? 'م' : 'ص'}",
+                        "${_selectedTime.hour > 12 ? _selectedTime.hour - 12 : _selectedTime.hour == 0 ? 12 : _selectedTime.hour}:${_selectedTime.minute.toString().padLeft(2, '0')} ${_selectedTime.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
                         style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
                   ),
-                  const Text(
-                    "الوقت",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  Text(
+                    "time".tr(),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
               ),
@@ -1422,9 +1352,9 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                       _selectedTime = TimeOfDay.now();
                     });
                   },
-                  child: const Text(
-                    "إعادة تعيين",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  child: Text(
+                    "reset".tr(),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ],

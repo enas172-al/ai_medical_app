@@ -1,5 +1,7 @@
+import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'analysis_detail_screen.dart';
+
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -8,63 +10,63 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final results = [
       {
-        "name": "السكر الصائم",
+        "name": "fasting_sugar".tr(),
         "value": "95",
         "unit": "mg/dL",
         "status": "normal",
         "icon": Icons.bolt,
-        "interpretation": "مستوى السكر في الدم ضمن النطاق الطبيعي للصائم.",
-        "advice": "حافظ على نظامك الغذائي المتوازن."
+        "interpretation": "fasting_sugar_interp".tr(),
+        "advice": "balanced_diet_advice".tr()
       },
       {
-        "name": "الهيموجلوبين",
+        "name": "hemoglobin".tr(),
         "value": "15.2",
         "unit": "g/dL",
         "status": "normal",
         "icon": Icons.water_drop_outlined,
-        "interpretation": "نسبة الهيموجلوبين جيدة جداً، مما يشير إلى عدم وجود فقر دم.",
-        "advice": "استمر في تناول الأغذية الغنية بالحديد."
+        "interpretation": "hemoglobin_interp".tr(),
+        "advice": "iron_foods_advice".tr()
       },
       {
-        "name": "الكوليسترول",
+        "name": "cholesterol".tr(),
         "value": "220",
         "unit": "mg/dL",
         "status": "high",
         "icon": Icons.warning_amber_rounded,
-        "interpretation": "ارتفاع بسيط في مستوى الكوليسترول الكلي.",
-        "advice": "ينصح بتقليل الدهون المشبعة وممارسة الرياضة ومراجعة الطبيب."
+        "interpretation": "cholesterol_interp".tr(),
+        "advice": "reduce_fat_advice".tr()
       },
       {
-        "name": "فيتامين D",
+        "name": "vitamin_d".tr(),
         "value": "18",
         "unit": "ng/mL",
         "status": "low",
         "icon": Icons.wb_sunny_outlined,
-        "interpretation": "نقص في مستويات فيتامين د.",
-        "advice": "ينصح بالتعرض للشمس وتناول المكملات الغذائية بعد استشارة الطبيب."
+        "interpretation": "vitamin_d_interp".tr(),
+        "advice": "sun_exposure_advice".tr()
       },
       {
-        "name": "خلايا الدم البيضاء",
+        "name": "wbc".tr(),
         "value": "7.5",
         "unit": "x10^9/L",
         "status": "normal",
         "icon": Icons.biotech_outlined,
-        "interpretation": "عدد خلايا الدم البيضاء سليم، مما يشير إلى عدم وجود التهابات حالية.",
-        "advice": "جهاز المناعة يعمل بشكل جيد."
+        "interpretation": "wbc_interp".tr(),
+        "advice": "immune_system_good_advice".tr()
       },
       {
-        "name": "ضغط الدم",
+        "name": "blood_pressure".tr(),
         "value": "120/80",
         "unit": "mmHg",
         "status": "normal",
         "icon": Icons.water_drop_outlined,
-        "interpretation": "ضغط الدم ضمن المعدل المثالي.",
-        "advice": "حافظ على ممارسة النشاط البدني وادارة القلق."
+        "interpretation": "bp_interp".tr(),
+        "advice": "exercise_stress_advice".tr()
       }
     ];
 
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F9FB),
         body: SafeArea(
@@ -83,7 +85,7 @@ class ResultScreen extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           "labby",
                           style: TextStyle(
                             fontSize: 20,
@@ -101,11 +103,11 @@ class ResultScreen extends StatelessWidget {
                 const SizedBox(height: 15),
 
                 ///  Title
-                const Center(
+                Center(
                   child: Column(
                     children: [
                       Text(
-                        "نتائج التحاليل",
+                        "analysis_results".tr(),
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -123,11 +125,11 @@ class ResultScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildActionButton("حفظ", Icons.save_alt_outlined),
+                      child: _buildActionButton("save_btn".tr(), Icons.save_alt_outlined),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
-                      child: _buildActionButton("مشاركة", Icons.share_outlined),
+                      child: _buildActionButton("share_btn".tr(), Icons.share_outlined),
                     ),
                   ],
                 ),
@@ -161,8 +163,8 @@ class ResultScreen extends StatelessWidget {
                     color: const Color(0xFF1FB6A6).withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
-                    "💡 ملاحظة: هذه النتائج تم تحليلها بواسطة الذكاء الاصطناعي، يرجى مراجعة الطبيب المختص للحصول على تقييم دقيق ومتابعة طبية.",
+                  child: Text(
+                    "ai_analysis_note".tr(),
                     textAlign: TextAlign.right,
                     style: TextStyle(
                       color: Color(0xFF1FB6A6),
@@ -230,11 +232,11 @@ class ResultScreen extends StatelessWidget {
   String _getStatusText(String status) {
     switch (status) {
       case "high":
-        return "مرتفع";
+        return "high_status".tr();
       case "low":
-        return "منخفض";
+        return "low_status".tr();
       default:
-        return "طبيعي";
+        return "normal_status".tr();
     }
   }
 
@@ -321,11 +323,11 @@ class ResultScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  title == "السكر الصائم" ? "Glucose" : 
-                  title == "الهيموجلوبين" ? "Hemoglobin" :
-                  title == "الكوليسترول" ? "Cholesterol" :
-                  title == "فيتامين D" ? "Vitamin D" : 
-                  title == "ضغط الدم" ? "Blood Pressure" : "White Blood Cells",
+                  title == "fasting_sugar".tr() ? "Glucose" : 
+                  title == "hemoglobin".tr() ? "Hemoglobin" :
+                  title == "cholesterol".tr() ? "Cholesterol" :
+                  title == "vitamin_d".tr() ? "Vitamin D" : 
+                  title == "blood_pressure".tr() ? "Blood Pressure" : "White Blood Cells",
                   style: const TextStyle(color: Colors.grey, fontSize: 11),
                 ),
               ],

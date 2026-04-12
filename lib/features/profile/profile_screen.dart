@@ -19,20 +19,20 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _currentUser = 'محمد أحمد';
   String _loggedInUser = 'محمد أحمد';
-  String _loggedInUserRole = 'مرافق';
+  String _loggedInUserRole = 'companion_role'.tr();
 
   final List<Map<String, dynamic>> _accounts = [
     {
-      'name': 'أحمد محمد',
+      'name': 'example_family_member_2'.tr(),
       'type': 'dependent',
-      'age': '65 سنة',
-      'tag': 'عضو في العائلة',
+      'age': 'years_old'.tr(args: ['65']),
+      'tag': 'family_member_tag'.tr(),
     },
     {
-      'name': 'محمد أحمد',
+      'name': 'example_name'.tr(),
       'type': 'personal',
-      'age': '35 سنة',
-      'tag': 'حسابي',
+      'age': 'years_old'.tr(args: ['35']),
+      'tag': 'my_account_tag'.tr(),
     },
   ];
 
@@ -95,9 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 buildCard(
                   title: "personal_info".tr(),
                   children: [
-                    infoRow("full_name".tr(), "أحمد محمد علي", Icons.person, Colors.teal),
+                    infoRow("full_name".tr(), "example_name".tr(), Icons.person, Colors.teal),
                     infoRow("email".tr(), "ahmed@example.com", Icons.email, Colors.blue),
-                    infoRow("date_of_birth".tr(), "15 يناير 1990", Icons.calendar_today, Colors.purple),
+                    infoRow("date_of_birth".tr(), "example_dob".tr(), Icons.calendar_today, Colors.purple),
                     infoRow("gender".tr(), "male".tr(), Icons.wc, Colors.pink),
                   ],
                 ),
@@ -110,8 +110,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     familyCode(context),
                     const SizedBox(height: 12),
-                    familyMember("سارة أحمد", "wife".tr()),
-                    familyMember("محمد أحمد", "son".tr()),
+                    familyMember("example_family_member_1".tr(), "wife".tr()),
+                    familyMember("example_family_member_2".tr(), "son".tr()),
                     const SizedBox(height: 12),
                     addFamilyButton(context),
                   ],
@@ -294,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(width: 12),
               GestureDetector(
                 onTap: () {
-                  Share.share('مرحباً، للربط بحسابي في تطبيق Labby، يرجى استخدام الرمز العائلي التالي:\n\n$code');
+                  Share.share("share_profile_msg".tr(args: [code]));
                 },
                 child: const Icon(Icons.share, color: Color(0xFF1FB6A6)),
               ),

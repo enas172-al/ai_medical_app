@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'user_guide_screen.dart';
@@ -20,8 +22,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         backgroundColor: Colors.transparent,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
-          "المساعدة والدعم",
+        title: Text(
+          "help_support_title".tr(),
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -30,7 +32,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -38,7 +40,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -64,11 +66,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   ],
                 ),
                 child: Column(
-                  children: const [
+                  children: [
                     Icon(Icons.help_outline, color: Colors.white, size: 56),
                     SizedBox(height: 12),
                     Text(
-                      "كيف يمكننا مساعدتك؟",
+                      "how_can_we_help".tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -77,7 +79,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      "نحن هنا لدعمك في أي وقت",
+                      "here_to_support".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -103,13 +105,13 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     )
                   ],
                 ),
-                child: const TextField(
+                child: TextField(
                   decoration: InputDecoration(
-                    hintText: "...ابحث عن موضوع مساعدة",
-                    hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    hintText: "search_help_topic".tr(),
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -133,8 +135,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "الدعم",
+                    Text(
+                      "support".tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -143,7 +145,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     const SizedBox(height: 16),
 
                     _buildContactRow(
-                      "البريد الإلكتروني",
+                      "email_contact".tr(),
                       "support@labby.app",
                       Icons.email_outlined,
                       Colors.blueAccent,
@@ -156,8 +158,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                           await launchUrl(url);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('تعذر فتح تطبيق البريد الإلكتروني'),
+                            SnackBar(
+                              content: Text("could_not_open_email".tr()),
                             ),
                           );
                         }
@@ -167,7 +169,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
 
                     _buildContactRow(
-                      "الاتصال الهاتفي",
+                      "phone_contact".tr(),
                       "+966 50 123 4567",
                       Icons.call_outlined,
                       Colors.purpleAccent,
@@ -178,8 +180,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                           await launchUrl(url);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('تعذر فتح تطبيق الاتصال'),
+                            SnackBar(
+                              content: Text("could_not_open_phone".tr()),
                             ),
                           );
                         }
@@ -206,9 +208,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      "الأسئلة الشائعة",
+                      "faq".tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -216,28 +218,28 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     ),
                     SizedBox(height: 16),
                     FAQItem(
-                      question: "كيف أقوم بتصوير التحاليل الطبية؟",
-                      answer: "اضغط على أيقونة الكاميرا في الصفحة الرئيسية، ثم قم بتصوير التحليل بوضوح. سيقوم التطبيق بتحليل النتائج تلقائياً وعرضها لك مع التفسيرات.",
+                      question: "faq_q1".tr(),
+                      answer: "faq_a1".tr(),
                     ),
                     FAQItem(
-                      question: "هل بياناتي الطبية آمنة؟",
-                      answer: "نعم، جميع بياناتك مشفرة بأعلى معايير الأمان ولا يتم مشاركتها مع أي طرف ثالث. نحن نلتزم بمعايير خصوصية البيانات الصحية HIPAA.",
+                      question: "faq_q2".tr(),
+                      answer: "faq_a2".tr(),
                     ),
                     FAQItem(
-                      question: "كيف أربط حساب أحد أفراد عائلتي؟",
-                      answer: "من صفحة الملف الشخصي، انقر على 'نظام العائلة' ثم 'ربط حساب عائلي'. شارك الكود مع أفراد عائلتك ليتمكنوا من الربط بحسابك.",
+                      question: "faq_q3".tr(),
+                      answer: "faq_a3".tr(),
                     ),
                     FAQItem(
-                      question: "هل يمكنني تصدير نتائج تحاليلي؟",
-                      answer: "نعم، يمكنك تصدير جميع نتائجك بصيغة PDF. من صفحة السجل، اضغط على أيقونة التصدير في أعلى الصفحة.",
+                      question: "faq_q4".tr(),
+                      answer: "faq_a4".tr(),
                     ),
                     FAQItem(
-                      question: "كيف أضيف تذكير للأدوية؟",
-                      answer: "من قسم الأدوية في الشريط السفلي، اضغط على زر إضافة دواء جديد. أدخل تفاصيل الدواء والمواعيد، وسيقوم التطبيق بتذكيرك تلقائياً.",
+                      question: "faq_q5".tr(),
+                      answer: "faq_a5".tr(),
                     ),
                     FAQItem(
-                      question: "ما هي دقة تحليل النتائج؟",
-                      answer: "نستخدم تقنية الذكاء الاصطناعي المتقدمة بدقة تصل إلى 95%. ومع ذلك، يجب استشارة الطبيب دائماً للحصول على التشخيص النهائي.",
+                      question: "faq_q6".tr(),
+                      answer: "faq_a6".tr(),
                     ),
                   ],
                 ),
@@ -262,8 +264,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "الدعم والمعلومات",
+                    Text(
+                      "support_information".tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -272,7 +274,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     const SizedBox(height: 16),
                     _buildLinkRow(
                       context,
-                      "دليل المستخدم",
+                      "user_guide".tr(),
                       Icons.article_outlined,
                       onTap: () {
                         Navigator.push(
@@ -286,7 +288,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
                     _buildLinkRow(
                       context, 
-                      "سياسة الخصوصية", 
+                      "privacy_policy".tr(), 
                       Icons.article_outlined,
                       onTap: () {
                         Navigator.push(
@@ -300,7 +302,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
                     _buildLinkRow(
                       context, 
-                      "شروط الاستخدام", 
+                      "terms_of_use".tr(), 
                       Icons.article_outlined,
                       onTap: () {
                         Navigator.push(
@@ -341,29 +343,29 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         color: const Color(0xFF1FB6A6),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text("❤️", style: TextStyle(fontSize: 28)),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      "Labby",
+                    Text(
+                      "app_title".tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      "الإصدار 1.0.0",
+                    Text(
+                      "version_number".tr(),
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "جميع الحقوق محفوظة Labby 2026 ©",
+                    Text(
+                      "all_rights_reserved".tr(),
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
@@ -387,11 +389,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
+                      children: [
                         Text("🚨", style: TextStyle(fontSize: 18)),
                         SizedBox(width: 8),
                         Text(
-                          "حالة طوارئ طبية؟",
+                          "medical_emergency".tr(),
                           style: TextStyle(
                             color: Colors.red,
                             fontSize: 16,
@@ -401,8 +403,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "هذا التطبيق لا يغني عن استشارة الطبيب. في حالة الطوارئ، اتصل فوراً بالإسعاف أو توجه لأقرب مستشفى.",
+                    Text(
+                      "emergency_note".tr(),
                       style: TextStyle(
                         color: Colors.red,
                         fontSize: 13,
@@ -427,9 +429,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        icon: const Text("📞", style: TextStyle(fontSize: 16)),
-                        label: const Text(
-                          "اتصل بالإسعاف 997",
+                        icon: Text("📞", style: TextStyle(fontSize: 16)),
+                        label: Text(
+                          "call_ambulance".tr(),
                           style: TextStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -73,18 +74,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                 const SizedBox(height: 15),
 
-                const Text(
-                  "إعداد الملف الشخصي",
-                  style: TextStyle(
+                Text(
+                  "profile_setup_title".tr(),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1F2937),
                   ),
                 ),
 
-                const Text(
-                  "أكمل معلوماتك الشخصية للبدء",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                Text(
+                  "profile_setup_subtitle".tr(),
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
 
                 const SizedBox(height: 20),
@@ -107,12 +108,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     children: [
                       // الاسم الكامل
                       input(
-                        label: "الاسم الكامل",
-                        hint: "أدخل اسمك الكامل",
+                        label: "full_name_label".tr(),
+                        hint: "full_name_hint".tr(),
                         controller: _nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'الرجاء إدخال الاسم الكامل';
+                            return 'full_name_error'.tr();
                           }
                           return null;
                         },
@@ -123,9 +124,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       // الجنس
                       Align(
                         alignment: Alignment.centerRight,
-                        child: const Text(
-                          "الجنس",
-                          style: TextStyle(
+                        child: Text(
+                          "gender_label".tr(),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF374151),
@@ -137,11 +138,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         children: [
                           Expanded(
                             child: genderButton(
-                              text: "ذكر",
-                              isSelected: _selectedGender == "ذكر",
+                              text: "male".tr(),
+                              isSelected: _selectedGender == "male".tr(),
                               onTap: () {
                                 setState(() {
-                                  _selectedGender = "ذكر";
+                                  _selectedGender = "male".tr();
                                 });
                               },
                             ),
@@ -149,11 +150,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: genderButton(
-                              text: "أنثى",
-                              isSelected: _selectedGender == "أنثى",
+                              text: "female".tr(),
+                              isSelected: _selectedGender == "female".tr(),
                               onTap: () {
                                 setState(() {
-                                  _selectedGender = "أنثى";
+                                  _selectedGender = "female".tr();
                                 });
                               },
                             ),
@@ -166,7 +167,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              "الرجاء اختيار الجنس",
+                              "gender_error".tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.red.shade700,
@@ -179,13 +180,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       // الطول
                       input(
-                        label: "الطول (سم)",
-                        hint: "مثال: 170",
+                        label: "height_label".tr(),
+                        hint: "height_hint".tr(),
                         controller: _heightController,
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'الرجاء إدخال الطول';
+                            return 'height_error'.tr();
                           }
                           return null;
                         },
@@ -195,13 +196,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       // الوزن
                       input(
-                        label: "الوزن (كجم)",
-                        hint: "مثال: 70",
+                        label: "weight_label".tr(),
+                        hint: "weight_hint".tr(),
                         controller: _weightController,
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'الرجاء إدخال الوزن';
+                            return 'weight_error'.tr();
                           }
                           return null;
                         },
@@ -235,9 +236,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         color: Colors.white,
                       ),
                     )
-                        : const Text(
-                      "متابعة",
-                      style: TextStyle(
+                        : Text(
+                      "continue_btn".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),

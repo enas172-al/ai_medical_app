@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../results/view/screens/analysis_detail_screen.dart';
@@ -9,7 +11,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF0F9FA), // Soft blue/teal background
         body: SafeArea(
@@ -91,9 +93,9 @@ class DashboardScreen extends StatelessWidget {
           children: [
             Image.asset('assets/images/logo.png', width: 56, height: 56),
             const SizedBox(height: 12),
-            const Text(
-              "labby",
-              style: TextStyle(
+            Text(
+              "app_title".tr(),
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
@@ -110,9 +112,9 @@ class DashboardScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Center(
         child: Column(
-          children: const [
+          children: [
             Text(
-              "لوحة المتابعة الصحية",
+              "dashboard_title".tr(),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -121,7 +123,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              "مرحباً بك، أحمد محمد",
+              "welcome_ahmed".tr(),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
@@ -141,9 +143,9 @@ class DashboardScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                "الحالة العامة",
+                "general_status".tr(),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 8),
@@ -160,9 +162,9 @@ class DashboardScreen extends StatelessWidget {
               border: Border.all(color: const Color(0xFFFFE58F), width: 1),
             ),
             child: Column(
-              children: const [
+              children: [
                 Text(
-                  "تحتاج انتباه بسيط",
+                  "needs_slight_attention".tr(),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -171,7 +173,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "معظم تحاليلك طبيعية مع ملاحظة بسيطة",
+                  "mostly_normal_some_notes".tr(),
                   style: TextStyle(
                     fontSize: 15,
                     color: Color(0xFF8C8C8C),
@@ -194,9 +196,9 @@ class DashboardScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                "التنبيهات",
+                "alerts".tr(),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 8),
@@ -205,8 +207,8 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildAlertCard(
-            title: "فيتامين D منخفض",
-            subtitle: "ننصح بزيارة الطبيب لتحديد الجرعة المناسبة",
+            title: "vitamin_d_low".tr(),
+            subtitle: "visit_doctor_vitamin_d".tr(),
             icon: Icons.report_problem_outlined,
             color: const Color(0xFFFAAD14),
             bgColor: const Color(0xFFFFF7E6),
@@ -214,8 +216,8 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildAlertCard(
-            title: "موعد تحليل دوري",
-            subtitle: "حان موعد فحص السكر التراكمي الشهري",
+            title: "periodic_analysis".tr(),
+            subtitle: "hba1c_due_date".tr(),
             icon: Icons.info_outline,
             color: const Color(0xFF1890FF),
             bgColor: const Color(0xFFE6F7FF),
@@ -275,9 +277,9 @@ class DashboardScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                "الرسم البياني",
+                "chart".tr(),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 8),
@@ -302,19 +304,19 @@ class DashboardScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    _buildFilterButton("سنة", false),
+                    _buildFilterButton("year".tr(), false),
                     const SizedBox(width: 8),
-                    _buildFilterButton("شهر", false),
+                    _buildFilterButton("month".tr(), false),
                     const SizedBox(width: 8),
-                    _buildFilterButton("أسبوع", true),
+                    _buildFilterButton("week".tr(), true),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
+                  children: [
                     Text(
-                      "مستوى السكر - آخر 7 أيام",
+                      "sugar_level_7days".tr(),
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -331,9 +333,9 @@ class DashboardScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem("القيمة الفعلية", const Color(0xFF1FB6A6), true),
+                    _buildLegendItem("actual_value".tr(), const Color(0xFF1FB6A6), true),
                     const SizedBox(width: 20),
-                    _buildLegendItem("الهدف", Colors.orange, false),
+                    _buildLegendItem("target".tr(), Colors.orange, false),
                   ],
                 ),
               ],
@@ -405,13 +407,13 @@ class DashboardScreen extends StatelessWidget {
             showTitles: true,
             reservedSize: 30,
             getTitlesWidget: (value, meta) {
-              const days = [
-                "الجمعة",
-                "الأربعاء",
-                "الثلاثاء",
-                "الاثنين",
-                "الأحد",
-                "السبت"
+              final days = [
+                "friday".tr(),
+                "wednesday".tr(),
+                "tuesday".tr(),
+                "monday".tr(),
+                "sunday".tr(),
+                "saturday".tr()
               ];
               int index = value.toInt();
               if (index >= 0 && index < days.length) {
@@ -421,7 +423,7 @@ class DashboardScreen extends StatelessWidget {
                         style:
                             const TextStyle(color: Colors.grey, fontSize: 10)));
               }
-              return const Text("");
+              return Text("");
             },
           ),
         ),
@@ -442,7 +444,7 @@ class DashboardScreen extends StatelessWidget {
       maxY: 120,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
+          spots: [
             FlSpot(0, 95),
             FlSpot(1, 105),
             FlSpot(2, 90),
@@ -461,7 +463,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         LineChartBarData(
-          spots: const [
+          spots: [
             FlSpot(0, 80),
             FlSpot(5, 80),
           ],
@@ -484,9 +486,9 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                children: const [
+                children: [
                   Text(
-                    "آخر التحاليل",
+                    "latest_analysis".tr(),
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(width: 8),
@@ -498,9 +500,9 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _buildAnalysisItem(
               context,
-              "السكر الصائم",
+              "fasting_sugar".tr(),
               "2024-04-01",
-              "طبيعي",
+              "normal_status".tr(),
               "95",
               "mg/dL",
               const Color(0xFF52C41A),
@@ -508,9 +510,9 @@ class DashboardScreen extends StatelessWidget {
               Icons.bolt),
           _buildAnalysisItem(
               context,
-              "الكوليسترول",
+              "cholesterol".tr(),
               "2024-03-28",
-              "مرتفع",
+              "high_status".tr(),
               "220",
               "mg/dL",
               const Color(0xFFF5222D),
@@ -518,9 +520,9 @@ class DashboardScreen extends StatelessWidget {
               Icons.warning_amber_rounded),
           _buildAnalysisItem(
               context,
-              "ضغط الدم",
+              "blood_pressure".tr(),
               "2024-04-05",
-              "طبيعي",
+              "normal_status".tr(),
               "120/80",
               "mmHg",
               const Color(0xFF52C41A),
@@ -626,9 +628,9 @@ class DashboardScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                "النصيحة",
+                "advice_section_title".tr(),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 8),
@@ -658,8 +660,8 @@ class DashboardScreen extends StatelessWidget {
                       const Icon(Icons.bolt, color: Colors.white, size: 20),
                     ),
                     const SizedBox(width: 10),
-                    const Text(
-                      "نصيحة اليوم",
+                    Text(
+                      "advice_of_the_day".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -670,8 +672,8 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  "حافظ على شرب 8 أكواب من الماء يومياً لتحسين صحتك العامة وتعزيز وظائف الجسم. الماء ضروري لصحة الكلى وتحسين التركيز!",
+                Text(
+                  "drink_water_advice".tr(),
                   style: TextStyle(
                       fontSize: 14, color: Color(0xFFD48806), height: 1.6),
                   textAlign: TextAlign.right,

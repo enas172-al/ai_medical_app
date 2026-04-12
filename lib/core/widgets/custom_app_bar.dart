@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 import '../../features/notifications/notification_sheet.dart';
 import '../../features/search/search_screen.dart';
 
@@ -19,7 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -53,9 +55,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         filterQuality: FilterQuality.high,
                       ),
                       const SizedBox(width: 20),
-                      const Text(
-                        "labby",
-                        style: TextStyle(
+                      Text(
+                        "app_title".tr(),
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Color(0xFF1F2937),
@@ -97,9 +99,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 20),
 
                   /// النص
-                  const Text(
-                    "labby",
-                    style: TextStyle(
+                  Text(
+                    "app_title".tr(),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                       color: Color(0xFF1F2937),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../profile/profile_setup_screen.dart';
 
 
@@ -99,9 +100,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
 
-                const Text(
-                  "رفيقك في رحلة الصحة",
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                Text(
+                  "your_health_companion".tr(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
 
                 const SizedBox(height: 30),
@@ -119,9 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          "إنشاء حساب جديد",
-                          style: TextStyle(
+                        Text(
+                          "create_new_account".tr(),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1F2937),
@@ -132,15 +133,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         // الاسم الكامل
                         input(
-                          title: "الاسم الكامل",
-                          hint: "أدخل اسمك",
+                          title: "full_name".tr(),
+                          hint: "enter_your_name".tr(),
                           icon: Icons.person_outline,
                           controller: _nameController,
                         ),
 
                         // البريد الإلكتروني
                         input(
-                          title: "البريد الإلكتروني",
+                          title: "email".tr(),
                           hint: "example@email.com",
                           icon: Icons.email_outlined,
                           controller: _emailController,
@@ -148,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         // كلمة المرور
                         input(
-                          title: "كلمة المرور",
+                          title: "password".tr(),
                           hint: "********",
                           icon: Icons.lock_outline,
                           controller: _passwordController,
@@ -163,8 +164,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         // كود العائلة
                         input(
-                          title: "كود العائلة (اختياري)",
-                          hint: "أدخل كود العائلة للربط",
+                          title: "family_code_optional".tr(),
+                          hint: "enter_family_code_to_link".tr(),
                           icon: Icons.family_restroom,
                           controller: _familyCodeController,
                         ),
@@ -182,10 +183,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: const Color(0xFF9CA3AF),
                               ),
                               const SizedBox(width: 6),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  "يمكنك ربط حسابك مع أفراد العائلة لمشاركة النتائج",
-                                  style: TextStyle(
+                                  "link_family_desc".tr(),
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     color: Color(0xFF6B7280),
                                   ),
@@ -221,9 +222,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: Colors.white,
                               ),
                             )
-                                : const Text(
-                              "إنشاء حساب",
-                              style: TextStyle(
+                                : Text(
+                              "create_account_btn".tr(),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -238,9 +239,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onTap: () {
                             Navigator.pushReplacementNamed(context, '/login');
                           },
-                          child: const Text(
-                            "لديك حساب؟ تسجيل الدخول",
-                            style: TextStyle(
+                          child: Text(
+                            "already_have_account_login".tr(),
+                            style: const TextStyle(
                               color: Color(0xFF1FB6A6),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class UserGuideScreen extends StatelessWidget {
   const UserGuideScreen({super.key});
@@ -11,15 +13,15 @@ class UserGuideScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          "دليل المستخدم",
-          style: TextStyle(
+        title: Text(
+          "user_guide_title".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -27,7 +29,7 @@ class UserGuideScreen extends StatelessWidget {
         ),
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -65,19 +67,19 @@ class UserGuideScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      "كيف تستخدم التطبيق؟",
-                      style: TextStyle(
+                    Text(
+                      "how_to_use_app".tr(),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1A4582),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "اتبع هذه الخطوات البسيطة للاستفادة من جميع ميزات التطبيق",
+                    Text(
+                      "follow_simple_steps".tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                         height: 1.5,
@@ -93,46 +95,46 @@ class UserGuideScreen extends StatelessWidget {
               _buildStepCard(
                 icon: Icons.camera_alt_outlined,
                 iconColor: const Color(0xFF1FB6A6),
-                title: "تصوير التحليل",
+                title: "scan_test".tr(),
                 bullets: [
-                  "اضغط على زر تصوير تحليل",
-                  "ضع التقرير داخل الإطار",
-                  "اضغط تحليل",
+                  "click_scan_btn".tr(),
+                  "put_report_in_frame".tr(),
+                  "click_analyze".tr(),
                 ],
               ),
               _buildStepCard(
                 icon: Icons.bar_chart_outlined,
                 iconColor: const Color(0xFF29B6F6),
-                title: "عرض النتائج",
+                title: "view_results".tr(),
                 bullets: [
-                  "يتم عرض القيم مع الحالة (مرتفع / طبيعي / منخفض)",
+                  "values_shown_with_status".tr(),
                 ],
               ),
               _buildStepCard(
                 icon: Icons.calendar_today_outlined,
                 iconColor: Colors.blueAccent,
-                title: "متابعة التاريخ",
+                title: "history_tracking".tr(),
                 bullets: [
-                  "يمكنك متابعة تحاليلك السابقة",
-                  "عرضها في شكل رسوم بيانية",
+                  "track_previous_tests".tr(),
+                  "view_as_charts".tr(),
                 ],
               ),
               _buildStepCard(
                 icon: Icons.medication_outlined,
                 iconColor: Colors.purpleAccent,
-                title: "إدارة الأدوية",
+                title: "manage_medications".tr(),
                 bullets: [
-                  "إضافة أدوية",
-                  "تحديد مواعيد التذكير",
+                  "add_medications".tr(),
+                  "set_reminders".tr(),
                 ],
               ),
               _buildStepCard(
                 icon: Icons.group_outlined,
                 iconColor: Colors.pinkAccent,
-                title: "ربط حساب عائلي",
+                title: "link_family_account".tr(),
                 bullets: [
-                  "يمكنك ربط حساب أحد أفراد العائلة",
-                  "متابعة نتائجه الصحية",
+                  "can_link_family_member".tr(),
+                  "track_health_results".tr(),
                 ],
               ),
 
@@ -159,12 +161,12 @@ class UserGuideScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Icon(Icons.lightbulb_outline, color: Colors.yellow, size: 24),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.lightbulb_outline, color: Colors.yellow, size: 24),
+                        const SizedBox(width: 8),
                         Text(
-                          "نصيحة مهمة",
-                          style: TextStyle(
+                          "important_tip".tr(),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -173,9 +175,9 @@ class UserGuideScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "للحصول على أفضل النتائج، تأكد من وضوح صورة التحليل والإضاءة الجيدة عند التصوير. استخدم خلفية بلون موحد لتسهيل عملية التحليل.",
-                      style: TextStyle(
+                    Text(
+                      "best_results_tip_desc".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         height: 1.6,
