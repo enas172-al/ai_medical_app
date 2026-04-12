@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -67,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               // اسم التطبيق
               Text(
-                "labby",
+                "labby_title".tr(),
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -79,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               // الشعار
               Text(
-                "رفيقك في رحلة الصحة",
+                "app_slogan".tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white70,
