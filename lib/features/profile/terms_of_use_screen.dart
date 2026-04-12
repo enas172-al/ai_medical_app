@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 
 class TermsOfUseScreen extends StatelessWidget {
   const TermsOfUseScreen({super.key});
@@ -12,25 +12,20 @@ class TermsOfUseScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
-          "شروط الاستخدام",
-          style: TextStyle(
+        title: Text(
+          "terms_of_use_title".tr(),
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        leading: Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Directionality(
-        textDirection: ui.TextDirection.rtl,
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
@@ -43,7 +38,7 @@ class TermsOfUseScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -67,19 +62,19 @@ class TermsOfUseScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      "شروط استخدام التطبيق",
-                      style: TextStyle(
+                    Text(
+                      "terms_subtitle".tr(),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1A4582),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "يرجى قراءة هذه الشروط بعناية قبل استخدام التطبيق",
+                    Text(
+                      "terms_read_carefully".tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                         height: 1.5,
@@ -98,12 +93,12 @@ class TermsOfUseScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF0F6FF),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withOpacity(0.1)),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
                 ),
-                child: const Text(
-                  "آخر تحديث: 1 أبريل 2026",
+                child: Text(
+                  "last_update_date".tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.blueAccent,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -116,8 +111,8 @@ class TermsOfUseScreen extends StatelessWidget {
               _buildInfoCard(
                 icon: Icons.person_outline,
                 iconColor: const Color(0xFF1FB6A6),
-                title: "الاستخدام",
-                text: "التطبيق مخصص لمساعدة المستخدم في فهم نتائج التحاليل الطبية وتتبعها بسهولة. يجب استخدام التطبيق للأغراض الشخصية فقط.",
+                title: "usage_title".tr(),
+                text: "usage_text".tr(),
               ),
 
 
@@ -127,7 +122,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF7F7),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.02),
@@ -142,7 +137,7 @@ class TermsOfUseScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.medical_services_outlined, color: Colors.red),
@@ -152,27 +147,27 @@ class TermsOfUseScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "تنبيه طبي مهم",
-                            style: TextStyle(
+                          Text(
+                            "important_medical_warning".tr(),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.red,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            "التطبيق لا يعتبر بديلاً عن الطبيب المختص.",
-                            style: TextStyle(
+                          Text(
+                            "not_a_doctor_replacement".tr(),
+                            style: const TextStyle(
                               fontSize: 13,
                               color: Colors.black87,
                               height: 1.5,
                             ),
                           ),
                           const SizedBox(height: 12),
-                          _buildDotBullet("يجب استشارة طبيب مختص في جميع الحالات الطبية", color: Colors.red),
-                          _buildDotBullet("التطبيق يقدم معلومات إرشادية فقط", color: Colors.red),
-                          _buildDotBullet("لا يغني التطبيق عن الفحص الطبي الشامل", color: Colors.red),
+                          _buildDotBullet("consult_doctor_rule".tr(), color: Colors.red),
+                          _buildDotBullet("guidance_only_rule".tr(), color: Colors.red),
+                          _buildDotBullet("not_comprehensive_rule".tr(), color: Colors.red),
                         ],
                       ),
                     ),
@@ -184,20 +179,20 @@ class TermsOfUseScreen extends StatelessWidget {
               _buildInfoCard(
                 icon: Icons.warning_amber_rounded,
                 iconColor: Colors.orangeAccent,
-                title: "الدقة",
-                text: "يتم تحليل النتائج باستخدام تقنيات الذكاء الاصطناعي المتقدمة، ولكن لا نضمن دقة 100%. قد تحدث أخطاء في قراءة أو تفسير البيانات.",
+                title: "accuracy_title".tr(),
+                text: "accuracy_text".tr(),
               ),
 
 
               _buildInfoCard(
                 icon: Icons.balance,
                 iconColor: Colors.blueAccent,
-                title: "المسؤولية",
-                text: "المستخدم مسؤول كلياً عن استخدام المعلومات المقدمة من التطبيق.",
+                title: "responsibility_title".tr(),
+                text: "responsibility_text".tr(),
                 bullets: [
-                  "لا نتحمل مسؤولية أي قرارات طبية تتخذ بناءً على التطبيق",
-                  "يجب مراجعة الطبيب قبل اتخاذ أي إجراء طبي",
-                  "المستخدم مسؤول عن دقة البيانات التي يدخلها",
+                  "no_liability_rule".tr(),
+                  "medical_review_needed_rule".tr(),
+                  "data_accuracy_rule".tr(),
                 ],
               ),
 
@@ -205,8 +200,8 @@ class TermsOfUseScreen extends StatelessWidget {
               _buildInfoCard(
                 icon: Icons.autorenew_outlined,
                 iconColor: Colors.purpleAccent,
-                title: "التعديلات",
-                text: "نحتفظ بالحق في تحديث شروط الاستخدام في أي وقت. سيتم إشعار المستخدمين بأي تغييرات جوهرية.",
+                title: "modifications_title".tr(),
+                text: "modifications_text".tr(),
               ),
 
               // Agreement 
@@ -219,7 +214,7 @@ class TermsOfUseScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -228,17 +223,17 @@ class TermsOfUseScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "بقبولك لهذه الشروط:",
-                      style: TextStyle(
+                    Text(
+                      "by_accepting".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildDotBullet("تقر بأنك قرأت وفهمت جميع الشروط والأحكام"),
-                    _buildDotBullet("توافق على استخدام التطبيق وفقاً لهذه الشروط"),
-                    _buildDotBullet("تتحمل المسؤولية الكاملة عن استخدامك للتطبيق"),
+                    _buildDotBullet("acknowledge_terms_rule".tr()),
+                    _buildDotBullet("agree_usage_rule".tr()),
+                    _buildDotBullet("full_responsibility_rule".tr()),
                   ],
                 ),
               ),
@@ -250,23 +245,23 @@ class TermsOfUseScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF0F0),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      "تنبيه هام ⚠️",
-                      style: TextStyle(
+                      "important_alert".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
-                      "هذا التطبيق هو أداة مساعدة فقط ولا يعتبر تشخيصاً طبياً. في حالة وجود أي أعراض أو قلق بشأن صحتك، يجب عليك استشارة طبيب مختص فوراً.",
-                      style: TextStyle(
+                      "not_medical_diagnosis".tr(),
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.red,
                         height: 1.6,
@@ -278,7 +273,6 @@ class TermsOfUseScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Support Banner
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -291,7 +285,7 @@ class TermsOfUseScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1FB6A6).withOpacity(0.3),
+                      color: const Color(0xFF1FB6A6).withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -300,18 +294,18 @@ class TermsOfUseScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "أسئلة حول الشروط؟",
-                      style: TextStyle(
+                    Text(
+                      "questions_about_terms".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "إذا كان لديك أي استفسار حول شروط الاستخدام، تواصل مع فريق الدعم",
-                      style: TextStyle(
+                    Text(
+                      "contact_support_msg".tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         height: 1.5,
@@ -331,9 +325,9 @@ class TermsOfUseScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          "تواصل معنا",
-                          style: TextStyle(
+                        child: Text(
+                          "contact_us".tr(),
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -348,7 +342,6 @@ class TermsOfUseScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -392,7 +385,7 @@ class TermsOfUseScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -404,7 +397,7 @@ class TermsOfUseScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: iconColor),
