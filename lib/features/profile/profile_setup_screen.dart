@@ -30,14 +30,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _isLoading = true;
       });
 
-      // هنا تقدر تحفظ البيانات في API أو Firebase
+
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() {
             _isLoading = false;
           });
 
-          // ✅ بعد إكمال الملف الشخصي، نروح للصفحة الرئيسية
+
           Navigator.pushReplacementNamed(context, '/home');
         }
       });
@@ -89,7 +89,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                 const SizedBox(height: 20),
 
-                // 📦 Card
+                //  Card
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -254,7 +254,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  // 🔧 Input Widget محسن
+
   Widget input({
     required String label,
     required String hint,
@@ -300,7 +300,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  // 🔘 Gender Button محسن
   Widget genderButton({
     required String text,
     required bool isSelected,

@@ -9,6 +9,14 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   int _selectedTab = 1;
+  String _currentUser = 'محمد أحمد';
+  bool isPersonal = true;
+  void switchUser(String userName, bool personal) {
+    setState(() {
+      _currentUser = userName;
+      isPersonal = personal;
+    });
+  }
 
   final List<Map<String, dynamic>> _allTests = [
     {
@@ -65,10 +73,68 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                   const SizedBox(height: 10),
 
+                  /// Switch User Header (Hidden if it's the personal account)
+                    if (!isPersonal)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(50),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.elderly, color: Colors.white),
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "أنت تتابع",
+                                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                                  ),
+                                  Text(
+                                    _currentUser,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            ElevatedButton(
+                              onPressed: () {
+                                switchUser("محمد أحمد", true);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white.withAlpha(50),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text("رجوع"),
+                            )
+                          ],
+                        ),
+                      ),
+
               // 🧾 Title
-              const Text(
-                "سجل التحاليل",
-                style: TextStyle(
+              Text(
+                isPersonal ? "سجل التحاليل" : "سجل تحاليل $_currentUser",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,

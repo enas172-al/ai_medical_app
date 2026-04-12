@@ -34,23 +34,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: SafeArea(
             child: Container(
               height: 75,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
 
               child: showBack
-              /// 🟢 حالة صفحة البحث
+              /// حالة صفحة البحث
                   ? Row(
                 children: [
 
-
-                  /// اليمين (logo + labby)
                   Row(
                     children: [
 
                       const SizedBox(width: 8),
                       Image.asset(
                         'assets/images/logo.png',
-                        width: 64,
-                        height: 64,
+                        width: 45,
+                        height: 45,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.high,
                       ),
@@ -75,11 +73,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               )
 
-              /// 🟢 باقي الصفحات (كما كان)
+          
                   : Row(
                 children: [
 
-                  /// السهم (لو موجود)
+              
                   showBack
                       ? IconButton(
                     icon: const Icon(Icons.arrow_forward_ios),

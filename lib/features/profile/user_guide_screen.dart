@@ -21,7 +21,7 @@ class UserGuideScreen extends StatelessWidget {
         leading: Directionality(
           textDirection: TextDirection.rtl,
           child: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -32,7 +32,7 @@ class UserGuideScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // 📱 Header Card
+              // Header Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),

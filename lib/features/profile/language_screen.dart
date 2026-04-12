@@ -46,7 +46,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🌐 Top Banner Card
+                    //  Top Banner Card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
@@ -91,7 +91,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // ✨ Available Languages
+                    //  Available Languages
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -125,7 +125,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ℹ️ Note Box
+                    // Note Box
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -179,7 +179,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
               ),
             ),
             
-            // 💾 Save Button Header
+            //  Save Button Header
             Container(
               padding: const EdgeInsets.all(20),
               width: double.infinity,

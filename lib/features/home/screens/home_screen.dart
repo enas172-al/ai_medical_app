@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// 👋 ترحيب
+                ///  ترحيب
                 const Text(
                   "مرحباً أحمد",
                   style: TextStyle(
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 25),
 
-                /// 📊 لوحة المتابعة الصحية (Purple)
+                ///  لوحة المتابعة الصحية (Purple)
                 GestureDetector(
                   onTap: () {
                     if (onToggleDashboard != null) {
@@ -109,7 +109,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                "تتبع صحتك بشكل شامل ومفصل",
+                                "تتبع صحتك بشكل شامل وسريع",
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
@@ -125,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                /// 📷 صور التحاليل الطبية (Teal)
+                ///صور التحاليل الطبية (Teal)
                 GestureDetector(
                   onTap: () {
                     Navigator.push(

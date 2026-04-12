@@ -23,5 +23,19 @@
   "notifications": "الإشعارات",
   "privacy_and_security": "الخصوصية والأمان",
   "help_and_support": "المساعدة والدعم",
-  "logout": "تسجيل الخروج"
+  "logout": "تسجيل الخروج",
+  "switch_account": "تبديل الحساب",
+  "health_tracking_dashboard": "لوحة المتابعة الصحية",
+  "select_account": "اختر الحساب",
+  "choose_who_to_track": "اختر من تريد متابعته",
+  "you_are_logged_in_as": "أنت مسجل الدخول كـ",
+  "available_accounts": "الحسابات المتاحة",
+  "return_to_profile": "العودة للملف الشخصي",
+  "link_family_account_dialog_title": "ربط حساب عائلي",
+  "enter_family_code": "أدخل كود العائلة",
+  "link_account_btn": "ربط الحساب",
+  "link_account_success": "تم إرسال طلب الربط بنجاح",
+  "your_code": "الكود الخاص بك",
+  "share_code_desc": "شارك هذا الكود مع أفراد عائلتك لربط حساباتهم",
+  "linked_accounts": "الحسابات المرتبطة"
 }

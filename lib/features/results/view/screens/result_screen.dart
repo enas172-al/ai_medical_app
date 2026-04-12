@@ -6,7 +6,6 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// 🔥 Mock Data (محدثة لتطابق البيانات الموحدة)
     final results = [
       {
         "name": "السكر الصائم",
@@ -74,7 +73,7 @@ class ResultScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                /// 🔙 Back + Branding
+                ///  Back + Branding
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -93,7 +92,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Image.asset('assets/images/logo.png', width: 38, height: 38),
+
                       ],
                     ),
                   ],
@@ -101,7 +100,7 @@ class ResultScreen extends StatelessWidget {
 
                 const SizedBox(height: 15),
 
-                /// 🧪 Title
+                ///  Title
                 const Center(
                   child: Column(
                     children: [
@@ -114,13 +113,6 @@ class ResultScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 4),
-                      Text(
-                        "20 مارس 2026",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -142,7 +134,7 @@ class ResultScreen extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
-                /// 📊 النتائج
+                /// النتائج
                 Expanded(
                   child: ListView.builder(
                     itemCount: results.length,
@@ -162,7 +154,7 @@ class ResultScreen extends StatelessWidget {
 
                 const SizedBox(height: 15),
 
-                /// 💡 ملاحظة
+                /// ملاحظة
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -259,21 +251,6 @@ class ResultScreen extends StatelessWidget {
     final statusText = _getStatusText(statusKey);
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AnalysisDetailScreen(
-              name: title,
-              value: value,
-              unit: unit,
-              status: statusText,
-              date: "2026-03-20",
-              statusColor: statusColor,
-            ),
-          ),
-        );
-      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 15),
         padding: const EdgeInsets.all(16),

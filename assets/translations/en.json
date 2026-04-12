@@ -23,5 +23,19 @@
   "notifications": "Notifications",
   "privacy_and_security": "Privacy and Security",
   "help_and_support": "Help and Support",
-  "logout": "Logout"
+  "logout": "Logout",
+  "switch_account": "Switch Account",
+  "health_tracking_dashboard": "Health Dashboard",
+  "select_account": "Select Account",
+  "choose_who_to_track": "Choose who to track",
+  "you_are_logged_in_as": "You are logged in as",
+  "available_accounts": "Available Accounts",
+  "return_to_profile": "Return to Profile",
+  "link_family_account_dialog_title": "Link Family Account",
+  "enter_family_code": "Enter Family Code",
+  "link_account_btn": "Link Account",
+  "link_account_success": "Account linking request sent successfully",
+  "your_code": "Your Code",
+  "share_code_desc": "Share this code with your family members to link their accounts",
+  "linked_accounts": "Linked Accounts"
 }

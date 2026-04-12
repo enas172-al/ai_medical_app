@@ -59,7 +59,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
       child: Column(
         children: [
 
-          /// 🔹 الهيدر
           InkWell(
             onTap: () => setState(() => isOpen = !isOpen),
             child: Padding(
@@ -67,11 +66,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
               child: Row(
                 children: [
 
-                  /// 🔥 المحتوى
                   Expanded(
                     child: Row(
                       children: [
-                        /// 🔹 اسم التحليل + subtitle (On the RIGHT in RTL)
+
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +94,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           ),
                         ),
 
-                        /// 🔹 القيمة + الوحدة (Middle)
+                        ///  القيمة + الوحدة (Middle)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -119,7 +117,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                         const SizedBox(width: 20),
 
-                        /// 🔹 الحالة (Left of Middle)
+                        ///  الحالة (Left of Middle)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
@@ -148,7 +146,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                   const SizedBox(width: 10),
 
-                  /// 🔥 السهم (On the FAR LEFT in RTL)
+                  /// السهم
                   Icon(
                     isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                     color: Colors.grey,
@@ -158,7 +156,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
             ),
           ),
 
-          /// 🔽 التفاصيل
+          /// التفاصيل
           if (isOpen)
             Padding(
               padding: const EdgeInsets.all(14),
@@ -186,7 +184,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                   /// التفسير
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const Text(
                         "التفسير",
@@ -223,7 +221,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           "التوصيات",

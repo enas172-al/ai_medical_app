@@ -12,7 +12,7 @@ class SearchScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
 
-        /// 🔹 AppBar
+        /// AppBar
         appBar: const CustomAppBar(
           title: "",
           showBack: true,
@@ -29,7 +29,7 @@ class SearchScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 const SizedBox(height: 10),
 
-                /// 🧾 Title
+                ///  Title
                 const Text(
                   "بحث عن التحاليل",
                   style: TextStyle(
@@ -52,7 +52,7 @@ class SearchScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                /// 🔍 Search Box
+                ///  Search Box
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9FAFB),

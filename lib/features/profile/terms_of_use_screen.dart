@@ -20,9 +20,9 @@ class TermsOfUseScreen extends StatelessWidget {
           ),
         ),
         leading: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: TextDirection.rtl,
           child: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -33,7 +33,7 @@ class TermsOfUseScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // 📄 Header Card
+              //  Header Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
@@ -90,7 +90,7 @@ class TermsOfUseScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // 📅 Date Banner
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -112,7 +112,6 @@ class TermsOfUseScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // 🟢 Usage Section
               _buildInfoCard(
                 icon: Icons.person_outline,
                 iconColor: const Color(0xFF1FB6A6),
@@ -120,7 +119,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 text: "التطبيق مخصص لمساعدة المستخدم في فهم نتائج التحاليل الطبية وتتبعها بسهولة. يجب استخدام التطبيق للأغراض الشخصية فقط.",
               ),
 
-              // 🚨 Medical Warning Section 1
+
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
@@ -180,7 +179,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 ),
               ),
 
-              // 🟠 Accuracy
+
               _buildInfoCard(
                 icon: Icons.warning_amber_rounded,
                 iconColor: Colors.orangeAccent,
@@ -188,7 +187,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 text: "يتم تحليل النتائج باستخدام تقنيات الذكاء الاصطناعي المتقدمة، ولكن لا نضمن دقة 100%. قد تحدث أخطاء في قراءة أو تفسير البيانات.",
               ),
 
-              // 🔵 Responsibility
+
               _buildInfoCard(
                 icon: Icons.balance,
                 iconColor: Colors.blueAccent,
@@ -201,7 +200,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 ],
               ),
 
-              // 🟣 Modifications
+              //  Modifications
               _buildInfoCard(
                 icon: Icons.autorenew_outlined,
                 iconColor: Colors.purpleAccent,
@@ -243,7 +242,7 @@ class TermsOfUseScreen extends StatelessWidget {
                 ),
               ),
 
-              // 🚨 Medical Warning Section 2
+              // Medical Warning Section 2
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -278,7 +277,7 @@ class TermsOfUseScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // 📞 Support Banner
+              // Support Banner
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),

@@ -13,14 +13,14 @@ class ScanScreen extends StatelessWidget {
           child: Column(
               children: [
 
-          /// 🔝 Header
+          ///  Header
           Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
 
-              /// ❌ Close
+              /// Close
               GestureDetector(
                 onTap: () {
                   Navigator.pop(context);
@@ -44,7 +44,7 @@ class ScanScreen extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        /// 📦 الكارد
+        /// الكارد
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
           padding: const EdgeInsets.all(16),
@@ -57,7 +57,7 @@ class ScanScreen extends StatelessWidget {
           child: Column(
             children: [
 
-              /// 📝 النص
+              ///النص
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -73,7 +73,7 @@ class ScanScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// 📸 الإطار
+              ///  الإطار
               Container(
                 height: 250,
                 decoration: BoxDecoration(
@@ -97,21 +97,21 @@ class ScanScreen extends StatelessWidget {
 
         const Spacer(),
 
-        /// 🔘 الأزرار
+        ///  الأزرار
         Padding(
             padding: const EdgeInsets.only(bottom: 30),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
 
-              /// 📁 Gallery
+              ///  Gallery
               CircleAvatar(
               radius: 28,
               backgroundColor: Colors.white10,
               child: const Icon(Icons.image, color: Colors.white),
             ),
 
-            /// 📸 Capture (🔥 أهم تعديل هنا)
+
             GestureDetector(
                 onTap: () {
                     Navigator.push(
@@ -143,4 +143,4 @@ class ScanScreen extends StatelessWidget {
         ),
     );
   }
-}
+}
