@@ -1,3 +1,5 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'core/theme/app_theme.dart';
@@ -10,12 +12,24 @@ import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
 
 import 'core/firebase_bootstrap.dart';
+import 'core/firebase_messaging_background.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/push_messaging_service.dart';
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (!kIsWeb) {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      default:
+        break;
+    }
+  }
 
   await Future.wait([
     EasyLocalization.ensureInitialized(),
@@ -32,11 +46,13 @@ void main() async {
     ),
   );
 
-  // Light init only (channel + plugin). Timezone DB loads lazily when scheduling a reminder.
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    NotificationService.instance.init().then((_) {}, onError: (Object e, StackTrace st) {
-      debugPrint('NotificationService.init failed: $e');
-    });
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await NotificationService.instance.init();
+      await PushMessagingService.instance.init();
+    } catch (e, st) {
+      debugPrint('Notification/FCM init failed: $e\n$st');
+    }
   });
 }
 

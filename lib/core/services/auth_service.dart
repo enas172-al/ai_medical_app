@@ -23,9 +23,12 @@ class AuthService {
       );
 
       if (credential.user != null) {
-        await _db.collection('users').doc(credential.user!.uid).set({
-          'uid': credential.user!.uid,
+        final uid = credential.user!.uid;
+        await _db.collection('users').doc(uid).set({
+          'uid': uid,
+          'userId': uid,
           'email': email,
+          'name': name,
           'displayName': name,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
@@ -49,9 +52,15 @@ class AuthService {
       );
 
       if (credential.user != null) {
-        await _db.collection('users').doc(credential.user!.uid).update({
+        final u = credential.user!;
+        await _db.collection('users').doc(u.uid).set({
+          'uid': u.uid,
+          'userId': u.uid,
+          'email': u.email ?? email,
           'lastLogin': FieldValue.serverTimestamp(),
-        });
+          if (u.displayName != null) 'displayName': u.displayName,
+          if (u.displayName != null) 'name': u.displayName,
+        }, SetOptions(merge: true));
       }
       return credential;
     } catch (e) {
@@ -75,11 +84,16 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
 
       if (userCredential.user != null) {
-        await _db.collection('users').doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
-          'email': userCredential.user!.email,
-          'displayName': userCredential.user!.displayName,
+        final u = userCredential.user!;
+        final uid = u.uid;
+        final dn = u.displayName;
+        await _db.collection('users').doc(uid).set({
+          'uid': uid,
+          'userId': uid,
+          'email': u.email,
           'lastLogin': FieldValue.serverTimestamp(),
+          if (dn != null) 'displayName': dn,
+          if (dn != null) 'name': dn,
         }, SetOptions(merge: true));
       }
       return userCredential;

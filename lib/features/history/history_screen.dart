@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/models/analysis_model.dart';
 import '../../core/services/database_service.dart';
+import '../../core/services/tracking_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -32,9 +33,11 @@ class _GroupedTest {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   int _selectedTab = 1;
+  TrackingPeriod _trackingPeriod = TrackingPeriod.all;
   String _currentUser = 'example_name'.tr();
   bool isPersonal = true;
   final DatabaseService _db = DatabaseService();
+  final TrackingService _tracking = TrackingService();
 
   void switchUser(String userName, bool personal) {
     setState(() {
@@ -120,6 +123,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  Widget _periodChip(TrackingPeriod period, String label) {
+    final selected = _trackingPeriod == period;
+    return GestureDetector(
+      onTap: () => setState(() => _trackingPeriod = period),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF1FB6A6) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? Colors.transparent : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: selected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -199,7 +227,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 "history_subtitle".tr(),
                 style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 16),
+              Text(
+                'history_tracking'.tr(),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _periodChip(TrackingPeriod.all, 'tracking_all'.tr()),
+                    const SizedBox(width: 8),
+                    _periodChip(TrackingPeriod.week, 'tracking_week'.tr()),
+                    const SizedBox(width: 8),
+                    _periodChip(TrackingPeriod.month, 'tracking_month'.tr()),
+                    const SizedBox(width: 8),
+                    _periodChip(TrackingPeriod.year, 'tracking_year'.tr()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
@@ -268,9 +320,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       }
                       final all = snapshot.data ?? [];
                       if (all.isEmpty) {
-                        return Center(child: Text("history_empty".tr(), textAlign: TextAlign.center));
+                        return Center(
+                          child: Text("history_empty".tr(), textAlign: TextAlign.center),
+                        );
                       }
-                      final grouped = _groupAnalyses(all);
+                      final filtered = _tracking.filterByPeriod(all, _trackingPeriod);
+                      if (filtered.isEmpty) {
+                        return Center(
+                          child: Text("tracking_period_empty".tr(), textAlign: TextAlign.center),
+                        );
+                      }
+                      final grouped = _groupAnalyses(filtered);
                       final list = _selectedTab == 0 ? grouped.take(3).toList() : grouped;
                       return ListView.builder(
                         itemCount: list.length,

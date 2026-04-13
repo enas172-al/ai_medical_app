@@ -495,5 +495,12 @@
   "login_to_save_results": "Sign in to save results to your account.",
   "results_saved": "Results saved successfully.",
   "history_empty": "No saved analyses yet. Scan a lab report to add results.",
-  "history_sign_in": "Sign in to see your history."
+  "history_sign_in": "Sign in to see your history.",
+  "tracking_all": "All",
+  "tracking_week": "Week",
+  "tracking_month": "Month",
+  "tracking_year": "Year",
+  "tracking_period_empty": "No analyses in this period. Try “All” or a longer range.",
+  "lab_alert_title": "Lab alert",
+  "lab_alert_body": "Some results are outside the normal range. Review details in the app."
 }

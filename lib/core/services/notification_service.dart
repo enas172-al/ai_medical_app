@@ -17,6 +17,8 @@ class NotificationService {
 
   static const _channelId = 'labby_medications';
   static const _channelName = 'Medication reminders';
+  static const _generalChannelId = 'labby_general';
+  static const _generalChannelName = 'Labby alerts';
 
   bool get _supportsLocalSchedule =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
@@ -40,19 +42,49 @@ class NotificationService {
     );
 
     if (Platform.isAndroid) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(
-            const AndroidNotificationChannel(
-              _channelId,
-              _channelName,
-              description: 'Take medication on time',
-              importance: Importance.defaultImportance,
-            ),
-          );
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _channelId,
+          _channelName,
+          description: 'Take medication on time',
+          importance: Importance.defaultImportance,
+        ),
+      );
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _generalChannelId,
+          _generalChannelName,
+          description: 'Lab results and push messages',
+          importance: Importance.high,
+        ),
+      );
     }
 
     _inited = true;
+  }
+
+  /// Immediate banner (FCM foreground, abnormal lab save, etc.).
+  Future<void> showImmediate({required String title, required String body}) async {
+    if (kIsWeb || !_supportsLocalSchedule) return;
+    if (!_inited) await init();
+    final id = DateTime.now().millisecondsSinceEpoch.remainder(0x3FFFFFFF);
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          _generalChannelId,
+          _generalChannelName,
+          channelDescription: 'Lab results and push messages',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+    );
   }
 
   /// Heavy: load timezone data only when scheduling (not at app startup).
@@ -123,7 +155,8 @@ class NotificationService {
     required String medicationName,
     required List<String> times,
   }) async {
-    if (!_supportsLocalSchedule || !_inited) return;
+    if (!_supportsLocalSchedule) return;
+    if (!_inited) await init();
     await _ensureTimezoneLoaded();
     await cancelMedicationReminders(medId);
 

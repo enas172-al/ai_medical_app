@@ -9,6 +9,7 @@ import '../../../core/models/analysis_model.dart';
 import '../../../core/models/parsed_lab_candidate.dart';
 import '../../../core/services/database_service.dart';
 import '../../../core/services/lab_parse_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/services/processing_service.dart';
 
 class ScanResultsScreen extends StatefulWidget {
@@ -82,7 +83,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     setState(() => _saving = true);
     try {
       final now = DateTime.now();
+      var hasAbnormal = false;
       for (final c in _items) {
+        if (c.status == 'Low' || c.status == 'High') hasAbnormal = true;
         final explanation = ProcessingService.simplifiedExplanation(
           testName: c.testName,
           status: c.status,
@@ -103,6 +106,12 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
             imageUrl: widget.imageUrl,
             simplifiedExplanation: explanation,
           ),
+        );
+      }
+      if (hasAbnormal) {
+        await NotificationService.instance.showImmediate(
+          title: 'lab_alert_title'.tr(),
+          body: 'lab_alert_body'.tr(),
         );
       }
       if (mounted) {

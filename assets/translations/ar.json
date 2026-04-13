@@ -495,5 +495,12 @@
   "login_to_save_results": "سجّل الدخول لحفظ النتائج في حسابك.",
   "results_saved": "تم حفظ النتائج بنجاح.",
   "history_empty": "لا توجد تحاليل محفوظة بعد. امسح تقرير المختبر لإضافة نتائج.",
-  "history_sign_in": "سجّل الدخول لعرض السجل."
+  "history_sign_in": "سجّل الدخول لعرض السجل.",
+  "tracking_all": "الكل",
+  "tracking_week": "أسبوع",
+  "tracking_month": "شهر",
+  "tracking_year": "سنة",
+  "tracking_period_empty": "لا توجد تحاليل في هذه الفترة. جرّب «الكل» أو فترة أطول.",
+  "lab_alert_title": "تنبيه تحليل",
+  "lab_alert_body": "توجد نتائج خارج النطاق الطبيعي. راجع التفاصيل في التطبيق."
 }

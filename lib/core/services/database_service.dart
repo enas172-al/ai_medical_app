@@ -22,6 +22,15 @@ class DatabaseService {
     await _db.collection('analyses').add(analysis.toMap());
   }
 
+  /// One-shot fetch (no server orderBy) — sort by [date] descending in memory.
+  Future<List<AnalysisModel>> getAnalysesOnce(String userId) async {
+    final snap = await _db.collection('analyses').where('userId', isEqualTo: userId).get();
+    final list =
+        snap.docs.map((d) => AnalysisModel.fromMap(d.data(), d.id)).toList();
+    list.sort((a, b) => b.date.compareTo(a.date));
+    return list;
+  }
+
   /// Analyses in [start, end] (inclusive), ordered oldest → newest (for charts).
   Future<List<AnalysisModel>> getAnalysesInDateRange(
     String userId,
