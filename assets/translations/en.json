@@ -491,5 +491,9 @@
   "mar_short": "Mar",
   "app_slogan": "Your health companion",
   "contact_us": "Contact Us",
-  "terms_of_use_title": "Terms of Use"
+  "terms_of_use_title": "Terms of Use",
+  "login_to_save_results": "Sign in to save results to your account.",
+  "results_saved": "Results saved successfully.",
+  "history_empty": "No saved analyses yet. Scan a lab report to add results.",
+  "history_sign_in": "Sign in to see your history."
 }

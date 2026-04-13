@@ -9,25 +9,35 @@ import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
 
-import 'package:firebase_core/firebase_core.dart';
-
+import 'core/firebase_bootstrap.dart';
+import 'core/services/notification_service.dart';
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
-  await Firebase.initializeApp();
+
+  await Future.wait([
+    EasyLocalization.ensureInitialized(),
+    initializeFirebaseApp(),
+  ]);
 
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('ar'), Locale('en')],
-      path: 'assets/translations', 
+      path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       startLocale: const Locale('ar'),
       child: const MyApp(),
     ),
   );
+
+  // Light init only (channel + plugin). Timezone DB loads lazily when scheduling a reminder.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    NotificationService.instance.init().then((_) {}, onError: (Object e, StackTrace st) {
+      debugPrint('NotificationService.init failed: $e');
+    });
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -42,7 +52,6 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
       title: 'app_title'.tr(),
-
 
       home: SplashScreen(),
 

@@ -1,126 +1,104 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Stream to listen to authentication state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Sign In with Google
-  Future<UserCredential?> signInWithGoogle() async {
-    try {
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return null;
-      }
-
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Create a new credential
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase with the Google credential
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-
-      // Save user to Firestore
-      if (userCredential.user != null) {
-        await _saveUserToFirestore(userCredential.user!);
-      }
-
-      return userCredential;
-    } catch (e) {
-      print("Error during Google Sign In: $e");
-      rethrow;
-    }
-  }
-
-  // Register with Email and Password
   Future<UserCredential?> registerWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
   }) async {
     try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      if (userCredential.user != null) {
-        // Update Firebase profile
-        await userCredential.user!.updateDisplayName(name);
-        
-        // Let's pass a user with the updated name for Firestore saving
-        // Reload is needed to reflect the new displayName in the currentUser object,
-        // but we can just pass the name directly into the Firestore payload.
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
+      if (credential.user != null) {
+        await _db.collection('users').doc(credential.user!.uid).set({
+          'uid': credential.user!.uid,
           'email': email,
           'displayName': name,
-          'photoURL': null,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         });
       }
-
-      return userCredential;
+      return credential;
     } catch (e) {
-      print("Error during Email/Password registration: $e");
+      print("Error registering: $e");
       rethrow;
     }
   }
 
-  // Save or update user data in Firestore
-  Future<void> _saveUserToFirestore(User user) async {
+  Future<UserCredential?> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final userRef = _firestore.collection('users').doc(user.uid);
-      
-      // Check if user already exists
-      final docSnapshot = await userRef.get();
-      
-      if (!docSnapshot.exists) {
-        // First time sign up
-        await userRef.set({
-          'uid': user.uid,
-          'email': user.email,
-          'displayName': user.displayName,
-          'photoURL': user.photoURL,
-          'createdAt': FieldValue.serverTimestamp(),
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (credential.user != null) {
+        await _db.collection('users').doc(credential.user!.uid).update({
           'lastLogin': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // Existing user, just update last login
-        await userRef.update({
-          'lastLogin': FieldValue.serverTimestamp(),
-          'displayName': user.displayName ?? docSnapshot.data()?['displayName'],
-          'photoURL': user.photoURL ?? docSnapshot.data()?['photoURL'],
         });
       }
+      return credential;
     } catch (e) {
-      print("Error saving user to Firestore: $e");
-      // Not rethrowing as auth succeeded, but we should log it
+      print("Error signing in: $e");
+      rethrow;
     }
   }
 
-  // Sign out
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        await _db.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'email': userCredential.user!.email,
+          'displayName': userCredential.user!.displayName,
+          'lastLogin': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      return userCredential;
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    await GoogleSignIn().signOut();
     await _auth.signOut();
+  }
+
+  Future<UserModel?> getUserData(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return UserModel.fromMap(doc.data()!);
+    }
+    return null;
   }
 }

@@ -1,74 +1,129 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:ui' as ui;
 
-class ScanResultsScreen extends StatelessWidget {
-  const ScanResultsScreen({super.key});
+import '../../../core/models/analysis_model.dart';
+import '../../../core/models/parsed_lab_candidate.dart';
+import '../../../core/services/database_service.dart';
+import '../../../core/services/lab_parse_service.dart';
+import '../../../core/services/processing_service.dart';
+
+class ScanResultsScreen extends StatefulWidget {
+  final String? extractedText;
+  final String? imagePath;
+  final String? imageUrl;
+
+  const ScanResultsScreen({
+    super.key,
+    this.extractedText,
+    this.imagePath,
+    this.imageUrl,
+  });
+
+  @override
+  State<ScanResultsScreen> createState() => _ScanResultsScreenState();
+}
+
+class _ScanResultsScreenState extends State<ScanResultsScreen> {
+  final DatabaseService _db = DatabaseService();
+  late List<ParsedLabCandidate> _items;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = LabParseService.parse(widget.extractedText ?? '');
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Low':
+        return Colors.orange;
+      case 'High':
+        return Colors.red;
+      default:
+        return Colors.green;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'Low':
+        return 'low_status'.tr();
+      case 'High':
+        return 'high_status'.tr();
+      default:
+        return 'normal_status'.tr();
+    }
+  }
+
+  Future<void> _shareResults() async {
+    final buf = StringBuffer();
+    for (final c in _items) {
+      buf.writeln('${c.nameKey.tr()}: ${c.value} ${c.unit} — ${_statusLabel(c.status)}');
+    }
+    await SharePlus.instance.share(ShareParams(text: buf.toString()));
+  }
+
+  Future<void> _saveToFirestore() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('login_to_save_results'.tr())),
+        );
+      }
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final now = DateTime.now();
+      for (final c in _items) {
+        final explanation = ProcessingService.simplifiedExplanation(
+          testName: c.testName,
+          status: c.status,
+          value: c.value,
+          min: c.min,
+          max: c.max,
+          unit: c.unit,
+        );
+        await _db.addAnalysis(
+          AnalysisModel(
+            userId: uid,
+            testName: c.testName,
+            value: c.value,
+            unit: c.unit,
+            normalRange: c.normalRange,
+            status: c.status,
+            date: now,
+            imageUrl: widget.imageUrl,
+            simplifiedExplanation: explanation,
+          ),
+        );
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('results_saved'.tr())),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> results = [
-      {
-        "id": "1",
-        "name": "fasting_sugar".tr(),
-        "subName": "glucose_sub".tr(),
-        "value": "95",
-        "unit": "mg/dL",
-        "range": "70-100",
-        "status": "normal_status".tr(),
-        "statusColor": Colors.green,
-        "interpretation": "glucose_interpretation".tr(),
-        "advice": "glucose_advice".tr()
-      },
-      {
-        "id": "2",
-        "name": "hemoglobin".tr(),
-        "subName": "hemoglobin_sub".tr(),
-        "value": "15.2",
-        "unit": "g/dL",
-        "range": "13.5-17.5",
-        "status": "normal_status".tr(),
-        "statusColor": Colors.green,
-        "interpretation": "hemoglobin_interpretation".tr(),
-        "advice": "hemoglobin_advice".tr()
-      },
-      {
-        "id": "3",
-        "name": "cholesterol".tr(),
-        "subName": "cholesterol_sub".tr(),
-        "value": "220",
-        "unit": "mg/dL",
-        "range": "< 200",
-        "status": "high_status".tr(),
-        "statusColor": Colors.red,
-        "interpretation": "cholesterol_interpretation".tr(),
-        "advice": "cholesterol_advice".tr()
-      },
-      {
-        "id": "4",
-        "name": "vitamin_d".tr(),
-        "subName": "vitamin_d_sub".tr(),
-        "value": "18",
-        "unit": "ng/mL",
-        "range": "30-100",
-        "status": "low_status".tr(),
-        "statusColor": Colors.orange,
-        "interpretation": "vitamin_d_interpretation".tr(),
-        "advice": "vitamin_d_advice".tr()
-      },
-      {
-        "id": "5",
-        "name": "wbc".tr(),
-        "subName": "wbc_sub".tr(),
-        "value": "7.5",
-        "unit": "µL/10³",
-        "range": "4.5-11.0",
-        "status": "normal_status".tr(),
-        "statusColor": Colors.green,
-        "interpretation": "wbc_interpretation".tr(),
-        "advice": "wbc_advice".tr()
-      },
-    ];
+    final results = _items;
 
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -101,35 +156,68 @@ class ScanResultsScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
+                    if (widget.imagePath != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          image: DecorationImage(
+                            image: FileImage(File(widget.imagePath!)),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
                     Text(
-                      "labby_title".tr(),
-                      style: const TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 16),
+                      widget.extractedText != null && widget.extractedText!.isNotEmpty
+                          ? "analysis_summary".tr()
+                          : "labby_title".tr(),
+                      style: const TextStyle(
+                          color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      "example_dob".tr(),
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
+                    if (widget.extractedText != null && widget.extractedText!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "ocr_info_msg".tr(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      )
+                    else
+                      Text(
+                        "example_dob".tr(),
+                        style: const TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
                   ],
                 ),
               ),
               const SizedBox(height: 25),
 
-              // Action Buttons
               Row(
                 children: [
                   Expanded(
-                    child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
+                    child: GestureDetector(
+                      onTap: _shareResults,
+                      child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
+                    child: GestureDetector(
+                      onTap: _saving ? null : _saveToFirestore,
+                      child: Opacity(
+                        opacity: _saving ? 0.5 : 1,
+                        child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 30),
 
-              // Table Header
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                 decoration: BoxDecoration(
@@ -147,14 +235,14 @@ class ScanResultsScreen extends StatelessWidget {
                 ),
               ),
 
-              // Table Body
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: results.length,
-                separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100),
                 itemBuilder: (context, index) {
-                  final res = results[index];
+                  final c = results[index];
+                  final color = _statusColor(c.status);
                   return Container(
                     color: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
@@ -165,21 +253,26 @@ class ScanResultsScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(res["name"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              Text(res["subName"], style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                              Text(c.nameKey.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text(c.subNameKey.tr(), style: const TextStyle(fontSize: 10, color: Colors.grey)),
                             ],
                           ),
                         ),
-                        Expanded(flex: 2, child: Text(res["value"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                        Expanded(flex: 2, child: Text(res["unit"], style: const TextStyle(fontSize: 12, color: Colors.grey))),
-                        Expanded(flex: 2, child: Text(res["range"], style: const TextStyle(fontSize: 11, color: Colors.grey))),
+                        Expanded(
+                            flex: 2, child: Text('${c.value}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                        Expanded(flex: 2, child: Text(c.unit, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                        Expanded(
+                            flex: 2,
+                            child: Text('${c.min}-${c.max}', style: const TextStyle(fontSize: 11, color: Colors.grey))),
                         Container(
                           width: 24,
                           height: 24,
-                          decoration: BoxDecoration(color: res["statusColor"].withOpacity(0.1), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
                           child: Icon(
-                            res["status"] == "normal_status".tr() ? Icons.check : (res["status"] == "high_status".tr() ? Icons.trending_up : Icons.trending_down),
-                            color: res["statusColor"],
+                            c.status == 'Normal'
+                                ? Icons.check
+                                : (c.status == 'High' ? Icons.trending_up : Icons.trending_down),
+                            color: color,
                             size: 14,
                           ),
                         ),
@@ -190,7 +283,6 @@ class ScanResultsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // Interpretations Section
               Row(
                 children: [
                   const Icon(Icons.info_outline, color: Color(0xFF1FB6A6), size: 20),
@@ -203,7 +295,7 @@ class ScanResultsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              ...results.map((res) => _buildDetailCard(res)).toList(),
+              ...results.asMap().entries.map((e) => _buildDetailCard(e.value, '${e.key + 1}')),
 
               const SizedBox(height: 30),
             ],
@@ -232,7 +324,9 @@ class ScanResultsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailCard(Map<String, dynamic> res) {
+  Widget _buildDetailCard(ParsedLabCandidate c, String idLabel) {
+    final color = _statusColor(c.status);
+    final label = _statusLabel(c.status);
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -244,19 +338,19 @@ class ScanResultsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: res["statusColor"].withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
                   child: Row(
                     children: [
-                       Icon(res["status"] == "normal_status".tr() ? Icons.check_circle_outline : Icons.error_outline, color: res["statusColor"], size: 14),
-                       const SizedBox(width: 4),
-                       Text(res["status"], style: TextStyle(color: res["statusColor"], fontWeight: FontWeight.bold, fontSize: 12)),
+                      Icon(c.status == 'Normal' ? Icons.check_circle_outline : Icons.error_outline,
+                          color: color, size: 14),
+                      const SizedBox(width: 4),
+                      Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -264,8 +358,8 @@ class ScanResultsScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(res["name"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(res["subName"], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(c.nameKey.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(c.subNameKey.tr(), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
                 const SizedBox(width: 16),
@@ -273,26 +367,24 @@ class ScanResultsScreen extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(color: Color(0xFF1FB6A6), shape: BoxShape.circle),
-                  child: Center(child: Text(res["id"], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                  child: Center(child: Text(idLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                 ),
               ],
             ),
           ),
-          
-          // Metrics Row
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Expanded(child: _buildMetricItem("normal_range_label".tr(), "${res["unit"]} ${res["range"]}")),
+                Expanded(child: _buildMetricItem("normal_range_label".tr(), "${c.unit} ${c.min}-${c.max}")),
                 const SizedBox(width: 12),
-                Expanded(child: _buildMetricItem("measured_value_label".tr(), "${res["unit"]} ${res["value"]}")),
+                Expanded(child: _buildMetricItem("measured_value_label".tr(), "${c.unit} ${c.value}")),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-          // Medical Interpretation
           Container(
             width: double.infinity,
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -308,17 +400,18 @@ class ScanResultsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.circle, color: Colors.blue, size: 8),
                     const SizedBox(width: 8),
-                    Text("medical_interpretation_label".tr(), style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text("medical_interpretation_label".tr(),
+                        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 15)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(res["interpretation"], style: TextStyle(color: Colors.blue.shade900, fontSize: 13, height: 1.5)),
+                Text(c.interpretationKey.tr(),
+                    style: const TextStyle(color: Color(0xFF0D47A1), fontSize: 13, height: 1.5)),
               ],
             ),
           ),
           const SizedBox(height: 12),
 
-          // Advice Section
           Container(
             width: double.infinity,
             margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
@@ -334,11 +427,12 @@ class ScanResultsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
                     const SizedBox(width: 8),
-                    Text("advice_and_recommendations_label".tr(), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text("advice_and_recommendations_label".tr(),
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(res["advice"], style: TextStyle(color: Colors.green.shade900, fontSize: 13, height: 1.5)),
+                Text(c.adviceKey.tr(), style: const TextStyle(color: Color(0xFF1B5E20), fontSize: 13, height: 1.5)),
               ],
             ),
           ),

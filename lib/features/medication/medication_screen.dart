@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'dart:ui' as ui;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+import '../../core/services/database_service.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/models/medication_model.dart';
 
 
 class MedicationScreen extends StatefulWidget {
@@ -14,6 +18,8 @@ class MedicationScreen extends StatefulWidget {
 }
 
 class _MedicationScreenState extends State<MedicationScreen> {
+  final DatabaseService _databaseService = DatabaseService();
+
   String _currentUser = 'example_name'.tr();
   String _loggedInUser = 'example_name'.tr();
   String _loggedInUserRole = 'companion_role'.tr();
@@ -33,88 +39,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     },
   ];
 
-  final List<Map<String, dynamic>> _medications = [
-    {
-      'id': '1',
-      'name': 'med_aspirin'.tr(),
-      'dose': 'dose_mg'.tr(args: ['100']),
-      'time': '08:00 ' + 'am'.tr(),
-      'frequency': 'daily'.tr(),
-      'color': Colors.blue,
-      'userName': 'example_family_member_2'.tr(),
-      'entryDateTime': DateTime(2026, 4, 1, 8, 30),
-    },
-    {
-      'id': '2',
-      'name': 'med_metformin'.tr(),
-      'dose': 'dose_mg'.tr(args: ['500']),
-      'time': '12:00 ' + 'pm'.tr(),
-      'frequency': 'daily'.tr(),
-      'color': Colors.purple,
-      'userName': 'Dr. Sarah Ali',
-      'entryDateTime': DateTime(2026, 3, 28, 14, 15),
-    },
-    {
-      'id': '3',
-      'name': 'med_vitamin_d'.tr(),
-      'dose': 'dose_units'.tr(args: ['1000']),
-      'time': '09:00 ' + 'am'.tr(),
-      'frequency': 'daily'.tr(),
-      'color': Colors.orange,
-      'userName': 'example_family_member_2'.tr(),
-      'entryDateTime': DateTime(2026, 4, 5, 10, 0),
-    },
-    {
-      'id': '4',
-      'name': 'med_nubain'.tr(),
-      'dose': 'dose_mg'.tr(args: ['10']),
-      'time': '12:33',
-      'frequency': 'three_times_daily'.tr(),
-      'color': Colors.red,
-      'userName': 'example_family_member_2'.tr(),
-      'entryDateTime': DateTime(2026, 4, 7, 12, 33),
-    },
-    {
-      'id': '5',
-      'name': 'med_vitamin_c'.tr(),
-      'dose': 'dose_mg'.tr(args: ['1000']),
-      'time': '09:00 ' + 'am'.tr(),
-      'frequency': 'daily'.tr(),
-      'color': Colors.green,
-      'userName': 'example_name'.tr(),
-      'entryDateTime': DateTime(2026, 4, 8, 9, 0),
-    },
-    {
-      'id': '6',
-      'name': 'med_omega3'.tr(),
-      'dose': 'dose_capsule'.tr(),
-      'time': '02:00 ' + 'pm'.tr(),
-      'frequency': 'daily'.tr(),
-      'color': Colors.amber,
-      'userName': 'example_name'.tr(),
-      'entryDateTime': DateTime(2026, 4, 8, 14, 0),
-    },
-  ];
-
-  int _timeToMinutes(String timeStr) {
-    try {
-       final str = timeStr.trim().replaceAll('ص', 'صباحاً').replaceAll('م', 'مساءً');
-       final parts = str.split(' ');
-       final timeParts = parts[0].split(':');
-       int h = int.parse(timeParts[0]);
-       int m = int.parse(timeParts[1]);
-       
-       if (parts.length > 1) {
-         if ((parts[1].contains('ظهر') || parts[1].contains('مساء')) && h != 12) h += 12;
-         if (parts[1].contains('صباح') && h == 12) h = 0;
-       }
-       return h * 60 + m;
-    } catch(e) {
-      return 0;
-    }
-  }
-
-  void _deleteMedication(Map<String, dynamic> med) {
+  void _deleteMedication(MedicationModel med) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -126,11 +51,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
             child: Text("cancel".tr(), style: const TextStyle(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _medications.removeWhere((m) => m['id'] == med['id'] || m == med);
-              });
-              Navigator.pop(context);
+            onPressed: () async {
+              if (med.id != null) {
+                await NotificationService.instance.cancelMedicationReminders(med.id);
+                await _databaseService.deleteMedication(med.id!);
+              }
+              if (mounted) Navigator.pop(context);
             },
             child: Text("delete".tr(), style: const TextStyle(color: Colors.red)),
           ),
@@ -139,7 +65,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  void _openAddMedication(BuildContext context, {Map<String, dynamic>? initialMed}) {
+  void _openAddMedication(BuildContext context, {MedicationModel? initialMed}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -147,19 +73,30 @@ class _MedicationScreenState extends State<MedicationScreen> {
       pageBuilder: (context, anim1, anim2) => Center(
         child: AddMedicationDialog(
           initialMed: initialMed,
-          onAdd: (newMed) {
-            setState(() {
-              if (initialMed != null) {
-                int index = _medications.indexWhere((m) => m['id'] == initialMed['id'] || m == initialMed);
-                if (index != -1) {
-                  newMed['id'] = initialMed['id'];
-                  _medications[index] = newMed;
-                }
-              } else {
-                newMed['id'] = DateTime.now().millisecondsSinceEpoch.toString();
-                _medications.add(newMed);
-              }
-            });
+          onAdd: (newMedData) async {
+            final uid = FirebaseAuth.instance.currentUser?.uid;
+            if (uid == null) {
+              throw Exception('login_to_save_results'.tr());
+            }
+            await NotificationService.instance.requestPermissionsIfNeeded();
+            final med = MedicationModel(
+              id: initialMed?.id,
+              userId: uid,
+              name: newMedData['name'],
+              dosage: newMedData['dose'],
+              times: [newMedData['time']],
+              daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+              createdAt: initialMed?.createdAt ?? DateTime.now(),
+            );
+
+            final id = await _databaseService.saveMedication(med);
+            if (med.times.isNotEmpty) {
+              await NotificationService.instance.scheduleMedicationReminders(
+                medId: id,
+                medicationName: med.name,
+                times: med.times,
+              );
+            }
           },
         ),
       ),
@@ -408,9 +345,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredMeds = List.from(_medications);
-    filteredMeds.sort((a, b) => _timeToMinutes(a['time']).compareTo(_timeToMinutes(b['time'])));
-
     var currentUserObj = _accounts.firstWhere((u) => u['name'] == _currentUser, orElse: () => {'name': _currentUser, 'type': 'dependent'});
     bool isPersonal = currentUserObj['type'] == 'personal';
 
@@ -530,7 +464,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.add, size: 22),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           "add_new_med".tr(),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -544,196 +478,201 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
                 /// 🔥 القائمة
                 Expanded(
-                  child: filteredMeds.isEmpty 
-                    ? Center(
-                        child: Text(
-                          "no_meds".tr(),
-                          style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: filteredMeds.length,
-                        itemBuilder: (context, index) {
-                          final med = filteredMeds[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: med['image'] != null ? 56 : 48,
-                          height: med['image'] != null ? 56 : 48,
-                          decoration: BoxDecoration(
-                            color: med['image'] != null ? Colors.white : med['color'],
-                            borderRadius: BorderRadius.circular(14),
-                            border: med['image'] != null ? Border.all(color: Colors.grey.shade200) : null,
+                  child: StreamBuilder<User?>(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, authSnap) {
+                      final uid = authSnap.data?.uid;
+                      if (uid == null) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              "history_sign_in".tr(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
                           ),
-                          child: med['image'] != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Image.file(
-                                    med['image'] is File ? med['image'] : File(med['image'].toString()),
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.medication_outlined,
+                        );
+                      }
+                      return StreamBuilder<List<MedicationModel>>(
+                        stream: _databaseService.getMedications(uid),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  '${snapshot.error}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final meds = snapshot.data ?? [];
+
+                          if (meds.isEmpty) {
+                            return Center(
+                              child: Text(
+                                "no_meds".tr(),
+                                style: const TextStyle(
+                                    fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: meds.length,
+                            itemBuilder: (context, index) {
+                              final med = meds[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
                                   color: Colors.white,
-                                  size: 26,
-                                ),
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        /// تفاصيل (منتصف)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                med['name'],
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 17,
-                                  color: Color(0xFF1F2937),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                med['dose'],
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.access_time, size: 16, color: Color(0xFF9CA3AF)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    med['time'].replaceAll('ص', 'صباحاً').replaceAll('م', 'مساءً'),
-                                    style: const TextStyle(
-                                      color: Color(0xFF9CA3AF),
-                                      fontSize: 12,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.grey.shade100, width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Icon(Icons.notifications_none_outlined, size: 16, color: Color(0xFF9CA3AF)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    med['frequency'],
-                                    style: const TextStyle(
-                                      color: Color(0xFF9CA3AF),
-                                      fontSize: 12,
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: Colors.teal,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: const Icon(
+                                        Icons.medication_outlined,
+                                        color: Colors.white,
+                                        size: 26,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.person_outline, size: 14, color: Color(0xFF9CA3AF)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    med['userName'] ?? "anonymous_user".tr(),
-                                    style: const TextStyle(
-                                      color: Color(0xFF9CA3AF),
-                                      fontSize: 11,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            med.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 17,
+                                              color: Color(0xFF1F2937),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            med.dosage,
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              const Icon(Icons.access_time,
+                                                  size: 16, color: Color(0xFF9CA3AF)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                med.times.isNotEmpty ? med.times.first : "--:--",
+                                                style: const TextStyle(
+                                                  color: Color(0xFF9CA3AF),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              const Icon(Icons.notifications_none_outlined,
+                                                  size: 16, color: Color(0xFF9CA3AF)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "daily".tr(),
+                                                style: const TextStyle(
+                                                  color: Color(0xFF9CA3AF),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF9CA3AF)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    med['entryDateTime'] is DateTime
-                                        ? "${(med['entryDateTime'] as DateTime).year}/${(med['entryDateTime'] as DateTime).month.toString().padLeft(2, '0')}/${(med['entryDateTime'] as DateTime).day.toString().padLeft(2, '0')}"
-                                        : "-",
-                                    style: const TextStyle(
-                                      color: Color(0xFF9CA3AF),
-                                      fontSize: 11,
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => _openAddMedication(context, initialMed: med),
+                                          child: Container(
+                                            width: 38,
+                                            height: 38,
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.withAlpha(20),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(
+                                              Icons.edit_outlined,
+                                              color: Colors.blue,
+                                              size: 22,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        GestureDetector(
+                                          onTap: () => _deleteMedication(med),
+                                          child: Container(
+                                            width: 38,
+                                            height: 38,
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withAlpha(20),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(
+                                              Icons.delete_outline,
+                                              color: Colors.red,
+                                              size: 22,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: () => _openAddMedication(context, initialMed: med),
-                              child: Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(12),
+                                  ],
                                 ),
-                                child: const Icon(
-                                  Icons.edit_outlined,
-                                  color: Colors.blue,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => _deleteMedication(med),
-                              child: Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  )
     );
-}
+  }
 }
 
 class AddMedicationDialog extends StatefulWidget {
-  final Function(Map<String, dynamic>) onAdd;
-  final Map<String, dynamic>? initialMed;
+  final Future<void> Function(Map<String, dynamic>) onAdd;
+  final MedicationModel? initialMed;
   const AddMedicationDialog({super.key, required this.onAdd, this.initialMed});
 
   @override
@@ -741,6 +680,7 @@ class AddMedicationDialog extends StatefulWidget {
 }
 
 class _AddMedicationDialogState extends State<AddMedicationDialog> {
+  bool _saving = false;
   String frequency = "daily";
   TimeOfDay? selectedTime;
   final TextEditingController _nameController = TextEditingController();
@@ -752,49 +692,32 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
 
   final ImagePicker _picker = ImagePicker();
 
-  String _mapFrequencyToKey(String? freq) {
-    if (freq == null) return "daily";
-    final f = freq.toLowerCase().trim();
-    if (f == "daily" || f == "يومياً" || f == "يوميا") return "daily";
-    if (f == "twice_daily" || f == "مرتين يومياً" || f == "مرتين يوميا") return "twice_daily";
-    if (f == "three_times_daily" || f == "ثلاث مرات يومياً" || f == "ثلاث مرات يوميا") return "three_times_daily";
-    if (f == "weekly" || f == "أسبوعياً" || f == "اسبوعيا") return "weekly";
-    if (f == "monthly" || f == "شهرياً" || f == "شهريا") return "monthly";
-    return "daily"; // Default
-  }
-
   @override
   void initState() {
     super.initState();
     if (widget.initialMed != null) {
-      _nameController.text = widget.initialMed!['name'] ?? '';
-      _doseController.text = widget.initialMed!['dose'] ?? '';
-      _userNameController.text = widget.initialMed!['userName'] ?? '';
-      frequency = _mapFrequencyToKey(widget.initialMed!['frequency']);
-      _entryDateTime = widget.initialMed!['entryDateTime'] is DateTime ? widget.initialMed!['entryDateTime'] : DateTime.now();
+      _nameController.text = widget.initialMed!.name;
+      _doseController.text = widget.initialMed!.dosage;
+      // Note: userName mapping is not straightforward as MedicationModel doesn't have it directly stored in the way the initial UI had.
+      frequency = "daily"; // Defaulting or mapping if you had specific logic.
+      _entryDateTime = DateTime.now();
       
       try {
-        String t = widget.initialMed!['time'].toString().trim().replaceAll('ص', 'صباحاً').replaceAll('م', 'مساءً');
-        final parts = t.split(' ');
-        final timeParts = parts[0].split(':');
-        int h = int.parse(timeParts[0]);
-        int m = int.parse(timeParts[1]);
-         
-        if (parts.length > 1) {
-          if ((parts[1].contains('ظهر') || parts[1].contains('مساء')) && h != 12) h += 12;
-          if (parts[1].contains('صباح') && h == 12) h = 0;
+        if (widget.initialMed!.times.isNotEmpty) {
+          String t = widget.initialMed!.times.first.trim().replaceAll('ص', 'صباحاً').replaceAll('م', 'مساءً');
+          final parts = t.split(' ');
+          final timeParts = parts[0].split(':');
+          int h = int.parse(timeParts[0]);
+          int m = int.parse(timeParts[1]);
+           
+          if (parts.length > 1) {
+            if ((parts[1].contains('ظهر') || parts[1].contains('مساء')) && h != 12) h += 12;
+            if (parts[1].contains('صباح') && h == 12) h = 0;
+          }
+          selectedTime = TimeOfDay(hour: h, minute: m);
         }
-        selectedTime = TimeOfDay(hour: h, minute: m);
       } catch (e) {
         selectedTime = null;
-      }
-
-      if (widget.initialMed!['image'] != null) {
-        if (widget.initialMed!['image'] is File) {
-          _selectedImage = widget.initialMed!['image'];
-        } else {
-          _selectedImage = File(widget.initialMed!['image'].toString());
-        }
       }
     }
   }
@@ -823,8 +746,6 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
       });
     }
   }
-
-
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -1141,35 +1062,59 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    if (_nameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("enter_med_name_error".tr())),
-                      );
-                      return;
-                    }
-                    widget.onAdd({
-                      'name': _nameController.text,
-                      'dose': _doseController.text,
-                      'time': selectedTime == null
-                          ? "00:00"
-                          : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
-                      'frequency': frequency,
-                      'userName': _userNameController.text.isNotEmpty ? _userNameController.text : "أحمد محمد",
-                      'entryDateTime': _entryDateTime,
-                      'image': _selectedImage, // Saves the actual File object
-                      'color': Colors.teal,
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    widget.initialMed != null ? "save_btn".tr() : "save_btn".tr(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: _saving
+                      ? null
+                      : () async {
+                          if (_nameController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("enter_med_name_error".tr())),
+                            );
+                            return;
+                          }
+                          setState(() => _saving = true);
+                          try {
+                            await widget.onAdd({
+                              'name': _nameController.text,
+                              'dose': _doseController.text,
+                              'time': selectedTime == null
+                                  ? "00:00"
+                                  : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
+                              'frequency': frequency,
+                              'userName': _userNameController.text.isNotEmpty
+                                  ? _userNameController.text
+                                  : "أحمد محمد",
+                              'entryDateTime': _entryDateTime,
+                              'image': _selectedImage,
+                              'color': Colors.teal,
+                            });
+                            if (context.mounted) Navigator.pop(context);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) setState(() => _saving = false);
+                          }
+                        },
+                  child: _saving
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          "save_btn".tr(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],

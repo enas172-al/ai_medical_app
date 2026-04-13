@@ -1,160 +1,224 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ChartScreen extends StatelessWidget {
+import '../../core/models/analysis_model.dart';
+import '../../core/services/database_service.dart';
+
+class ChartScreen extends StatefulWidget {
   const ChartScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<ChartScreen> createState() => _ChartScreenState();
+}
 
+class _ChartScreenState extends State<ChartScreen> {
+  Future<List<AnalysisModel>>? _future;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_future != null) return;
     final args = ModalRoute.of(context)?.settings.arguments;
+    String? testName;
+    if (args is Map && args['testName'] is String) {
+      testName = args['testName'] as String;
+    }
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null && testName != null) {
+      _future = DatabaseService().getAnalysesByTestName(uid, testName);
+    } else {
+      _future = Future.value([]);
+    }
+  }
 
-    if (args == null || args is! Map) {
-      return Scaffold(
-        body: Center(
-          child: Text("no_data_found".tr()),
-        ),
-      );
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Low':
+        return Colors.orange;
+      case 'High':
+        return Colors.red;
+      default:
+        return const Color(0xFF10B981);
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'Low':
+        return 'low_status'.tr();
+      case 'High':
+        return 'high_status'.tr();
+      default:
+        return 'normal_status'.tr();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    String displayTitle = 'all_results_title'.tr();
+    if (args is Map && args['displayTitle'] is String) {
+      displayTitle = args['displayTitle'] as String;
     }
 
-
     return Scaffold(
-        backgroundColor: const Color(0xFFF7F9FB),
-
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: Text(
-            "all_results_title".tr(),
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 18,),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
-            onPressed: () => Navigator.pop(context),
+      backgroundColor: const Color(0xFFF7F9FB),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          displayTitle,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: FutureBuilder<List<AnalysisModel>>(
+        future: _future ?? Future.value([]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final data = snapshot.data ?? [];
+          if (data.isEmpty) {
+            return Center(child: Text("no_data_found".tr()));
+          }
 
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          final spots = <FlSpot>[];
+          for (var i = 0; i < data.length; i++) {
+            spots.add(FlSpot(i.toDouble(), data[i].value));
+          }
 
-                Text(
-                  "chart_card_title".tr(),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+          final dateFmt = DateFormat.MMMd(context.locale.toString());
+          double minY = data.map((e) => e.value).reduce((a, b) => a < b ? a : b);
+          double maxY = data.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+          final pad = (maxY - minY).abs() < 1e-6 ? 5.0 : (maxY - minY) * 0.15;
+          minY = (minY - pad).floorToDouble();
+          maxY = (maxY + pad).ceilToDouble();
+          if (minY < 0 && data.every((e) => e.value >= 0)) minY = 0;
 
-                const SizedBox(height: 16),
-
-                // 📊 Chart Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "chart_card_title".tr(),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  child: SizedBox(
-                    height: 200,
-                    child: LineChart(
-                      LineChartData(
-                        gridData: FlGridData(
-                          show: true,
-                          horizontalInterval: 20,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) {
-                            return FlLine(
-                              color: Colors.grey.shade100,
-                              strokeWidth: 1,
-                            );
-                          },
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
                         ),
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                switch (value.toInt()) {
-                                  case 0: return Text("1 ${"feb_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 1: return Text("15 ${"feb_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 2: return Text("1 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 3: return Text("15 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
-                                  case 4: return Text("20 ${"mar_short".tr()}", style: const TextStyle(fontSize: 10, color: Colors.grey));
-                                  default: return const Text("");
-                                }
-                              },
-                            ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          minY: minY,
+                          maxY: maxY,
+                          gridData: FlGridData(
+                            show: true,
+                            horizontalInterval: (maxY - minY) > 0 ? (maxY - minY) / 4 : 1,
+                            drawVerticalLine: false,
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade100,
+                                strokeWidth: 1,
+                              );
+                            },
                           ),
-                          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        ),
-                        lineBarsData: [
-                          LineChartBarData(
-                            isCurved: true,
-                            curveSmoothness: 0.35,
-                            color: const Color(0xFF1FB6A6),
-                            barWidth: 4,
-                            isStrokeCapRound: true,
-                            dotData: FlDotData(
-                              show: true,
-                              getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-                                radius: 4,
-                                color: const Color(0xFF1FB6A6),
-                                strokeWidth: 2,
-                                strokeColor: Colors.white,
+                          borderData: FlBorderData(show: false),
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 28,
+                                getTitlesWidget: (value, meta) {
+                                  final i = value.toInt();
+                                  if (i < 0 || i >= data.length) return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      dateFmt.format(data[i].date),
+                                      style: const TextStyle(fontSize: 9, color: Colors.grey),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: const Color(0xFF1FB6A6).withOpacity(0.1),
-                            ),
-                            spots: const [
-                              FlSpot(0, 95),
-                              FlSpot(1, 110),
-                              FlSpot(2, 98),
-                              FlSpot(3, 95),
-                              FlSpot(4, 95),
-                            ],
+                            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                           ),
-                        ],
+                          lineBarsData: [
+                            LineChartBarData(
+                              isCurved: true,
+                              curveSmoothness: 0.35,
+                              color: const Color(0xFF1FB6A6),
+                              barWidth: 4,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(
+                                show: true,
+                                getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                                  radius: 4,
+                                  color: const Color(0xFF1FB6A6),
+                                  strokeWidth: 2,
+                                  strokeColor: Colors.white,
+                                ),
+                              ),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                color: const Color(0xFF1FB6A6).withOpacity(0.1),
+                              ),
+                              spots: spots,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 25),
-
-                Text(
-                  "previous_results_title".tr(),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 15),
-
-                // 📄 قائمة النتائج (Image 2 Style)
-                _buildResultItem("mg/dL 95", "20 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 95", "15 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 98", "1 ${"mar_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
-                _buildResultItem("mg/dL 110", "15 ${"feb_short".tr()}", "high_status".tr(), const Color(0xFFEF4444)),
-                _buildResultItem("mg/dL 95", "1 ${"feb_short".tr()}", "normal_status".tr(), const Color(0xFF10B981)),
-
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 25),
+                  Text(
+                    "previous_results_title".tr(),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 15),
+                  ...data.reversed.map((a) {
+                    final color = _statusColor(a.status);
+                    return _buildResultItem(
+                      '${a.unit} ${a.value}',
+                      dateFmt.format(a.date),
+                      _statusLabel(a.status),
+                      color,
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
+      ),
     );
   }
 
@@ -170,7 +234,6 @@ class ChartScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // 🔘 الحالة (Left Side)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -183,15 +246,13 @@ class ChartScreen extends StatelessWidget {
                   "- $status",
                   style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-                if (status == "مرتفع") ...[
+                if (status == "high_status".tr() || status == "مرتفع") ...[
                   const SizedBox(width: 4),
                   Icon(Icons.trending_up, color: color, size: 16),
-                ]
+                ],
               ],
             ),
           ),
-
-          // 🔢 القيمة والتاريخ (Right Side)
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

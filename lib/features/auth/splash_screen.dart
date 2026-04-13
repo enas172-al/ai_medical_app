@@ -18,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
     // حركة النقاط
     Future.delayed(Duration(milliseconds: 500), updateDots);
 
-    // 🔥 الانتقال إلى Login
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
     });
   }
