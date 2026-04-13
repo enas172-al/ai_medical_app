@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../profile/profile_setup_screen.dart';
+import '../../core/services/auth_service.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -29,28 +30,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // ✅ هذا هو الجزء اللي تعدل
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // هنا تقدر تضيف منطق التسجيل الحقيقي (API أو Firebase)
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        final userCredential = await AuthService().registerWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          name: _nameController.text.trim(),
+        );
 
+        if (userCredential != null && mounted) {
+        
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProfileSetupScreen(),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: ${e.toString()}")),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userCredential = await AuthService().signInWithGoogle();
+      if (userCredential != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/home'); // Or to ProfileSetup if you want
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${e.toString()}")),
+        );
+      }
+    } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-
-        // ✅ بعد إنشاء الحساب، نروح لصفحة إعداد الملف الشخصي
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProfileSetupScreen(),
-          ),
-        );
       }
     }
   }
@@ -105,9 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
 
-                const SizedBox(height: 30),
-
-                // 🔥 CARD - مع هوامش من اليمين واليسار
+        
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
@@ -232,6 +268,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
 
+                        const SizedBox(height: 15),
+
+                        // الدخول بجوجل
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.grey, width: 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: _isLoading ? null : _handleGoogleSignIn,
+                            icon: Image.asset(
+                              'assets/images/logo.png', // Temporary fallback
+                              width: 24,
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 30, color: Colors.blue),
+                            ),
+                            label: _isLoading 
+                              ? const SizedBox(
+                                  width: 20, 
+                                  height: 20, 
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text(
+                                  "Sign up with Google",
+                                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                                ),
+                          ),
+                        ),
+
                         const SizedBox(height: 20),
 
                         // رابط تسجيل الدخول
@@ -262,7 +333,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // 🔹 Input Widget
+  //  Input Widget
   Widget input({
     required String title,
     required String hint,

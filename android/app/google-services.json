@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "217984859415",
+    "project_id": "labby-31347",
+    "storage_bucket": "labby-31347.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:217984859415:android:fd28043a10c6e330140b52",
+        "android_client_info": {
+          "package_name": "com.example.ai_medical_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMH32kVY4VWkg9BDS-OtRCPgWv13f7uTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

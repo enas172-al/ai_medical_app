@@ -9,12 +9,15 @@ import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await Firebase.initializeApp();
 
   runApp(
     EasyLocalization(
