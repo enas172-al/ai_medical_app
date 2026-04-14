@@ -9,6 +9,7 @@ class AnalysisDetailsScreen extends StatelessWidget {
   final String normalRange;
   final String highText;
   final String lowText;
+  final String? unit;
   final String? simplifiedExplanation;
   final String? referenceText;
   final String? sourceUrl;
@@ -21,6 +22,7 @@ class AnalysisDetailsScreen extends StatelessWidget {
     required this.normalRange,
     required this.highText,
     required this.lowText,
+    this.unit,
     this.simplifiedExplanation,
     this.referenceText,
     this.sourceUrl,
@@ -179,9 +181,9 @@ class AnalysisDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        "الوحدة حسب التحليل",
-                        style: TextStyle(color: Colors.grey),
+                      Text(
+                        (unit ?? '').trim().isEmpty ? " " : "الوحدة: ${unit!.trim()}",
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     ],
                   ),

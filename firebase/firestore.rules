@@ -20,8 +20,14 @@ service cloud.firestore {
           && request.resource.data.userId == request.auth.uid;
     }
 
-    // Public test definitions catalog (seeded from external medical catalog).
+    // Public lab tests catalog.
     // Read allowed to everyone; write allowed to signed-in users (for seeding/admin tooling).
+    match /lab_tests/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Legacy name (kept for backward compatibility).
     match /test_definitions/{docId} {
       allow read: if true;
       allow write: if request.auth != null;

@@ -138,8 +138,39 @@ class DatabaseService {
 
   // --- Test Definitions (Search) ---
 
+  /// NOTE: if you change this name, also change the Firebase Console view accordingly.
+  static const String testDefinitionsCollection = 'lab_tests';
+  static const String _legacyTestDefinitionsCollection = 'test_definitions';
+
   CollectionReference<Map<String, dynamic>> get _testsCol =>
-      _db.collection('test_definitions');
+      _db.collection(testDefinitionsCollection);
+
+  CollectionReference<Map<String, dynamic>> get _testsColLegacy =>
+      _db.collection(_legacyTestDefinitionsCollection);
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _safeGet(
+    Query<Map<String, dynamic>> q,
+  ) async {
+    try {
+      return await q.get();
+    } on FirebaseException catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _getFromActiveOrLegacy(
+    Query<Map<String, dynamic>> Function(CollectionReference<Map<String, dynamic>> col) build,
+  ) async {
+    // 1) try active collection
+    try {
+      final snap = await _safeGet(build(_testsCol));
+      if (snap.docs.isNotEmpty) return snap;
+    } catch (_) {
+      // ignore and fallback
+    }
+    // 2) fallback to legacy
+    return await _safeGet(build(_testsColLegacy));
+  }
 
   static String _normalizeQuery(String q) {
     final trimmed = q.trim().toLowerCase();
@@ -166,7 +197,7 @@ class DatabaseService {
   Future<Map<String, List<TestDefinitionModel>>> listTestDefinitionsGrouped({
     int limit = 50,
   }) async {
-    final snap = await _testsCol.limit(limit).get();
+    final snap = await _getFromActiveOrLegacy((col) => col.limit(limit));
     final items = snap.docs.map((d) => TestDefinitionModel.fromDoc(d)).toList();
     final Map<String, List<TestDefinitionModel>> grouped = {};
     for (final item in items) {
@@ -193,6 +224,39 @@ class DatabaseService {
       'importedCount': count,
       'importedAt': FieldValue.serverTimestamp(),
       'sourceHost': _mayoLabsHost,
+      'reseededBecauseEmpty': done && !hasAny,
+    }, SetOptions(merge: true));
+    return count;
+  }
+
+  /// Ensures the lab tests from the bundled PDF list are imported once (idempotent).
+  /// Writes docs into `test_definitions` and stores a flag in `meta/test_definitions_seed`.
+  Future<int> ensurePdfLabTestsSeededOnce() async {
+    final hasAnyActive = await _testsCol.limit(1).get().then((s) => s.docs.isNotEmpty);
+    final hasAnyLegacy = await _testsColLegacy.limit(1).get().then((s) => s.docs.isNotEmpty);
+    final hasAny = hasAnyActive || hasAnyLegacy;
+    final snap = await _metaDoc.get();
+    final done = (snap.data()?['pdfLabTestsImported'] == true);
+    if (done && hasAny) return 0;
+
+    int count = 0;
+    try {
+      count = await seedPdfLabTests();
+    } on FirebaseException catch (e) {
+      // If active collection is blocked by rules, fallback to legacy collection
+      // (keeps the app working even before rules deploy).
+      final code = e.code.toLowerCase();
+      if (code.contains('permission') || code.contains('denied')) {
+        count = await seedPdfLabTests(collectionNameOverride: _legacyTestDefinitionsCollection);
+      } else {
+        rethrow;
+      }
+    }
+    await _metaDoc.set({
+      'pdfLabTestsImported': true,
+      'pdfImportedCount': count,
+      'pdfImportedAt': FieldValue.serverTimestamp(),
+      'pdfName': '300_lab_tests.pdf',
       'reseededBecauseEmpty': done && !hasAny,
     }, SetOptions(merge: true));
     return count;
@@ -225,38 +289,45 @@ class DatabaseService {
       if (normTokens.length >= 2) normTokens[1],
     }.where((t) => t.trim().isNotEmpty).toList();
     for (final t in tokenCandidates.take(3)) {
-      keywordSnaps.add(await _testsCol.where('keywords', arrayContains: t).limit(limitPerQuery).get());
+      keywordSnaps.add(
+        await _getFromActiveOrLegacy(
+          (col) => col.where('keywords', arrayContains: t).limit(limitPerQuery),
+        ),
+      );
     }
 
     // Prefix search on Arabic name
-    final byArPrefix = await _testsCol
-        .orderBy('nameArLower')
-        .startAt([q])
-        .endAt(['$q\uf8ff'])
-        .limit(limitPerQuery)
-        .get();
+    final byArPrefix = await _getFromActiveOrLegacy(
+      (col) => col
+          .orderBy('nameArLower')
+          .startAt([q])
+          .endAt(['$q\uf8ff'])
+          .limit(limitPerQuery),
+    );
 
     // Prefix search on Arabic normalized name (if field exists)
     QuerySnapshot<Map<String, dynamic>>? byArNormPrefix;
     try {
-      byArNormPrefix = await _testsCol
-          .orderBy('nameArNorm')
-          .startAt([qArNorm])
-          .endAt(['$qArNorm\uf8ff'])
-          .limit(limitPerQuery)
-          .get();
+      byArNormPrefix = await _getFromActiveOrLegacy(
+        (col) => col
+            .orderBy('nameArNorm')
+            .startAt([qArNorm])
+            .endAt(['$qArNorm\uf8ff'])
+            .limit(limitPerQuery),
+      );
     } catch (_) {
       // If the field/index doesn't exist yet, ignore.
       byArNormPrefix = null;
     }
 
     // Prefix search on English name
-    final byEnPrefix = await _testsCol
-        .orderBy('nameEnLower')
-        .startAt([q])
-        .endAt(['$q\uf8ff'])
-        .limit(limitPerQuery)
-        .get();
+    final byEnPrefix = await _getFromActiveOrLegacy(
+      (col) => col
+          .orderBy('nameEnLower')
+          .startAt([q])
+          .endAt(['$q\uf8ff'])
+          .limit(limitPerQuery),
+    );
 
     // Merge unique by id
     final Map<String, TestDefinitionModel> merged = {};
@@ -649,6 +720,367 @@ class DatabaseService {
       batch.set(_testsCol.doc(item.id), item.toMap(), SetOptions(merge: true));
     }
     await batch.commit();
+  }
+
+  /// Seed a curated set of lab tests extracted from `300_lab_tests.pdf`.
+  /// Uses deterministic document ids and is safe to call multiple times.
+  Future<int> seedPdfLabTests({String? collectionNameOverride}) async {
+    final now = DateTime.now();
+    final items = <TestDefinitionModel>[
+      // Hematology
+      _seedPdf(
+        id: 'pdf_hemoglobin',
+        nameAr: 'الهيموجلوبين',
+        nameEn: 'Hemoglobin',
+        shortCode: 'Hb',
+        category: 'الدم',
+        unit: 'g/dL',
+        normalMin: 12.1,
+        normalMax: 17.2,
+        referenceText: 'Men: 13.8–17.2 g/dL, Women: 12.1–15.1 g/dL',
+        now: now,
+        aliases: ['hb', 'hgb', 'hemoglobin', 'هيموجلوبين', 'هيموغلوبين'],
+      ),
+      _seedPdf(
+        id: 'pdf_hematocrit',
+        nameAr: 'الهيماتوكريت',
+        nameEn: 'Hematocrit',
+        shortCode: 'HCT',
+        category: 'الدم',
+        unit: '%',
+        normalMin: 36,
+        normalMax: 52,
+        referenceText: 'Men: 40–52%, Women: 36–48%',
+        now: now,
+        aliases: ['hct', 'hematocrit', 'هيماتوكريت'],
+      ),
+      _seedPdf(
+        id: 'pdf_wbc',
+        nameAr: 'كرات الدم البيضاء',
+        nameEn: 'WBC',
+        shortCode: 'WBC',
+        category: 'الدم',
+        unit: '/µL',
+        normalMin: 4000,
+        normalMax: 11000,
+        referenceText: '4,000–11,000 /µL',
+        now: now,
+        aliases: ['wbc', 'white blood cells', 'كريات بيضاء', 'كرات دم بيضاء'],
+      ),
+      _seedPdf(
+        id: 'pdf_platelets',
+        nameAr: 'الصفائح الدموية',
+        nameEn: 'Platelets',
+        shortCode: 'PLT',
+        category: 'الدم',
+        unit: '/µL',
+        normalMin: 150000,
+        normalMax: 450000,
+        referenceText: '150,000–450,000 /µL',
+        now: now,
+        aliases: ['platelets', 'plt', 'صفائح', 'platelet count'],
+      ),
+      _seedPdf(
+        id: 'pdf_rbc',
+        nameAr: 'كرات الدم الحمراء',
+        nameEn: 'RBC',
+        shortCode: 'RBC',
+        category: 'الدم',
+        unit: 'million/µL',
+        normalMin: 4.2,
+        normalMax: 6.1,
+        referenceText: '4.7–6.1 (men), 4.2–5.4 (women) million/µL',
+        now: now,
+        aliases: ['rbc', 'red blood cells', 'كريات حمراء', 'كرات دم حمراء'],
+      ),
+
+      // Biochemistry
+      _seedPdf(
+        id: 'pdf_glucose_fasting',
+        nameAr: 'سكر الدم',
+        nameEn: 'Glucose',
+        shortCode: 'Glucose',
+        category: 'السكريات',
+        unit: 'mg/dL',
+        normalMin: 70,
+        normalMax: 100,
+        referenceText: 'Fasting: 70–100 mg/dL',
+        now: now,
+        aliases: ['glucose', 'fasting glucose', 'fbs', 'سكر', 'سكر صائم'],
+      ),
+      _seedPdf(
+        id: 'pdf_creatinine',
+        nameAr: 'الكرياتينين',
+        nameEn: 'Creatinine',
+        shortCode: 'Cr',
+        category: 'الكلى',
+        unit: 'mg/dL',
+        normalMin: 0.6,
+        normalMax: 1.3,
+        referenceText: '0.6–1.3 mg/dL',
+        now: now,
+        aliases: ['creatinine', 'cr', 'كرياتينين'],
+      ),
+      _seedPdf(
+        id: 'pdf_urea',
+        nameAr: 'اليوريا',
+        nameEn: 'Urea',
+        shortCode: 'Urea',
+        category: 'الكلى',
+        unit: 'mg/dL',
+        normalMin: 7,
+        normalMax: 20,
+        referenceText: '7–20 mg/dL',
+        now: now,
+        aliases: ['urea', 'bun', 'يوريا', 'بولة'],
+      ),
+      _seedPdf(
+        id: 'pdf_calcium',
+        nameAr: 'الكالسيوم',
+        nameEn: 'Calcium',
+        shortCode: 'Ca',
+        category: 'الأملاح',
+        unit: 'mg/dL',
+        normalMin: 8.6,
+        normalMax: 10.2,
+        referenceText: '8.6–10.2 mg/dL',
+        now: now,
+        aliases: ['calcium', 'ca', 'كالسيوم'],
+      ),
+      _seedPdf(
+        id: 'pdf_sodium',
+        nameAr: 'الصوديوم',
+        nameEn: 'Sodium',
+        shortCode: 'Na',
+        category: 'الأملاح',
+        unit: 'mEq/L',
+        normalMin: 135,
+        normalMax: 145,
+        referenceText: '135–145 mEq/L',
+        now: now,
+        aliases: ['sodium', 'na', 'صوديوم'],
+      ),
+      _seedPdf(
+        id: 'pdf_potassium',
+        nameAr: 'البوتاسيوم',
+        nameEn: 'Potassium',
+        shortCode: 'K',
+        category: 'الأملاح',
+        unit: 'mEq/L',
+        normalMin: 3.5,
+        normalMax: 5.0,
+        referenceText: '3.5–5.0 mEq/L',
+        now: now,
+        aliases: ['potassium', 'k', 'بوتاسيوم'],
+      ),
+
+      // Liver Function
+      _seedPdf(
+        id: 'pdf_alt',
+        nameAr: 'إنزيمات الكبد ALT',
+        nameEn: 'ALT',
+        shortCode: 'ALT',
+        category: 'الكبد',
+        unit: 'U/L',
+        normalMin: 7,
+        normalMax: 56,
+        referenceText: '7–56 U/L',
+        now: now,
+        aliases: ['alt', 'sgpt', 'انزيم alt', 'إنزيم ALT'],
+      ),
+      _seedPdf(
+        id: 'pdf_ast',
+        nameAr: 'إنزيمات الكبد AST',
+        nameEn: 'AST',
+        shortCode: 'AST',
+        category: 'الكبد',
+        unit: 'U/L',
+        normalMin: 10,
+        normalMax: 40,
+        referenceText: '10–40 U/L',
+        now: now,
+        aliases: ['ast', 'sgot', 'انزيم ast', 'إنزيم AST'],
+      ),
+      _seedPdf(
+        id: 'pdf_alp',
+        nameAr: 'الفوسفاتاز القلوي',
+        nameEn: 'ALP',
+        shortCode: 'ALP',
+        category: 'الكبد',
+        unit: 'IU/L',
+        normalMin: 44,
+        normalMax: 147,
+        referenceText: '44–147 IU/L',
+        now: now,
+        aliases: ['alp', 'alkaline phosphatase', 'فوسفاتاز', 'الفوسفاتاز القلوي'],
+      ),
+      _seedPdf(
+        id: 'pdf_bilirubin_total',
+        nameAr: 'البيليروبين الكلي',
+        nameEn: 'Total Bilirubin',
+        shortCode: 'Bili',
+        category: 'الكبد',
+        unit: 'mg/dL',
+        normalMin: 0.1,
+        normalMax: 1.2,
+        referenceText: '0.1–1.2 mg/dL',
+        now: now,
+        aliases: ['bilirubin', 'total bilirubin', 'bili', 'بيليروبين'],
+      ),
+
+      // Hormones
+      _seedPdf(
+        id: 'pdf_tsh',
+        nameAr: 'هرمون الغدة الدرقية TSH',
+        nameEn: 'TSH',
+        shortCode: 'TSH',
+        category: 'الهرمونات',
+        unit: 'mIU/L',
+        normalMin: 0.4,
+        normalMax: 4.0,
+        referenceText: '0.4–4.0 mIU/L',
+        now: now,
+        aliases: ['tsh', 'thyroid stimulating hormone', 'الغدة الدرقية', 'درقية'],
+      ),
+      _seedPdf(
+        id: 'pdf_free_t4',
+        nameAr: 'الثيروكسين الحر',
+        nameEn: 'Free T4',
+        shortCode: 'FT4',
+        category: 'الهرمونات',
+        unit: 'ng/dL',
+        normalMin: 0.8,
+        normalMax: 1.8,
+        referenceText: '0.8–1.8 ng/dL',
+        now: now,
+        aliases: ['free t4', 'ft4', 't4', 'ثيروكسين'],
+      ),
+      _seedPdf(
+        id: 'pdf_cortisol',
+        nameAr: 'الكورتيزول',
+        nameEn: 'Cortisol',
+        shortCode: 'Cortisol',
+        category: 'الهرمونات',
+        unit: 'mcg/dL',
+        normalMin: 6,
+        normalMax: 23,
+        referenceText: '6–23 mcg/dL',
+        now: now,
+        aliases: ['cortisol', 'كورتيزول'],
+      ),
+
+      // Vitamins & Minerals
+      _seedPdf(
+        id: 'pdf_vitamin_d',
+        nameAr: 'فيتامين د',
+        nameEn: 'Vitamin D',
+        shortCode: 'Vit D',
+        category: 'الفيتامينات والمعادن',
+        unit: 'ng/mL',
+        normalMin: 20,
+        normalMax: 50,
+        referenceText: '20–50 ng/mL',
+        now: now,
+        aliases: ['vitamin d', 'vit d', '25(oh)d', 'فيتامين د'],
+      ),
+      _seedPdf(
+        id: 'pdf_vitamin_b12',
+        nameAr: 'فيتامين ب12',
+        nameEn: 'Vitamin B12',
+        shortCode: 'B12',
+        category: 'الفيتامينات والمعادن',
+        unit: 'pg/mL',
+        normalMin: 200,
+        normalMax: 900,
+        referenceText: '200–900 pg/mL',
+        now: now,
+        aliases: ['vitamin b12', 'b12', 'فيتامين ب12', 'cobalamin'],
+      ),
+      _seedPdf(
+        id: 'pdf_iron',
+        nameAr: 'الحديد',
+        nameEn: 'Iron',
+        shortCode: 'Fe',
+        category: 'الفيتامينات والمعادن',
+        unit: 'µg/dL',
+        normalMin: 60,
+        normalMax: 170,
+        referenceText: '60–170 µg/dL',
+        now: now,
+        aliases: ['iron', 'fe', 'حديد', 'serum iron'],
+      ),
+    ];
+
+    final col = (collectionNameOverride?.trim().isNotEmpty == true)
+        ? _db.collection(collectionNameOverride!.trim())
+        : _testsCol;
+    final batch = _db.batch();
+    for (final item in items) {
+      batch.set(col.doc(item.id), item.toMap(), SetOptions(merge: true));
+    }
+    await batch.commit();
+    return items.length;
+  }
+
+  static TestDefinitionModel _seedPdf({
+    required String id,
+    required String nameAr,
+    required String nameEn,
+    required String shortCode,
+    required String category,
+    required String unit,
+    required double? normalMin,
+    required double? normalMax,
+    required String referenceText,
+    required DateTime now,
+    required List<String> aliases,
+  }) {
+    final highText =
+        'قد يشير الارتفاع إلى أسباب متعددة ويُنصح بمراجعة الطبيب لتفسير النتيجة حسب الأعراض وباقي التحاليل.';
+    final lowText =
+        'قد يشير الانخفاض إلى أسباب متعددة ويُنصح بمراجعة الطبيب لتفسير النتيجة حسب الحالة.';
+
+    final arLower = nameAr.toLowerCase();
+    final arNorm = _normalizeArabic(arLower);
+    final enLower = nameEn.toLowerCase();
+    final aliasTokens = aliases
+        .map((a) => a.trim().toLowerCase())
+        .where((a) => a.isNotEmpty)
+        .expand(_tokenize);
+    final aliasNormTokens = aliases
+        .map((a) => _normalizeArabic(a.trim().toLowerCase()))
+        .where((a) => a.isNotEmpty)
+        .expand(_tokenize);
+    final keywordSet = <String>{
+      ..._tokenize(arLower),
+      ..._tokenize(arNorm),
+      ..._tokenize(enLower),
+      ..._tokenize(shortCode.toLowerCase()),
+      ...aliasTokens,
+      ...aliasNormTokens,
+    };
+
+    return TestDefinitionModel(
+      id: id,
+      nameAr: nameAr,
+      nameEn: nameEn,
+      shortCode: shortCode,
+      nameArLower: arLower,
+      nameArNorm: arNorm,
+      nameEnLower: enLower,
+      keywords: keywordSet.toList()..sort(),
+      category: category,
+      unit: unit,
+      normalMin: normalMin,
+      normalMax: normalMax,
+      highText: highText,
+      lowText: lowText,
+      simplifiedExplanation: null,
+      referenceText: referenceText,
+      updatedAt: now,
+      source: 'pdf_300_lab_tests',
+      sourceUrl: null,
+    );
   }
 
   static TestDefinitionModel _seed({

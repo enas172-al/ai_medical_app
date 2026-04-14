@@ -21,11 +21,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   String _query = '';
   Future<Map<String, List<TestDefinitionModel>>>? _future;
+  bool _isSeeding = false;
 
   @override
   void initState() {
     super.initState();
-    // Load list immediately, then (in background) ensure 500 Mayo Labs tests exist once.
+    // Load list immediately, then (in background) ensure the bundled PDF tests exist once.
     _future = _db.listTestDefinitionsGrouped(limit: 500);
     _seedOnce();
   }
@@ -36,17 +37,20 @@ class _SearchScreenState extends State<SearchScreen> {
       if (uid == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('لازم تسجل دخول باش نقدر نعبّي التحاليل في قاعدة البيانات')),
+            const SnackBar(content: Text('سجّل دخول باش نقدر نعبّي التحاليل في قاعدة البيانات')),
           );
         }
         return;
       }
       if (mounted) {
+        setState(() => _isSeeding = true);
+      }
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('جارٍ تجهيز التحاليل من المصدر...')),
+          const SnackBar(content: Text('جارٍ تجهيز التحاليل من ملف التحاليل...')),
         );
       }
-      final seeded = await _db.ensureMayoLabsSeededOnce(limit: 500);
+      final seeded = await _db.ensurePdfLabTestsSeededOnce();
       if (!mounted) return;
       if (seeded > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,14 +59,16 @@ class _SearchScreenState extends State<SearchScreen> {
       }
       setState(() {
         _future = _db.listTestDefinitionsGrouped(limit: 500);
+        _isSeeding = false;
       });
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('ensureMayoLabsSeededOnce failed: $e');
+        debugPrint('ensurePdfLabTestsSeededOnce failed: $e');
       }
       if (mounted) {
+        setState(() => _isSeeding = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل تجهيز التحاليل: $e')),
+          SnackBar(content: Text('فشل تجهيز التحاليل (تحقق من صلاحيات Firestore Rules): $e')),
         );
       }
     }
@@ -93,9 +99,25 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: Colors.white,
 
         /// AppBar
-        appBar: const CustomAppBar(
+        appBar: CustomAppBar(
           title: "",
           showBack: true,
+          actions: [
+            if (_isSeeding)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            IconButton(
+              tooltip: 'Force seed',
+              icon: const Icon(Icons.refresh),
+              onPressed: _isSeeding ? null : _seedOnce,
+            ),
+          ],
         ),
 
         body: SafeArea(
@@ -241,15 +263,26 @@ class _SearchScreenState extends State<SearchScreen> {
         ? t.shortCode
         : (t.source == 'mayocliniclabs' ? 'Mayo Labs' : (isArabic ? t.nameEn : t.nameAr));
 
+    String _fmtNum(double v) {
+      // Keep integers without trailing .0 to match UI.
+      if (v == v.roundToDouble()) return v.toInt().toString();
+      return v.toStringAsFixed(v.abs() >= 10 ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    }
+
     String normalRange = '';
+    final unit = t.unit.trim();
     if (t.normalMin != null && t.normalMax != null) {
-      normalRange = '${t.normalMin} - ${t.normalMax} ${t.unit}'.trim();
+      final minS = _fmtNum(t.normalMin!);
+      final maxS = _fmtNum(t.normalMax!);
+      normalRange = unit.isEmpty ? '$minS-$maxS' : '$unit $minS-$maxS';
     } else if (t.normalMax != null) {
-      normalRange = '<= ${t.normalMax} ${t.unit}'.trim();
+      final maxS = _fmtNum(t.normalMax!);
+      normalRange = unit.isEmpty ? '<= $maxS' : '$unit <= $maxS';
     } else if (t.normalMin != null) {
-      normalRange = '>= ${t.normalMin} ${t.unit}'.trim();
+      final minS = _fmtNum(t.normalMin!);
+      normalRange = unit.isEmpty ? '>= $minS' : '$unit >= $minS';
     } else {
-      normalRange = t.unit.isNotEmpty ? t.unit : '-';
+      normalRange = unit.isNotEmpty ? unit : '-';
     }
 
     return GestureDetector(
@@ -264,6 +297,7 @@ class _SearchScreenState extends State<SearchScreen> {
               normalRange: normalRange,
               highText: t.highText ?? '',
               lowText: t.lowText ?? '',
+              unit: t.unit,
               simplifiedExplanation: t.simplifiedExplanation,
               referenceText: t.referenceText,
               sourceUrl: t.sourceUrl,
