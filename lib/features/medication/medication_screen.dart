@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/database_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/models/medication_model.dart';
@@ -38,6 +39,17 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'tag': 'my_account_tag'.tr(),
     },
   ];
+
+  String _medicationEnteredByLine(MedicationModel med) {
+    final name = (med.enteredByName ?? '').trim();
+    final roleLabel = med.enteredByFamilyRole == 'dependent'
+        ? 'family_role_dependent'.tr()
+        : 'family_role_guardian'.tr();
+    if (name.isEmpty) {
+      return '${'medication_entered_by'.tr()}: $roleLabel';
+    }
+    return '${'medication_entered_by'.tr()}: $name ($roleLabel)';
+  }
 
   void _deleteMedication(MedicationModel med) {
     showDialog(
@@ -88,6 +100,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
               times: [newMedData['time']],
               daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
               createdAt: initialMed?.createdAt ?? DateTime.now(),
+              enteredByUid: newMedData['enteredByUid'] as String?,
+              enteredByName: newMedData['enteredByName'] as String?,
+              enteredByFamilyRole: newMedData['enteredByFamilyRole'] as String?,
             );
 
             // Prevent duplicates (same normalized name + dosage + time) among active meds.
@@ -604,6 +619,19 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                               fontSize: 14,
                                             ),
                                           ),
+                                          if (med.enteredByUid != null ||
+                                              (med.enteredByName != null && med.enteredByName!.isNotEmpty)) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              _medicationEnteredByLine(med),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Color(0xFF9CA3AF),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                           const SizedBox(height: 12),
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
@@ -707,10 +735,14 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
   TimeOfDay? selectedTime;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _doseController = TextEditingController();
-  final TextEditingController _userNameController = TextEditingController();
   DateTime _entryDateTime = DateTime.now();
   File? _selectedImage;
   String? _fileName;
+
+  /// Display name of the account adding or having added this row.
+  String _enteredByName = '';
+  /// `guardian` (parent) or `dependent` (e.g. child linked with family code).
+  String _enteredByRoleKey = 'guardian';
 
   final ImagePicker _picker = ImagePicker();
 
@@ -720,9 +752,18 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
     if (widget.initialMed != null) {
       _nameController.text = widget.initialMed!.name;
       _doseController.text = widget.initialMed!.dosage;
-      // Note: userName mapping is not straightforward as MedicationModel doesn't have it directly stored in the way the initial UI had.
       frequency = "daily"; // Defaulting or mapping if you had specific logic.
       _entryDateTime = DateTime.now();
+      final existing = widget.initialMed!;
+      if (existing.enteredByName != null ||
+          existing.enteredByFamilyRole != null ||
+          existing.enteredByUid != null) {
+        _enteredByName = (existing.enteredByName ?? '').trim();
+        _enteredByRoleKey =
+            existing.enteredByFamilyRole == 'dependent' ? 'dependent' : 'guardian';
+      } else {
+        _loadEnteredByProfile();
+      }
       
       try {
         if (widget.initialMed!.times.isNotEmpty) {
@@ -741,7 +782,65 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
       } catch (e) {
         selectedTime = null;
       }
+    } else {
+      _loadEnteredByProfile();
     }
+  }
+
+  Future<void> _loadEnteredByProfile() async {
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null) return;
+    final data = await AuthService().getUserData(u.uid);
+    final name = (data?.displayNameOrName ?? u.displayName ?? '').trim();
+    final roleKey = data?.familyRole == 'dependent' ? 'dependent' : 'guardian';
+    if (!mounted) return;
+    setState(() {
+      _enteredByName = name;
+      _enteredByRoleKey = roleKey;
+    });
+  }
+
+  String _enteredByRoleLabel() {
+    return _enteredByRoleKey == 'dependent'
+        ? 'family_role_dependent'.tr()
+        : 'family_role_guardian'.tr();
+  }
+
+  String _enteredBySummary() {
+    if (_enteredByName.isEmpty) return _enteredByRoleLabel();
+    return '$_enteredByName — ${_enteredByRoleLabel()}';
+  }
+
+  Map<String, String?> _resolvedEnteredByForSave() {
+    final u = FirebaseAuth.instance.currentUser;
+    final init = widget.initialMed;
+    if (init != null &&
+        (init.enteredByUid != null ||
+            init.enteredByName != null ||
+            init.enteredByFamilyRole != null)) {
+      return {
+        'enteredByUid': init.enteredByUid,
+        'enteredByName': init.enteredByName,
+        'enteredByFamilyRole': init.enteredByFamilyRole ?? 'guardian',
+      };
+    }
+    final name = _enteredByName.isNotEmpty
+        ? _enteredByName
+        : (u?.displayName ?? '').trim().isEmpty
+            ? null
+            : u!.displayName!.trim();
+    return {
+      'enteredByUid': u?.uid,
+      'enteredByName': name,
+      'enteredByFamilyRole': _enteredByRoleKey,
+    };
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _doseController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickTime() async {
@@ -1007,9 +1106,21 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
               ),
               const SizedBox(height: 20),
 
-              _fieldLabel("person_name".tr()),
+              _fieldLabel("medication_entered_by".tr()),
               const SizedBox(height: 8),
-              _textField(_userNameController, "example_user_hint".tr()),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _enteredBySummary(),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: Color(0xFF1F2937), fontSize: 15),
+                ),
+              ),
               const SizedBox(height: 20),
 
               _fieldLabel("entry_date_time".tr()),
@@ -1095,6 +1206,7 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                           }
                           setState(() => _saving = true);
                           try {
+                            final eb = _resolvedEnteredByForSave();
                             await widget.onAdd({
                               'name': _nameController.text,
                               'dose': _doseController.text,
@@ -1102,9 +1214,9 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                                   ? "00:00"
                                   : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
                               'frequency': frequency,
-                              'userName': _userNameController.text.isNotEmpty
-                                  ? _userNameController.text
-                                  : "أحمد محمد",
+                              'enteredByUid': eb['enteredByUid'],
+                              'enteredByName': eb['enteredByName'],
+                              'enteredByFamilyRole': eb['enteredByFamilyRole'],
                               'entryDateTime': _entryDateTime,
                               'image': _selectedImage,
                               'color': Colors.teal,

@@ -15,6 +15,8 @@ class AuthService {
     required String email,
     required String password,
     required String name,
+    /// If set (e.g. family invite code), account is treated as a dependent / child profile.
+    String? familyLinkCode,
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -24,12 +26,15 @@ class AuthService {
 
       if (credential.user != null) {
         final uid = credential.user!.uid;
+        final linked = familyLinkCode != null && familyLinkCode.trim().isNotEmpty;
         await _db.collection('users').doc(uid).set({
           'uid': uid,
           'userId': uid,
           'email': email,
           'name': name,
           'displayName': name,
+          'familyRole': linked ? 'dependent' : 'guardian',
+          if (linked) 'linkedFamilyCode': familyLinkCode.trim(),
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         });

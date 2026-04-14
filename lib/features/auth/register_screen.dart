@@ -37,10 +37,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       try {
+        final code = _familyCodeController.text.trim();
         final userCredential = await AuthService().registerWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           name: _nameController.text.trim(),
+          familyLinkCode: code.isEmpty ? null : code,
         );
 
         if (userCredential != null && mounted) {

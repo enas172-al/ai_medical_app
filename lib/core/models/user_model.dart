@@ -5,6 +5,8 @@ class UserModel {
   /// Same as [displayName] in Labby schema; mirrors plan field `name`.
   final String? name;
   final String? photoURL;
+  /// `guardian` = parent/guardian account, `dependent` = linked family member (e.g. child).
+  final String? familyRole;
   final DateTime? createdAt;
   final DateTime? lastLogin;
 
@@ -14,6 +16,7 @@ class UserModel {
     this.displayName,
     this.name,
     this.photoURL,
+    this.familyRole,
     this.createdAt,
     this.lastLogin,
   });
@@ -28,6 +31,7 @@ class UserModel {
       displayName: map['displayName'] as String?,
       name: map['name'] as String? ?? map['displayName'] as String?,
       photoURL: map['photoURL'] as String?,
+      familyRole: map['familyRole'] as String?,
       createdAt: map['createdAt'] != null ? (map['createdAt'] as dynamic).toDate() as DateTime? : null,
       lastLogin: map['lastLogin'] != null ? (map['lastLogin'] as dynamic).toDate() as DateTime? : null,
     );
@@ -41,6 +45,7 @@ class UserModel {
       'displayName': displayName,
       'name': name ?? displayName,
       'photoURL': photoURL,
+      if (familyRole != null) 'familyRole': familyRole,
       'createdAt': createdAt,
       'lastLogin': lastLogin,
     };
