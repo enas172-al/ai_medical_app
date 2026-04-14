@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/services/family_link_service.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
 import 'language_screen.dart';
@@ -21,6 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _loggedInUser = 'محمد أحمد';
   String _loggedInUserRole = 'companion_role'.tr();
 
+  final FamilyLinkService _familyLink = FamilyLinkService();
+
   final List<Map<String, dynamic>> _accounts = [
     {
       'name': 'example_family_member_2'.tr(),
@@ -35,6 +40,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'tag': 'my_account_tag'.tr(),
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrapGuardianFamilyCode());
+  }
+
+  Future<void> _bootstrapGuardianFamilyCode() async {
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null) return;
+    final snap = await FirebaseFirestore.instance.collection('users').doc(u.uid).get();
+    if (!snap.exists) return;
+    if (snap.data()?['familyRole'] == 'dependent') return;
+    try {
+      await _familyLink.ensureFamilyCodeForGuardian(u.uid);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,17 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
 
                 //  Family System
-                buildCard(
-                  title: "family_system".tr(),
-                  children: [
-                    familyCode(context),
-                    const SizedBox(height: 12),
-                    familyMember("example_family_member_1".tr(), "wife".tr()),
-                    familyMember("example_family_member_2".tr(), "son".tr()),
-                    const SizedBox(height: 12),
-                    addFamilyButton(context),
-                  ],
-                ),
+                _familySystemSection(context),
 
                 const SizedBox(height: 20),
 
@@ -266,9 +278,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  //  Family Code
-  Widget familyCode(BuildContext context) {
-    const String code = "FAM-2026-ABC123";
+  Widget _familySystemSection(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnap) {
+        final user = authSnap.data;
+        if (user == null) {
+          return buildCard(
+            title: "family_system".tr(),
+            children: [
+              Text(
+                "history_sign_in".tr(),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
+          );
+        }
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+          builder: (context, docSnap) {
+            if (docSnap.connectionState == ConnectionState.waiting && !docSnap.hasData) {
+              return buildCard(
+                title: "family_system".tr(),
+                children: const [
+                  Center(child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  )),
+                ],
+              );
+            }
+            final d = docSnap.data?.data();
+            if (d == null) {
+              return buildCard(
+                title: "family_system".tr(),
+                children: [
+                  Text("family_profile_loading".tr(), style: const TextStyle(color: Colors.grey)),
+                ],
+              );
+            }
+            final role = d['familyRole'] as String? ?? 'guardian';
+            final isDependent = role == 'dependent';
+            final guardianUid = d['guardianUid'] as String?;
+
+            final children = <Widget>[];
+
+            if (isDependent) {
+              children.add(
+                Text(
+                  'family_linked_as_dependent'.tr(),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              );
+              if (guardianUid != null) {
+                children.add(
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance.collection('users').doc(guardianUid).snapshots(),
+                    builder: (context, gSnap) {
+                      final g = gSnap.data?.data();
+                      final gName = g?['displayName'] ?? g?['name'] ?? '—';
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          '${'family_guardian_label'.tr()}: $gName',
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+            } else {
+              children.add(_familyCodeShareRow(context, d));
+              children.add(const SizedBox(height: 12));
+              children.add(_linkedMembersList(user.uid));
+              children.add(const SizedBox(height: 12));
+              children.add(_guardianInviteChildHint());
+            }
+
+            return buildCard(
+              title: "family_system".tr(),
+              children: children,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _familyCodeShareRow(BuildContext context, Map<String, dynamic> userData) {
+    final code = (userData['familyCode'] as String?)?.trim() ?? '';
+    if (code.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'family_code_generating'.tr(),
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          const Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,7 +394,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               GestureDetector(
                 onTap: () async {
-                  await Clipboard.setData(const ClipboardData(text: code));
+                  await Clipboard.setData(ClipboardData(text: code));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('link_account_success'.tr())),
@@ -299,11 +411,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: const Icon(Icons.share, color: Color(0xFF1FB6A6)),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
                   code,
                   textAlign: TextAlign.start,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -312,146 +424,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 8),
         Center(
           child: Text(
-            " شارك هذا الكود مع أفراد عائلتك لربط حساباتهم ".tr(),
+            "family_share_code_hint".tr(),
             style: const TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
           ),
         ),
       ],
     );
   }
 
-  // Family Member
-  Widget familyMember(String name, String role) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(child: Icon(Icons.person)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(role, style: const TextStyle(color: Colors.grey)),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
-      ),
-    );
-  }
-
-  //  Add Family
-  Widget addFamilyButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showLinkAccountDialog(context),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid), // Acting as dashed
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _linkedMembersList(String guardianUid) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _familyLink.familyLinksForGuardian(guardianUid),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
+          return const SizedBox.shrink();
+        }
+        final docs = snap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return Text(
+            'family_no_members_yet'.tr(),
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.person_add_alt_1_outlined, color: Color(0xFF111827), size: 20),
-            const SizedBox(width: 8),
             Text(
-              "link_family_account".tr(),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+              'family_linked_members'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
+            const SizedBox(height: 8),
+            ...docs.map((doc) {
+              final m = doc.data();
+              final name = (m['dependentName'] as String?)?.trim();
+              final email = (m['dependentEmail'] as String?)?.trim();
+              final label = name != null && name.isNotEmpty
+                  ? name
+                  : (email != null && email.isNotEmpty ? email : doc.id);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(child: Icon(Icons.person)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          if (email != null && email.isNotEmpty && label != email)
+                            Text(email, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(
+                            'family_role_dependent'.tr(),
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  void _showLinkAccountDialog(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: "Link Account",
-      pageBuilder: (context, anim1, anim2) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: 320,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Directionality(
-              textDirection: Directionality.of(context),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("link_family_account_dialog_title".tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close, color: Colors.grey, size: 20),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text("enter_family_code".tr(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: const TextField(
-                      textAlign: TextAlign.left,
-                      decoration: InputDecoration(
-                        hintText: "FAM-2026-XXXXXX",
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1FB6A6),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context); // Close dialog
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('link_account_success'.tr())));
-                      },
-                      child: Text("link_account_btn".tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  Widget _guardianInviteChildHint() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.info_outline, size: 20, color: Colors.grey.shade600),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'family_guardian_invite_hint'.tr(),
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
           ),
         ),
-      ),
-      transitionDuration: const Duration(milliseconds: 200),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return FadeTransition(opacity: anim1, child: ScaleTransition(scale: anim1, child: child));
-      },
+      ],
     );
   }
 

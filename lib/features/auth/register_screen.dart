@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../profile/profile_setup_screen.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/family_link_service.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -54,6 +55,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           );
         }
+      } on FamilyLinkException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.messageKey.tr())),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -76,9 +83,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final userCredential = await AuthService().signInWithGoogle();
+      final code = _familyCodeController.text.trim();
+      final userCredential = await AuthService().signInWithGoogle(
+        familyLinkCode: code.isEmpty ? null : code,
+      );
       if (userCredential != null && mounted) {
         Navigator.pushReplacementNamed(context, '/home'); // Or to ProfileSetup if you want
+      }
+    } on FamilyLinkException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.messageKey.tr())),
+        );
       }
     } catch (e) {
       if (mounted) {

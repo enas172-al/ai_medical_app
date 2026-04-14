@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/family_link_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,6 +12,17 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _familyCodeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _familyCodeController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() {
@@ -18,8 +30,64 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final userCredential = await AuthService().signInWithGoogle();
+      final code = _familyCodeController.text.trim();
+      final userCredential = await AuthService().signInWithGoogle(
+        familyLinkCode: code.isEmpty ? null : code,
+      );
       if (userCredential != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } on FamilyLinkException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.messageKey.tr())),
+        );
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${e.toString()}")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleEmailLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('login_fill_fields'.tr())),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final code = _familyCodeController.text.trim();
+      await AuthService().signInWithEmailAndPassword(
+        email: email,
+        password: password,
+        familyLinkCode: code.isEmpty ? null : code,
+      );
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } on FamilyLinkException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.messageKey.tr())),
+        );
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
@@ -49,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               SizedBox(height: 40),
 
-              // 🧪 Logo
+              // Logo
               Container(
                 width: 90,
                 height: 90,
@@ -88,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               SizedBox(height: 30),
 
-              // 📦 Card (مش بعرض كامل)
+              // Card
               Center(
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.9,
@@ -118,6 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text("email".tr()),
                       const SizedBox(height: 6),
                       TextField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: "example@email.com",
                           prefixIcon: Icon(Icons.email_outlined),
@@ -136,6 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text("password".tr()),
                       const SizedBox(height: 6),
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           hintText: "********",
@@ -147,6 +218,30 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderSide: BorderSide.none,
                           ),
                         ),
+                      ),
+
+                      SizedBox(height: 15),
+
+                      Text("family_code_optional".tr()),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _familyCodeController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          hintText: "family_code_hint".tr(),
+                          prefixIcon: Icon(Icons.family_restroom),
+                          filled: true,
+                          fillColor: Color(0xFFF1F5F9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "login_family_code_help".tr(),
+                        style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
                       ),
 
                       SizedBox(height: 25),
@@ -162,9 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: _isLoading ? null : () {
-                            Navigator.pushReplacementNamed(context, '/home');
-                          },
+                          onPressed: _isLoading ? null : _handleEmailLogin,
                           child: Text(
                             "login_btn".tr(),
                             style: const TextStyle(fontSize: 16),
@@ -188,16 +281,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           onPressed: _isLoading ? null : _handleGoogleSignIn,
                           icon: Image.asset(
-                            'assets/images/logo.png', // Temporary fallback
+                            'assets/images/logo.png',
                             width: 24,
                             height: 24,
                             errorBuilder: (context, error, stackTrace) =>
                                 const Icon(Icons.g_mobiledata, size: 30, color: Colors.blue),
                           ),
-                          label: _isLoading 
+                          label: _isLoading
                             ? const SizedBox(
-                                width: 20, 
-                                height: 20, 
+                                width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text(
@@ -206,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                         ),
                       ),
-                      
+
                       SizedBox(height: 15),
 
                       // إنشاء حساب

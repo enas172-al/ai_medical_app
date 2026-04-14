@@ -2,14 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
+import 'family_link_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FamilyLinkService _familyLink = FamilyLinkService();
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
+
+  Future<void> _applyFamilyLinkIfPresent(User u, String? rawCode) async {
+    if (rawCode == null || rawCode.trim().isEmpty) return;
+    await _familyLink.linkDependentAccount(
+      dependentUid: u.uid,
+      email: u.email,
+      displayName: u.displayName,
+      rawCode: rawCode,
+    );
+  }
 
   Future<UserCredential?> registerWithEmailAndPassword({
     required String email,
@@ -26,18 +38,42 @@ class AuthService {
 
       if (credential.user != null) {
         final uid = credential.user!.uid;
-        final linked = familyLinkCode != null && familyLinkCode.trim().isNotEmpty;
-        await _db.collection('users').doc(uid).set({
-          'uid': uid,
-          'userId': uid,
-          'email': email,
-          'name': name,
-          'displayName': name,
-          'familyRole': linked ? 'dependent' : 'guardian',
-          if (linked) 'linkedFamilyCode': familyLinkCode.trim(),
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
+        final linked =
+            familyLinkCode != null && familyLinkCode.trim().isNotEmpty;
+
+        if (linked) {
+          await _db.collection('users').doc(uid).set({
+            'uid': uid,
+            'userId': uid,
+            'email': email,
+            'name': name,
+            'displayName': name,
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
+          });
+          try {
+            await _familyLink.linkDependentAccount(
+              dependentUid: uid,
+              email: email,
+              displayName: name,
+              rawCode: familyLinkCode,
+            );
+          } catch (e) {
+            await credential.user?.delete();
+            rethrow;
+          }
+        } else {
+          await _db.collection('users').doc(uid).set({
+            'uid': uid,
+            'userId': uid,
+            'email': email,
+            'name': name,
+            'displayName': name,
+            'familyRole': 'guardian',
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
+          });
+        }
       }
       return credential;
     } catch (e) {
@@ -49,6 +85,7 @@ class AuthService {
   Future<UserCredential?> signInWithEmailAndPassword({
     required String email,
     required String password,
+    String? familyLinkCode,
   }) async {
     try {
       final credential = await _auth.signInWithEmailAndPassword(
@@ -66,6 +103,7 @@ class AuthService {
           if (u.displayName != null) 'displayName': u.displayName,
           if (u.displayName != null) 'name': u.displayName,
         }, SetOptions(merge: true));
+        await _applyFamilyLinkIfPresent(u, familyLinkCode);
       }
       return credential;
     } catch (e) {
@@ -74,7 +112,7 @@ class AuthService {
     }
   }
 
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle({String? familyLinkCode}) async {
     try {
       final googleSignIn = GoogleSignIn();
       final googleUser = await googleSignIn.signIn();
@@ -92,14 +130,25 @@ class AuthService {
         final u = userCredential.user!;
         final uid = u.uid;
         final dn = u.displayName;
-        await _db.collection('users').doc(uid).set({
-          'uid': uid,
-          'userId': uid,
-          'email': u.email,
-          'lastLogin': FieldValue.serverTimestamp(),
-          if (dn != null) 'displayName': dn,
-          if (dn != null) 'name': dn,
-        }, SetOptions(merge: true));
+        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+        try {
+          await _db.collection('users').doc(uid).set({
+            'uid': uid,
+            'userId': uid,
+            'email': u.email,
+            'lastLogin': FieldValue.serverTimestamp(),
+            if (dn != null) 'displayName': dn,
+            if (dn != null) 'name': dn,
+          }, SetOptions(merge: true));
+          await _applyFamilyLinkIfPresent(u, familyLinkCode);
+        } on FamilyLinkException catch (_) {
+          if (isNewUser) {
+            try {
+              await u.delete();
+            } catch (_) {}
+          }
+          rethrow;
+        }
       }
       return userCredential;
     } catch (e) {
