@@ -54,7 +54,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
             onPressed: () async {
               if (med.id != null) {
                 await NotificationService.instance.cancelMedicationReminders(med.id);
-                await _databaseService.deleteMedication(med.id!);
+                // Do not delete from DB; just archive/hide from list.
+                await _databaseService.updateMedicationStatus(med.id!, false);
               }
               if (mounted) Navigator.pop(context);
             },
@@ -88,6 +89,27 @@ class _MedicationScreenState extends State<MedicationScreen> {
               daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
               createdAt: initialMed?.createdAt ?? DateTime.now(),
             );
+
+            // Prevent duplicates (same normalized name + dosage + time) among active meds.
+            final existing = await _databaseService.getMedicationsOnce(uid, includeInactive: false);
+            final newNameKey = DatabaseService.normalizeMedicationKey(med.name);
+            final newDoseKey = DatabaseService.normalizeMedicationKey(med.dosage);
+            final newTimeKey = med.times.isNotEmpty ? DatabaseService.normalizeMedicationKey(med.times.first) : '';
+            final isDup = existing.any((m) {
+              if (initialMed?.id != null && m.id == initialMed!.id) return false;
+              final nameKey = DatabaseService.normalizeMedicationKey(m.name);
+              final doseKey = DatabaseService.normalizeMedicationKey(m.dosage);
+              final timeKey = m.times.isNotEmpty ? DatabaseService.normalizeMedicationKey(m.times.first) : '';
+              return nameKey == newNameKey && doseKey == newDoseKey && timeKey == newTimeKey;
+            });
+            if (isDup) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("هذا الدواء موجود بالفعل في القائمة")),
+                );
+              }
+              return;
+            }
 
             final id = await _databaseService.saveMedication(med);
             if (med.times.isNotEmpty) {

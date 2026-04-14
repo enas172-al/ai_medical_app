@@ -9,6 +9,9 @@ class AnalysisDetailsScreen extends StatelessWidget {
   final String normalRange;
   final String highText;
   final String lowText;
+  final String? simplifiedExplanation;
+  final String? referenceText;
+  final String? sourceUrl;
 
   const AnalysisDetailsScreen({
     super.key,
@@ -18,6 +21,9 @@ class AnalysisDetailsScreen extends StatelessWidget {
     required this.normalRange,
     required this.highText,
     required this.lowText,
+    this.simplifiedExplanation,
+    this.referenceText,
+    this.sourceUrl,
   });
 
   @override
@@ -115,6 +121,38 @@ class AnalysisDetailsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                if ((simplifiedExplanation ?? '').trim().isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.info_outline, color: Colors.blue),
+                            SizedBox(width: 6),
+                            Text(
+                              "شرح مبسط",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(simplifiedExplanation!.trim()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 /// 🔹 المعدل الطبيعي
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -151,6 +189,37 @@ class AnalysisDetailsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                if ((referenceText ?? '').trim().isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.list_alt, color: Colors.black54),
+                            SizedBox(width: 6),
+                            Text(
+                              "تفاصيل المعدل الطبيعي",
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(referenceText!.trim()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 /// 🔹 الارتفاع
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -175,7 +244,7 @@ class AnalysisDetailsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(highText),
+                      Text(highText.trim().isEmpty ? "غير متوفر" : highText),
                     ],
                   ),
                 ),
@@ -206,12 +275,35 @@ class AnalysisDetailsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(lowText),
+                      Text(lowText.trim().isEmpty ? "غير متوفر" : lowText),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 16),
+
+                if ((sourceUrl ?? '').trim().isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.link, color: Colors.black54),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            sourceUrl!.trim(),
+                            style: const TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 /// 🔹 تنبيه
                 Container(

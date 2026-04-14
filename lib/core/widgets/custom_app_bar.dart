@@ -9,6 +9,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isHome;
   final int notificationCount;
   final bool showBack;
+  final List<Widget>? actions;
 
   const CustomAppBar({
     super.key,
@@ -16,6 +17,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isHome = false,
     this.notificationCount = 2,
     this.showBack = false,
+    this.actions,
   });
 
   @override
@@ -67,6 +69,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
 
                   const Spacer(),
+
+                  if (actions != null) ...actions!,
 
                   IconButton(
                     icon: const Icon(Icons.arrow_forward_ios),

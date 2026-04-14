@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../firebase_options.dart';
 
@@ -22,6 +23,8 @@ Future<void> initializeFirebaseApp() async {
         return;
       case TargetPlatform.android:
         await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
+        // Ensure UI reflects server state (avoid stale cache after console deletes).
+        FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: false);
         return;
       case TargetPlatform.windows:
       case TargetPlatform.linux:
@@ -33,6 +36,7 @@ Future<void> initializeFirebaseApp() async {
           );
         }
         await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
+        FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: false);
         return;
     }
   } on FirebaseException catch (e) {
