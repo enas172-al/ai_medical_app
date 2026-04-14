@@ -159,4 +159,14 @@ class FamilyLinkService {
         .where('guardianUid', isEqualTo: guardianUid)
         .snapshots();
   }
+
+  /// Dependent profiles linked to this guardian (`users.guardianUid` — same source as linking batch).
+  Stream<QuerySnapshot<Map<String, dynamic>>> dependentUserProfilesForGuardian(
+    String guardianUid,
+  ) {
+    return _db
+        .collection('users')
+        .where('guardianUid', isEqualTo: guardianUid)
+        .snapshots();
+  }
 }

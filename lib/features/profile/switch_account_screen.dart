@@ -1,43 +1,235 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class SwitchAccountScreen extends StatefulWidget {
-  final String currentUser;
-  final String loggedInUser;
-  final String loggedInUserRole;
-  final List<Map<String, dynamic>> accounts;
+import '../../core/services/family_link_service.dart';
+
+/// Family accounts from Firestore: signed-in user + linked dependents (guardian)
+/// or signed-in user + guardian row (dependent).
+class SwitchAccountScreen extends StatelessWidget {
+  /// Which profile is highlighted when opening; defaults to [FirebaseAuth.currentUser] uid.
+  final String? initialSelectedUid;
+
+  /// When false (e.g. medication list), dependents only see their own row — not guardian (no read access to parent's meds).
+  final bool showGuardianRowForDependent;
 
   const SwitchAccountScreen({
     super.key,
-    required this.currentUser,
-    required this.loggedInUser,
-    required this.loggedInUserRole,
-    required this.accounts,
+    this.initialSelectedUid,
+    this.showGuardianRowForDependent = true,
   });
 
-  @override
-  State<SwitchAccountScreen> createState() => _SwitchAccountScreenState();
-}
+  static String _displayNameFromDoc(Map<String, dynamic>? d, User u) {
+    final dn = (d?['displayName'] as String?)?.trim();
+    final n = (d?['name'] as String?)?.trim();
+    final authN = u.displayName?.trim();
+    final email = (u.email ?? (d?['email'] as String?) ?? '').trim();
+    if (dn != null && dn.isNotEmpty) return dn;
+    if (n != null && n.isNotEmpty) return n;
+    if (authN != null && authN.isNotEmpty) return authN;
+    if (email.isNotEmpty) return email.split('@').first;
+    return '—';
+  }
 
-class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
-  late String _selectedUser;
+  /// Dependents from `users.where('guardianUid' == guardian)` (names/emails stay fresh).
+  static List<Map<String, dynamic>> _accountsForGuardianFromUserDocs(
+    User u,
+    Map<String, dynamic>? data,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> dependentUserDocs,
+  ) {
+    final self = _displayNameFromDoc(data, u);
+    final list = <Map<String, dynamic>>[
+      {
+        'uid': u.uid,
+        'displayName': self,
+        'accountType': 'personal',
+        'tag': 'my_account_tag'.tr(),
+        'subtitle': (u.email ?? (data?['email'] as String?) ?? '').trim(),
+      },
+    ];
+    for (final doc in dependentUserDocs) {
+      final depUid = doc.id;
+      if (depUid == u.uid) continue;
+      final m = doc.data();
+      final dn = (m['displayName'] as String?)?.trim();
+      final n = (m['name'] as String?)?.trim();
+      final em = (m['email'] as String?)?.trim() ?? '';
+      final label = (dn != null && dn.isNotEmpty)
+          ? dn
+          : (n != null && n.isNotEmpty)
+              ? n
+              : (em.isNotEmpty ? em.split('@').first : depUid);
+      list.add({
+        'uid': depUid,
+        'displayName': label,
+        'accountType': 'dependent',
+        'tag': 'family_member_tag'.tr(),
+        'subtitle': em,
+      });
+    }
+    return list;
+  }
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedUser = widget.currentUser;
+  static List<Map<String, dynamic>> _accountsForDependent(
+    User u,
+    Map<String, dynamic>? data,
+    Map<String, dynamic>? guardianData,
+    String guardianUid,
+  ) {
+    final self = _displayNameFromDoc(data, u);
+    final gDisplay = () {
+      final dn = (guardianData?['displayName'] as String?)?.trim();
+      final n = (guardianData?['name'] as String?)?.trim();
+      final em = (guardianData?['email'] as String?)?.trim() ?? '';
+      if (dn != null && dn.isNotEmpty) return dn;
+      if (n != null && n.isNotEmpty) return n;
+      if (em.isNotEmpty) return em.split('@').first;
+      return 'family_guardian_label'.tr();
+    }();
+
+    return [
+      {
+        'uid': u.uid,
+        'displayName': self,
+        'accountType': 'personal',
+        'tag': 'my_account_tag'.tr(),
+        'subtitle': (u.email ?? (data?['email'] as String?) ?? '').trim(),
+      },
+      {
+        'uid': guardianUid,
+        'displayName': gDisplay,
+        'accountType': 'guardian',
+        'tag': 'family_role_guardian'.tr(),
+        'subtitle': (guardianData?['email'] as String?)?.trim() ?? '',
+      },
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnap) {
+        final u = authSnap.data;
+        if (u == null) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF2F9F9),
+            body: Center(child: Text('history_sign_in'.tr())),
+          );
+        }
+
+        final highlightUid = initialSelectedUid ?? u.uid;
+
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('users').doc(u.uid).snapshots(),
+          builder: (context, userSnap) {
+            final data = userSnap.data?.data();
+            final role = data?['familyRole'] as String?;
+
+            if (role == 'dependent') {
+              final gUid = data?['guardianUid'] as String?;
+              final selfOnly = [
+                {
+                  'uid': u.uid,
+                  'displayName': _displayNameFromDoc(data, u),
+                  'accountType': 'personal',
+                  'tag': 'my_account_tag'.tr(),
+                  'subtitle': (u.email ?? (data?['email'] as String?) ?? '').trim(),
+                },
+              ];
+              if (gUid == null || gUid.isEmpty || !showGuardianRowForDependent) {
+                return _buildScaffold(context, u, data, selfOnly, highlightUid);
+              }
+              return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance.collection('users').doc(gUid).snapshots(),
+                builder: (context, gSnap) {
+                  final accounts = _accountsForDependent(u, data, gSnap.data?.data(), gUid);
+                  return _buildScaffold(context, u, data, accounts, highlightUid);
+                },
+              );
+            }
+
+            return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FamilyLinkService().dependentUserProfilesForGuardian(u.uid),
+              builder: (context, depsSnap) {
+                if (depsSnap.hasError) {
+                  final accounts =
+                      _accountsForGuardianFromUserDocs(u, data, []);
+                  return _buildScaffold(
+                    context,
+                    u,
+                    data,
+                    accounts,
+                    highlightUid,
+                    bannerText: 'family_accounts_load_error'.tr(),
+                    isBannerError: true,
+                  );
+                }
+                if (depsSnap.connectionState == ConnectionState.waiting &&
+                    !depsSnap.hasData) {
+                  return _buildLoadingShell(context);
+                }
+                final depDocs = depsSnap.data?.docs ?? [];
+                final accounts = _accountsForGuardianFromUserDocs(u, data, depDocs);
+                final onlySelf = depDocs.isEmpty;
+                return _buildScaffold(
+                  context,
+                  u,
+                  data,
+                  accounts,
+                  highlightUid,
+                  listFooterHint:
+                      onlySelf ? 'family_no_linked_members'.tr() : null,
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingShell(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F9F9),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF1FB6A6)),
+              const SizedBox(height: 16),
+              Text('select_account'.tr(),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    User u,
+    Map<String, dynamic>? data,
+    List<Map<String, dynamic>> accounts,
+    String highlightUid, {
+    String? bannerText,
+    bool isBannerError = false,
+    String? listFooterHint,
+  }) {
+    final loggedName = _displayNameFromDoc(data, u);
+    final roleLabel = data?['familyRole'] == 'dependent'
+        ? 'family_role_dependent'.tr()
+        : 'family_role_guardian'.tr();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F9F9),
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 30),
-
-            /// Header Icon
             Container(
               width: 65,
               height: 65,
@@ -50,7 +242,7 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1FB6A6).withOpacity(0.3),
+                    color: const Color(0xFF1FB6A6).withValues(alpha: 0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -59,21 +251,19 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
               child: const Icon(Icons.person_outline, color: Colors.white, size: 40),
             ),
             const SizedBox(height: 20),
-
-            /// Title
-            Text("select_account".tr(), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+            Text(
+              "select_account".tr(),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+            ),
             const SizedBox(height: 4),
             Text("choose_who_to_track".tr(), style: const TextStyle(fontSize: 15, color: Colors.grey)),
-
             const SizedBox(height: 32),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Logged In Card
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -87,11 +277,20 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("you_are_logged_in_as".tr(), style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
+                                Text(
+                                  "you_are_logged_in_as".tr(),
+                                  style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                                ),
                                 const SizedBox(height: 6),
-                                Text(widget.loggedInUser, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
+                                Text(
+                                  loggedName,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                                ),
                                 const SizedBox(height: 4),
-                                Text(widget.loggedInUserRole, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                                Text(
+                                  roleLabel,
+                                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                ),
                               ],
                             ),
                           ),
@@ -108,21 +307,53 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 32),
-                    Text("available_accounts".tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+                    if (bannerText != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: isBannerError
+                              ? Colors.red.shade50
+                              : Colors.amber.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isBannerError
+                                ? Colors.red.shade200
+                                : Colors.amber.shade200,
+                          ),
+                        ),
+                        child: Text(
+                          bannerText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isBannerError
+                                ? Colors.red.shade900
+                                : Colors.amber.shade900,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                    Text(
+                      "available_accounts".tr(),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+                    ),
                     const SizedBox(height: 16),
-
-                    /// Accounts List
-                    ...widget.accounts.map((acc) {
-                      bool isSelected = acc['name'] == _selectedUser;
-                      bool isPersonal = acc['type'] == 'personal';
+                    ...accounts.map((acc) {
+                      final uid = acc['uid'] as String;
+                      final isSelected = uid == highlightUid;
+                      final accountType = acc['accountType'] as String;
+                      final isPersonal = accountType == 'personal';
+                      final isGuardianRow = accountType == 'guardian';
                       return GestureDetector(
                         onTap: () {
-                          setState(() {
-                            _selectedUser = acc['name'];
+                          Navigator.pop<Map<String, dynamic>>(context, {
+                            'uid': uid,
+                            'displayName': acc['displayName'],
+                            'accountType': accountType,
                           });
-                          Navigator.pop(context, acc['name']);
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 16),
@@ -134,9 +365,15 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                               color: isSelected ? const Color(0xFF1FB6A6) : Colors.grey.shade200,
                               width: isSelected ? 2 : 1.5,
                             ),
-                            boxShadow: isSelected ? [
-                              BoxShadow(color: const Color(0xFF1FB6A6).withOpacity(0.15), blurRadius: 15, offset: const Offset(0, 5))
-                            ] : [],
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFF1FB6A6).withValues(alpha: 0.15),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                    )
+                                  ]
+                                : [],
                           ),
                           child: Row(
                             children: [
@@ -147,16 +384,32 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                                   color: const Color(0xFF1FB6A6),
                                   borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: Icon(isPersonal ? Icons.face : Icons.elderly, color: Colors.white, size: 30),
+                                child: Icon(
+                                  isPersonal
+                                      ? Icons.face
+                                      : isGuardianRow
+                                          ? Icons.supervisor_account
+                                          : Icons.family_restroom,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(acc['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                                    const SizedBox(height: 6),
-                                    Text(acc['age'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                                    Text(
+                                      acc['displayName'] as String,
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+                                    ),
+                                    if ((acc['subtitle'] as String? ?? '').isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        acc['subtitle'] as String? ?? '',
+                                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                      ),
+                                    ],
                                     const SizedBox(height: 10),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -167,15 +420,24 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(isPersonal ? Icons.person_outline : Icons.family_restroom,
-                                               size: 14,
-                                               color: isPersonal ? Colors.white : const Color(0xFF7C3AED)),
+                                          Icon(
+                                            isPersonal
+                                                ? Icons.person_outline
+                                                : isGuardianRow
+                                                    ? Icons.shield_outlined
+                                                    : Icons.family_restroom,
+                                            size: 14,
+                                            color: isPersonal ? Colors.white : const Color(0xFF7C3AED),
+                                          ),
                                           const SizedBox(width: 6),
-                                          Text(acc['tag'], style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: isPersonal ? Colors.white : const Color(0xFF7C3AED)
-                                          )),
+                                          Text(
+                                            acc['tag'] as String,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: isPersonal ? Colors.white : const Color(0xFF7C3AED),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -208,10 +470,18 @@ class _SwitchAccountScreenState extends State<SwitchAccountScreen> {
                         ),
                       );
                     }),
-
+                    if (listFooterHint != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        listFooterHint,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
-
-                    /// Return Button
                     SizedBox(
                       width: double.infinity,
                       height: 56,

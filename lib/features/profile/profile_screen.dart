@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/active_tracking_service.dart';
 import '../../core/services/family_link_service.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
@@ -20,31 +24,50 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _currentUser = 'محمد أحمد';
-  String _loggedInUser = 'محمد أحمد';
-  String _loggedInUserRole = 'companion_role'.tr();
+  /// When set, profile header/info shows this user's Firestore doc (e.g. linked child). Null = signed-in user.
+  String? _activeProfileUid;
 
   final FamilyLinkService _familyLink = FamilyLinkService();
 
-  final List<Map<String, dynamic>> _accounts = [
-    {
-      'name': 'example_family_member_2'.tr(),
-      'type': 'dependent',
-      'age': 'years_old'.tr(args: ['65']),
-      'tag': 'family_member_tag'.tr(),
-    },
-    {
-      'name': 'example_name'.tr(),
-      'type': 'personal',
-      'age': 'years_old'.tr(args: ['35']),
-      'tag': 'my_account_tag'.tr(),
-    },
-  ];
+  StreamSubscription<User?>? _authSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _profileUserDocSub;
+  User? _lastAuthUser;
+  final ActiveTrackingService _activeTracking = ActiveTrackingService();
 
   @override
   void initState() {
     super.initState();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _profileUserDocSub?.cancel();
+        _profileUserDocSub = null;
+        _lastAuthUser = null;
+        if (mounted) setState(() => _activeProfileUid = null);
+        return;
+      }
+      if (_lastAuthUser?.uid == user.uid) {
+        return;
+      }
+      _lastAuthUser = user;
+      _profileUserDocSub?.cancel();
+      _profileUserDocSub = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .listen((snap) {
+        if (!mounted) return;
+        final p = ActiveTrackingService.profileUidFromDoc(snap.data(), user.uid);
+        setState(() => _activeProfileUid = p);
+      });
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrapGuardianFamilyCode());
+  }
+
+  @override
+  void dispose() {
+    _profileUserDocSub?.cancel();
+    _authSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _bootstrapGuardianFamilyCode() async {
@@ -70,59 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const SizedBox(height: 10),
 
-                // User Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 15,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.person, size: 30, color: Color(0xFF1FB6A6)),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _currentUser,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        "ahmed@example.com",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                //  Info Card
-                buildCard(
-                  title: "personal_info".tr(),
-                  children: [
-                    infoRow("full_name".tr(), "example_name".tr(), Icons.person, Colors.teal),
-                    infoRow("email".tr(), "ahmed@example.com", Icons.email, Colors.blue),
-                    infoRow("date_of_birth".tr(), "example_dob".tr(), Icons.calendar_today, Colors.purple),
-                    infoRow("gender".tr(), "male".tr(), Icons.wc, Colors.pink),
-                  ],
-                ),
+                _buildLiveProfileHeaderAndInfo(context),
 
                 const SizedBox(height: 20),
 
@@ -192,19 +163,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
 
 
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "logout".tr(),
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
+                InkWell(
+                  onTap: () async {
+                    await AuthService().signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "logout".tr(),
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -276,6 +256,175 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildLiveProfileHeaderAndInfo(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnap) {
+        final fbUser = authSnap.data;
+        if (fbUser == null) {
+          return buildCard(
+            title: "personal_info".tr(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Text(
+                    "history_sign_in".tr(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+        final profileUid = _activeProfileUid ?? fbUser.uid;
+        final viewingOther = profileUid != fbUser.uid;
+
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('users').doc(profileUid).snapshots(),
+          builder: (context, docSnap) {
+            final d = docSnap.data?.data();
+            final email = (viewingOther
+                    ? ((d?['email'] as String?) ?? '')
+                    : (fbUser.email ?? (d?['email'] as String?) ?? ''))
+                .trim();
+            final nameFirestore = (d?['name'] as String?)?.trim();
+            final displayFirestore = (d?['displayName'] as String?)?.trim();
+            final nameFb = viewingOther ? null : fbUser.displayName?.trim();
+            final displayName = (displayFirestore != null && displayFirestore.isNotEmpty)
+                ? displayFirestore
+                : (nameFirestore != null && nameFirestore.isNotEmpty)
+                    ? nameFirestore
+                    : (nameFb != null && nameFb.isNotEmpty)
+                        ? nameFb
+                        : (email.isNotEmpty ? email.split('@').first : '—');
+
+            final dobStr = _profileFormatDob(d?['dateOfBirth'] ?? d?['dob']);
+            final genderLabel = _profileFormatGender(d?['gender'] as String?);
+
+            return Column(
+              children: [
+                if (viewingOther)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Material(
+                      color: const Color(0xFFE0F2F1),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.visibility_outlined, size: 20, color: Color(0xFF1FB6A6)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'profile_viewing_as'.tr(args: [displayName]),
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF1F2937)),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                final auth = FirebaseAuth.instance.currentUser;
+                                if (auth == null) return;
+                                final roleSnap =
+                                    await FirebaseFirestore.instance.collection('users').doc(auth.uid).get();
+                                final role = roleSnap.data()?['familyRole'] as String?;
+                                if (role == 'dependent') {
+                                  await _activeTracking.clearDependentProfileView(auth.uid);
+                                } else {
+                                  await _activeTracking.clearAllTracking(auth.uid);
+                                }
+                              },
+                              child: Text('back_to_my_profile'.tr()),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, size: 30, color: Color(0xFF1FB6A6)),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        email.isEmpty ? '—' : email,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                buildCard(
+                  title: "personal_info".tr(),
+                  children: [
+                    infoRow("full_name".tr(), displayName, Icons.person, Colors.teal),
+                    infoRow(
+                      "email".tr(),
+                      email.isEmpty ? 'profile_not_set'.tr() : email,
+                      Icons.email,
+                      Colors.blue,
+                    ),
+                    infoRow("date_of_birth".tr(), dobStr, Icons.calendar_today, Colors.purple),
+                    infoRow("gender".tr(), genderLabel, Icons.wc, Colors.pink),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _profileFormatDob(dynamic v) {
+    if (v == null) return 'profile_not_set'.tr();
+    if (v is Timestamp) {
+      final dt = v.toDate();
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    }
+    final s = v.toString().trim();
+    return s.isEmpty ? 'profile_not_set'.tr() : s;
+  }
+
+  String _profileFormatGender(String? g) {
+    if (g == null || g.trim().isEmpty) return 'profile_not_set'.tr();
+    final lower = g.trim().toLowerCase();
+    if (lower == 'male' || lower == 'm' || lower == 'ذكر') return 'male'.tr();
+    if (lower == 'female' || lower == 'f' || lower == 'أنثى' || lower == 'انثى') {
+      return 'female'.tr();
+    }
+    return g.trim();
   }
 
   Widget _familySystemSection(BuildContext context) {
@@ -435,7 +584,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _linkedMembersList(String guardianUid) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _familyLink.familyLinksForGuardian(guardianUid),
+      stream: _familyLink.dependentUserProfilesForGuardian(guardianUid),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const SizedBox.shrink();
@@ -457,11 +606,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 8),
             ...docs.map((doc) {
               final m = doc.data();
-              final name = (m['dependentName'] as String?)?.trim();
-              final email = (m['dependentEmail'] as String?)?.trim();
-              final label = name != null && name.isNotEmpty
-                  ? name
-                  : (email != null && email.isNotEmpty ? email : doc.id);
+              final dn = (m['displayName'] as String?)?.trim();
+              final n = (m['name'] as String?)?.trim();
+              final email = (m['email'] as String?)?.trim();
+              final label = dn != null && dn.isNotEmpty
+                  ? dn
+                  : (n != null && n.isNotEmpty
+                      ? n
+                      : (email != null && email.isNotEmpty ? email : doc.id));
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
@@ -545,24 +697,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showUserSelection() async {
-    final selected = await Navigator.push(
+    final auth = FirebaseAuth.instance.currentUser;
+    if (auth == null) return;
+    final initial = _activeProfileUid ?? auth.uid;
+    final selected = await Navigator.push<Map<String, dynamic>?>(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => SwitchAccountScreen(
-          currentUser: _currentUser,
-          loggedInUser: _loggedInUser,
-          loggedInUserRole: _loggedInUserRole,
-          accounts: _accounts,
+          initialSelectedUid: initial,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
-    if (selected != null && selected is String) {
-      setState(() {
-        _currentUser = selected;
-      });
+    if (!mounted || selected == null) return;
+    final uid = selected['uid'] as String?;
+    if (uid == null) return;
+    final label = (selected['displayName'] as String?)?.trim() ?? uid;
+    final roleSnap =
+        await FirebaseFirestore.instance.collection('users').doc(auth.uid).get();
+    final role = roleSnap.data()?['familyRole'] as String?;
+    if (uid == auth.uid) {
+      if (role == 'dependent') {
+        await _activeTracking.clearDependentProfileView(auth.uid);
+      } else {
+        await _activeTracking.clearAllTracking(auth.uid);
+      }
+    } else if (role == 'dependent') {
+      await _activeTracking.persistDependentProfileView(
+        auth,
+        guardianUid: uid,
+        label: label,
+      );
+    } else {
+      await _activeTracking.persistGuardianSelection(
+        auth,
+        selectedUid: uid,
+        label: label,
+      );
+    }
+    if (mounted) {
+      setState(() => _activeProfileUid = uid == auth.uid ? null : uid);
     }
   }
 }

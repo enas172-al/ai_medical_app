@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../core/services/auth_service.dart';
 import '../../core/services/database_service.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/active_tracking_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/models/medication_model.dart';
+import '../profile/switch_account_screen.dart';
 
 
 class MedicationScreen extends StatefulWidget {
@@ -21,24 +25,69 @@ class MedicationScreen extends StatefulWidget {
 class _MedicationScreenState extends State<MedicationScreen> {
   final DatabaseService _databaseService = DatabaseService();
 
-  String _currentUser = 'example_name'.tr();
-  String _loggedInUser = 'example_name'.tr();
-  String _loggedInUserRole = 'companion_role'.tr();
+  /// Whose medications to list (Firestore `medications.userId`). Null = signed-in user.
+  String? _medicationSubjectUid;
 
-  final List<Map<String, dynamic>> _accounts = [
-    {
-      'name': 'example_family_member_2'.tr(),
-      'type': 'dependent',
-      'age': 'years_old'.tr(args: ['65']),
-      'tag': 'family_member_tag'.tr(),
-    },
-    {
-      'name': 'example_name'.tr(),
-      'type': 'personal',
-      'age': 'years_old'.tr(args: ['35']),
-      'tag': 'my_account_tag'.tr(),
-    },
-  ];
+  /// Display name for [user_medications_title] when [_medicationSubjectUid] is another user.
+  String _medicationSubjectLabel = '';
+
+  StreamSubscription<User?>? _authSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userDocSub;
+  User? _lastAuthUser;
+  final ActiveTrackingService _activeTracking = ActiveTrackingService();
+
+  void _applyMedicationSubjectFromUserDoc(String authUid, Map<String, dynamic>? d) {
+    if (!mounted) return;
+    final subject = ActiveTrackingService.medicationSubjectFromDoc(d, authUid);
+    final label = ActiveTrackingService.medicationLabelFromDoc(d, subject);
+    if (subject == authUid) {
+      setState(() {
+        _medicationSubjectUid = null;
+        _medicationSubjectLabel = '';
+      });
+    } else {
+      setState(() {
+        _medicationSubjectUid = subject;
+        _medicationSubjectLabel = label;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _userDocSub?.cancel();
+        _userDocSub = null;
+        _lastAuthUser = null;
+        if (mounted) {
+          setState(() {
+            _medicationSubjectUid = null;
+            _medicationSubjectLabel = '';
+          });
+        }
+        return;
+      }
+      if (_lastAuthUser?.uid == user.uid) {
+        return;
+      }
+      _lastAuthUser = user;
+      _userDocSub?.cancel();
+      _userDocSub = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .listen((snap) => _applyMedicationSubjectFromUserDoc(user.uid, snap.data()));
+    });
+  }
+
+  @override
+  void dispose() {
+    _userDocSub?.cancel();
+    _authSub?.cancel();
+    super.dispose();
+  }
 
   String _medicationEnteredByLine(MedicationModel med) {
     final name = (med.enteredByName ?? '').trim();
@@ -69,7 +118,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 // Do not delete from DB; just archive/hide from list.
                 await _databaseService.updateMedicationStatus(med.id!, false);
               }
-              if (mounted) Navigator.pop(context);
+              if (context.mounted) Navigator.pop(context);
             },
             child: Text("delete".tr(), style: const TextStyle(color: Colors.red)),
           ),
@@ -87,14 +136,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
         child: AddMedicationDialog(
           initialMed: initialMed,
           onAdd: (newMedData) async {
-            final uid = FirebaseAuth.instance.currentUser?.uid;
-            if (uid == null) {
+            final auth = FirebaseAuth.instance.currentUser;
+            if (auth == null) {
               throw Exception('login_to_save_results'.tr());
             }
+            final subjectUid = _medicationSubjectUid ?? auth.uid;
             await NotificationService.instance.requestPermissionsIfNeeded();
             final med = MedicationModel(
               id: initialMed?.id,
-              userId: uid,
+              userId: subjectUid,
               name: newMedData['name'],
               dosage: newMedData['dose'],
               times: [newMedData['time']],
@@ -106,7 +156,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
             );
 
             // Prevent duplicates (same normalized name + dosage + time) among active meds.
-            final existing = await _databaseService.getMedicationsOnce(uid, includeInactive: false);
+            final existing = await _databaseService.getMedicationsOnce(subjectUid, includeInactive: false);
             final newNameKey = DatabaseService.normalizeMedicationKey(med.name);
             final newDoseKey = DatabaseService.normalizeMedicationKey(med.dosage);
             final newTimeKey = med.times.isNotEmpty ? DatabaseService.normalizeMedicationKey(med.times.first) : '';
@@ -150,240 +200,53 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  void _showUserSelection() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.9,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF2F9F9),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withAlpha(80),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                /// Header Icon
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0ED2B1), Color(0xFF1FB6A6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1FB6A6).withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.person_outline, color: Colors.white, size: 40),
-                ),
-                const SizedBox(height: 20),
-                
-                /// Title
-                Text("select_account".tr(), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                const SizedBox(height: 4),
-                Text("choose_who_to_track".tr(), style: const TextStyle(fontSize: 16, color: Colors.grey)),
-                
-                const SizedBox(height: 32),
-                
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// Logged In Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey.shade200, width: 1.5),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                  Text("you_are_logged_in_as".tr(), style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 6),
-                                    Text(_loggedInUser, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
-                                    const SizedBox(height: 4),
-                                    Text(_loggedInUserRole, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF1FB6A6),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.face, color: Colors.white, size: 36),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 32),
-                        Text("available_accounts".tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                        const SizedBox(height: 16),
-                        
-                        /// Accounts List
-                        ..._accounts.map((acc) {
-                          bool isSelected = acc['name'] == _currentUser;
-                          bool isPersonal = acc['type'] == 'personal';
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _currentUser = acc['name'];
-                              });
-                              Navigator.pop(context);
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isSelected ? const Color(0xFF1FB6A6) : Colors.grey.shade200,
-                                  width: isSelected ? 2 : 1.5,
-                                ),
-                                boxShadow: isSelected ? [
-                                  BoxShadow(color: const Color(0xFF1FB6A6).withOpacity(0.15), blurRadius: 15, offset: const Offset(0, 5))
-                                ] : [],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 64,
-                                    height: 64,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF1FB6A6),
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    child: Icon(isPersonal ? Icons.face : Icons.elderly, color: Colors.white, size: 36),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(acc['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                                        const SizedBox(height: 6),
-                                        Text(acc['age'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          decoration: BoxDecoration(
-                                            color: isPersonal ? const Color(0xFF1FB6A6) : const Color(0xFFF3E8FF),
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(isPersonal ? Icons.person_outline : Icons.family_restroom, 
-                                                   size: 14, 
-                                                   color: isPersonal ? Colors.white : const Color(0xFF7C3AED)),
-                                              const SizedBox(width: 6),
-                                              Text(acc['tag'], style: TextStyle(
-                                                fontSize: 12, 
-                                                fontWeight: FontWeight.bold,
-                                                color: isPersonal ? Colors.white : const Color(0xFF7C3AED)
-                                              )),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    Container(
-                                      width: 24,
-                                      height: 24,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF1FB6A6),
-                                      ),
-                                      child: Center(
-                                        child: Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    const Icon(Icons.arrow_back_ios_new, color: Colors.grey, size: 16),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                        
-                        const SizedBox(height: 16),
-                        
-                        /// Return Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF1F2937),
-                              elevation: 0,
-                              side: BorderSide(color: Colors.grey.shade200, width: 1.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            onPressed: () => Navigator.pop(context),
-                            child: Text("return_to_profile".tr(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  Future<void> _showUserSelection() async {
+    final auth = FirebaseAuth.instance.currentUser;
+    if (auth == null) return;
+    final initial = _medicationSubjectUid ?? auth.uid;
+    final picked = await Navigator.push<Map<String, dynamic>?>(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => SwitchAccountScreen(
+          initialSelectedUid: initial,
+          showGuardianRowForDependent: false,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
     );
+    if (!mounted || picked == null) return;
+    final uid = picked['uid'] as String?;
+    if (uid == null) return;
+    final label = (picked['displayName'] as String?)?.trim() ?? uid;
+    await _activeTracking.persistMedicationSubject(
+      auth,
+      selectedUid: uid,
+      label: label,
+    );
+    if (!mounted) return;
+    if (uid == auth.uid) {
+      setState(() {
+        _medicationSubjectUid = null;
+        _medicationSubjectLabel = '';
+      });
+    } else {
+      setState(() {
+        _medicationSubjectUid = uid;
+        _medicationSubjectLabel = label;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    var currentUserObj = _accounts.firstWhere((u) => u['name'] == _currentUser, orElse: () => {'name': _currentUser, 'type': 'dependent'});
-    bool isPersonal = currentUserObj['type'] == 'personal';
+    final authUid = FirebaseAuth.instance.currentUser?.uid;
+    final subjectUid = _medicationSubjectUid ?? authUid;
+    final isPersonal = _medicationSubjectUid == null || _medicationSubjectUid == authUid;
+    final titleName = (!isPersonal && _medicationSubjectLabel.isNotEmpty)
+        ? _medicationSubjectLabel
+        : (subjectUid ?? '');
 
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -425,7 +288,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(isPersonal ? "personal_account".tr() : "you_are_tracking".tr(), style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                              Text(_currentUser, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text(titleName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -453,7 +316,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                        Text(
-                        isPersonal ? "medications_title".tr() : "user_medications_title".tr(args: [_currentUser]),
+                        isPersonal ? "medications_title".tr() : "user_medications_title".tr(args: [titleName]),
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -466,6 +329,20 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         style: const TextStyle(color: Colors.grey, fontSize: 14),
                         textAlign: TextAlign.start,
                       ),
+                      if (authUid != null) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: _showUserSelection,
+                            icon: const Icon(Icons.swap_horiz, size: 20, color: Color(0xFF1FB6A6)),
+                            label: Text(
+                              "switch_account_btn".tr(),
+                              style: const TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -531,8 +408,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           ),
                         );
                       }
+                      final medUid = _medicationSubjectUid ?? uid;
                       return StreamBuilder<List<MedicationModel>>(
-                        stream: _databaseService.getMedications(uid),
+                        stream: _databaseService.getMedications(medUid),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return const Center(child: CircularProgressIndicator());

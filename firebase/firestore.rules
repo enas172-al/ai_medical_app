@@ -3,15 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-      // Own profile (including when the doc does not exist yet — avoid touching resource.data).
-      // Guardian reads dependent: dependent doc has guardianUid == guardian's uid.
-      // Dependent reads guardian: own user doc has guardianUid == guardian userId in path.
+      // Own doc, guardian reading a dependent (resource.data works for list queries),
+      // or dependent reading their guardian's profile.
       allow read: if request.auth != null && (
         request.auth.uid == userId ||
         (
-          exists(/databases/$(database)/documents/users/$(userId)) &&
-          'guardianUid' in get(/databases/$(database)/documents/users/$(userId)).data &&
-          get(/databases/$(database)/documents/users/$(userId)).data.guardianUid == request.auth.uid
+          'guardianUid' in resource.data &&
+          resource.data.guardianUid == request.auth.uid
         ) ||
         (
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -33,13 +31,11 @@ service cloud.firestore {
     }
 
     // One document per dependent; created by the dependent to register the link with a guardian.
+    // Use resource.data (not get()) so list queries like where guardianUid == request.auth.uid work.
     match /family_links/{dependentUid} {
       allow read: if request.auth != null && (
         request.auth.uid == dependentUid ||
-        (
-          exists(/databases/$(database)/documents/family_links/$(dependentUid)) &&
-          get(/databases/$(database)/documents/family_links/$(dependentUid)).data.guardianUid == request.auth.uid
-        )
+        resource.data.guardianUid == request.auth.uid
       );
       allow create: if request.auth != null
           && request.auth.uid == dependentUid
@@ -47,10 +43,7 @@ service cloud.firestore {
           && request.resource.data.guardianUid is string;
       allow update, delete: if request.auth != null && (
         request.auth.uid == dependentUid ||
-        (
-          exists(/databases/$(database)/documents/family_links/$(dependentUid)) &&
-          get(/databases/$(database)/documents/family_links/$(dependentUid)).data.guardianUid == request.auth.uid
-        )
+        resource.data.guardianUid == request.auth.uid
       );
     }
 
@@ -62,10 +55,23 @@ service cloud.firestore {
     }
 
     match /medications/{docId} {
-      allow read, delete, update: if request.auth != null
-          && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null
-          && request.resource.data.userId == request.auth.uid;
+      // Own meds, or guardian managing a linked dependent (see family_links/{dependentUid}).
+      function guardianOfMedicationSubject(subjectUid) {
+        return exists(/databases/$(database)/documents/family_links/$(subjectUid)) &&
+          get(/databases/$(database)/documents/family_links/$(subjectUid)).data.guardianUid == request.auth.uid;
+      }
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(resource.data.userId)
+      );
+      allow create: if request.auth != null && (
+        request.resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(request.resource.data.userId)
+      );
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(resource.data.userId)
+      );
     }
 
     // Public lab tests catalog.
