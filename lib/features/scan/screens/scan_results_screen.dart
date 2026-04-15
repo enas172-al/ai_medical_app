@@ -63,6 +63,14 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   }
 
   Future<void> _shareResults() async {
+    if (_items.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('scan_no_tests_hint'.tr())),
+        );
+      }
+      return;
+    }
     final buf = StringBuffer();
     for (final c in _items) {
       buf.writeln('${c.nameKey.tr()}: ${c.value} ${c.unit} — ${_statusLabel(c.status)}');
@@ -145,6 +153,11 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   @override
   Widget build(BuildContext context) {
     final results = _items;
+    final hasOcrText = widget.extractedText != null && widget.extractedText!.trim().isNotEmpty;
+    final summaryTitle = !hasOcrText
+        ? "labby_title".tr()
+        : (results.isEmpty ? "scan_no_tests_title".tr() : "analysis_summary".tr());
+    final summaryAccent = results.isEmpty && hasOcrText ? Colors.orange.shade800 : const Color(0xFF1FB6A6);
 
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -152,7 +165,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         backgroundColor: const Color(0xFFF7F9FC),
         appBar: AppBar(
           backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
+          shadowColor: Colors.black12,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -165,160 +180,300 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
           actions: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Image.asset('assets/images/logo.png', width: 48, height: 48),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset('assets/images/logo.png', width: 44, height: 44),
+              ),
             ),
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Column(
-                  children: [
-                    if (widget.imagePath != null)
+              if (widget.imagePath != null) ...[
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  elevation: 2,
+                  shadowColor: Colors.black26,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      color: const Color(0xFFF0F4F8),
+                      child: Image.file(
+                        File(widget.imagePath!),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                elevation: 1,
+                shadowColor: Colors.black12,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        height: 150,
-                        width: double.infinity,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            image: FileImage(File(widget.imagePath!)),
-                            fit: BoxFit.contain,
-                          ),
+                          color: summaryAccent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          results.isEmpty && hasOcrText ? Icons.document_scanner_outlined : Icons.fact_check_outlined,
+                          color: summaryAccent,
+                          size: 26,
                         ),
                       ),
-                    Text(
-                      widget.extractedText != null && widget.extractedText!.isNotEmpty
-                          ? "analysis_summary".tr()
-                          : "labby_title".tr(),
-                      style: const TextStyle(
-                          color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    if (widget.extractedText != null && widget.extractedText!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          "ocr_info_msg".tr(),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      )
-                    else
-                      Text(
-                        "example_dob".tr(),
-                        style: const TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 25),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _shareResults,
-                      child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _saving ? null : _saveToFirestore,
-                      child: Opacity(
-                        opacity: _saving ? 0.5 : 1,
-                        child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1FB6A6).withOpacity(0.05),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(flex: 3, child: Text("test_name_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("value_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("unit_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(flex: 2, child: Text("normal_range_col".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                    const SizedBox(width: 30),
-                  ],
-                ),
-              ),
-
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: results.length,
-                separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100),
-                itemBuilder: (context, index) {
-                  final c = results[index];
-                  final color = _statusColor(c.status);
-                  return Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(c.nameKey.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              Text(c.subNameKey.tr(), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              summaryTitle,
+                              style: TextStyle(
+                                color: summaryAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                                height: 1.25,
+                              ),
+                            ),
+                            if (hasOcrText && results.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'scan_extracted_count'.tr(namedArgs: {'count': '${results.length}'}),
+                                style: TextStyle(
+                                  color: Colors.blueGrey.shade700,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
-                          ),
+                            const SizedBox(height: 10),
+                            Text(
+                              !hasOcrText
+                                  ? "example_dob".tr()
+                                  : (results.isEmpty ? "scan_no_tests_hint".tr() : "ocr_info_msg".tr()),
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                            flex: 2, child: Text('${c.value}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                        Expanded(flex: 2, child: Text(c.unit, style: const TextStyle(fontSize: 12, color: Colors.grey))),
-                        Expanded(
-                            flex: 2,
-                            child: Text('${c.min}-${c.max}', style: const TextStyle(fontSize: 11, color: Colors.grey))),
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-                          child: Icon(
-                            c.status == 'Normal'
-                                ? Icons.check
-                                : (c.status == 'High' ? Icons.trending_up : Icons.trending_down),
-                            color: color,
-                            size: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-
-              Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFF1FB6A6), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    "interpretations_and_advice".tr(),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 20),
 
-              ...results.asMap().entries.map((e) => _buildDetailCard(e.value, '${e.key + 1}')),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionButton(
+                      icon: Icons.ios_share_rounded,
+                      label: "share".tr(),
+                      filled: false,
+                      onTap: _shareResults,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionButton(
+                      icon: Icons.save_rounded,
+                      label: "save".tr(),
+                      filled: true,
+                      busy: _saving,
+                      onTap: _saving ? null : _saveToFirestore,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
 
-              const SizedBox(height: 30),
+              Text(
+                "scan_table_section_title".tr(),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+              ),
+              const SizedBox(height: 10),
+
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                elevation: 1,
+                shadowColor: Colors.black12,
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF1FB6A6).withOpacity(0.14),
+                            const Color(0xFF1FB6A6).withOpacity(0.06),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              "test_name_col".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              "value_col".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              "unit_col".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              "normal_range_col".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                            ),
+                          ),
+                          const SizedBox(width: 28),
+                        ],
+                      ),
+                    ),
+                    if (results.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+                        child: Text(
+                          "scan_no_tests_hint".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.4),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: results.length,
+                        separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
+                        itemBuilder: (context, index) {
+                          final c = results[index];
+                          final color = _statusColor(c.status);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(c.nameKey.tr(),
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      const SizedBox(height: 2),
+                                      Text(c.subNameKey.tr(),
+                                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    '${c.value}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    c.unit,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    '${c.min}-${c.max}',
+                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                  ),
+                                ),
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    c.status == 'Normal'
+                                        ? Icons.check_rounded
+                                        : (c.status == 'High' ? Icons.trending_up_rounded : Icons.trending_down_rounded),
+                                    color: color,
+                                    size: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Color(0xFF1FB6A6), size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "interpretations_and_advice".tr(),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (results.isEmpty)
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      "scan_no_tests_hint".tr(),
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.45),
+                    ),
+                  ),
+                )
+              else
+                ...results.asMap().entries.map((e) => _buildDetailCard(e.value, '${e.key + 1}')),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -326,21 +481,54 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-        ],
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required bool filled,
+    VoidCallback? onTap,
+    bool busy = false,
+  }) {
+    final primary = const Color(0xFF1FB6A6);
+    return Material(
+      color: filled ? primary : Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: filled ? 2 : 0,
+      shadowColor: filled ? primary.withOpacity(0.35) : null,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: filled ? null : Border.all(color: Colors.grey.shade300, width: 1.2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (busy)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: filled ? Colors.white : primary,
+                  ),
+                )
+              else
+                Icon(icon, size: 20, color: filled ? Colors.white : const Color(0xFF374151)),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: filled ? Colors.white : const Color(0xFF374151),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
