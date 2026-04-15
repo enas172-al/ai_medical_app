@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -13,6 +15,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _nameController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
+  DateTime? _selectedDob;
 
   String? _selectedGender;
   bool _isLoading = false;
@@ -25,23 +28,50 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.dispose();
   }
 
-  void _handleContinue() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _handleContinue() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedGender == null) {
+      setState(() {}); // triggers gender error
+      return;
+    }
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('history_sign_in'.tr())),
+        );
+      }
+      return;
+    }
 
+    setState(() => _isLoading = true);
+    try {
+      final genderKey = _selectedGender == "female".tr() ? 'female' : 'male';
+      final height = double.tryParse(_heightController.text.trim());
+      final weight = double.tryParse(_weightController.text.trim());
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+      await FirebaseFirestore.instance.collection('users').doc(uid).set(
+        {
+          'name': _nameController.text.trim(),
+          'displayName': _nameController.text.trim(),
+          'gender': genderKey,
+          if (_selectedDob != null) 'dateOfBirth': Timestamp.fromDate(_selectedDob!),
+          if (height != null) 'heightCm': height,
+          if (weight != null) 'weightKg': weight,
+          'profileUpdatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
 
-
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      });
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -121,6 +151,58 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 15),
 
+                      // تاريخ الميلاد
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          "date_of_birth".tr(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          final now = DateTime.now();
+                          final initial = _selectedDob ?? DateTime(now.year - 20, now.month, now.day);
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: initial,
+                            firstDate: DateTime(1900, 1, 1),
+                            lastDate: now,
+                          );
+                          if (!mounted) return;
+                          if (picked != null) {
+                            setState(() => _selectedDob = picked);
+                          }
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Icon(Icons.calendar_today, size: 18, color: Color(0xFF6B7280)),
+                              Text(
+                                _selectedDob == null
+                                    ? "profile_not_set".tr()
+                                    : "${_selectedDob!.day.toString().padLeft(2, '0')}/${_selectedDob!.month.toString().padLeft(2, '0')}/${_selectedDob!.year}",
+                                style: const TextStyle(color: Color(0xFF111827), fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
                       // الجنس
                       Align(
                         alignment: Alignment.centerRight,
@@ -161,7 +243,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ),
                         ],
                       ),
-                      if (_selectedGender == null && _formKey.currentState?.validate() == false)
+                      if (_selectedGender == null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8, right: 8),
                           child: Align(
