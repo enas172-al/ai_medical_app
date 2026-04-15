@@ -717,14 +717,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final label = (selected['displayName'] as String?)?.trim() ?? uid;
     final roleSnap =
         await FirebaseFirestore.instance.collection('users').doc(auth.uid).get();
-    final role = roleSnap.data()?['familyRole'] as String?;
+    final d = roleSnap.data();
+    final role = d?['familyRole'] as String?;
+    final guardianUid = (d?['guardianUid'] as String?)?.trim() ?? '';
+    final isDependent = role == 'dependent' || guardianUid.isNotEmpty;
     if (uid == auth.uid) {
-      if (role == 'dependent') {
+      if (isDependent) {
         await _activeTracking.clearDependentProfileView(auth.uid);
       } else {
         await _activeTracking.clearAllTracking(auth.uid);
       }
-    } else if (role == 'dependent') {
+    } else if (isDependent) {
       await _activeTracking.persistDependentProfileView(
         auth,
         guardianUid: uid,

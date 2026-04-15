@@ -149,6 +149,7 @@
   "family_code_user_missing": "User profile not found",
   "family_linked_as_dependent": "Your account is linked to a family as a dependent.",
   "family_guardian_label": "Guardian",
+  "family_guardian_missing": "Guardian account not found for this profile. Ask your parent/guardian to re-share the family code, then link again from login or profile.",
   "family_code_generating": "Preparing your family code...",
   "family_share_code_hint": "Share this code with family members so they can link their accounts.",
   "family_no_members_yet": "No linked members yet. They can register or enter the code at login.",

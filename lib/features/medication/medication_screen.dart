@@ -209,7 +209,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => SwitchAccountScreen(
           initialSelectedUid: initial,
-          showGuardianRowForDependent: false,
+          showGuardianRowForDependent: true,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -416,11 +416,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
                             return const Center(child: CircularProgressIndicator());
                           }
                           if (snapshot.hasError) {
+                            final err = snapshot.error;
+                            final msg = (err is FirebaseException && err.code == 'permission-denied')
+                                ? 'ليس لديك صلاحية لعرض أدوية هذا الحساب. تأكد من نشر قواعد Firestore وتسجيل الدخول بالحساب المرتبط.'
+                                : '${snapshot.error}';
                             return Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(24),
                                 child: Text(
-                                  '${snapshot.error}',
+                                  msg,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(color: Colors.red, fontSize: 14),
                                 ),

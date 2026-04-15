@@ -20,6 +20,13 @@ class SwitchAccountScreen extends StatelessWidget {
     this.showGuardianRowForDependent = true,
   });
 
+  Stream<DocumentSnapshot<Map<String, dynamic>>> _guardianLinkDocStream(String dependentUid) {
+    return FirebaseFirestore.instance
+        .collection(FamilyLinkService.linksCollection)
+        .doc(dependentUid)
+        .snapshots();
+  }
+
   static String _displayNameFromDoc(Map<String, dynamic>? d, User u) {
     final dn = (d?['displayName'] as String?)?.trim();
     final n = (d?['name'] as String?)?.trim();
@@ -126,9 +133,11 @@ class SwitchAccountScreen extends StatelessWidget {
           builder: (context, userSnap) {
             final data = userSnap.data?.data();
             final role = data?['familyRole'] as String?;
+            final rawGuardianUid = (data?['guardianUid'] as String?)?.trim() ?? '';
+            final isDependent = role == 'dependent' || rawGuardianUid.isNotEmpty;
 
-            if (role == 'dependent') {
-              final gUid = data?['guardianUid'] as String?;
+            if (isDependent) {
+              final gUid = rawGuardianUid.isNotEmpty ? rawGuardianUid : (data?['guardianUid'] as String?);
               final selfOnly = [
                 {
                   'uid': u.uid,
@@ -138,14 +147,45 @@ class SwitchAccountScreen extends StatelessWidget {
                   'subtitle': (u.email ?? (data?['email'] as String?) ?? '').trim(),
                 },
               ];
-              if (gUid == null || gUid.isEmpty || !showGuardianRowForDependent) {
+              if (!showGuardianRowForDependent) {
                 return _buildScaffold(context, u, data, selfOnly, highlightUid);
               }
+
+              // Prefer guardianUid on the user doc; if missing (older data / partial sync),
+              // fall back to family_links/{dependentUid}.guardianUid.
+              if (gUid != null && gUid.isNotEmpty) {
+                return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance.collection('users').doc(gUid).snapshots(),
+                  builder: (context, gSnap) {
+                    final accounts = _accountsForDependent(u, data, gSnap.data?.data(), gUid);
+                    return _buildScaffold(context, u, data, accounts, highlightUid);
+                  },
+                );
+              }
+
               return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('users').doc(gUid).snapshots(),
-                builder: (context, gSnap) {
-                  final accounts = _accountsForDependent(u, data, gSnap.data?.data(), gUid);
-                  return _buildScaffold(context, u, data, accounts, highlightUid);
+                stream: _guardianLinkDocStream(u.uid),
+                builder: (context, linkSnap) {
+                  final link = linkSnap.data?.data();
+                  final resolved = (link?['guardianUid'] as String?)?.trim() ?? '';
+                  if (resolved.isEmpty) {
+                    return _buildScaffold(
+                      context,
+                      u,
+                      data,
+                      selfOnly,
+                      highlightUid,
+                      bannerText: 'family_guardian_missing'.tr(),
+                      isBannerError: false,
+                    );
+                  }
+                  return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance.collection('users').doc(resolved).snapshots(),
+                    builder: (context, gSnap) {
+                      final accounts = _accountsForDependent(u, data, gSnap.data?.data(), resolved);
+                      return _buildScaffold(context, u, data, accounts, highlightUid);
+                    },
+                  );
                 },
               );
             }

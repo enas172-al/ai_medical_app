@@ -24,9 +24,8 @@ class ActiveTrackingService {
     return t;
   }
 
-  /// Firestore `medications.userId` subject (dependents always own uid).
+  /// Firestore `medications.userId` subject.
   static String medicationSubjectFromDoc(Map<String, dynamic>? d, String authUid) {
-    if (d?['familyRole'] == 'dependent') return authUid;
     final t = (d?[medUidField] as String?)?.trim();
     if (t == null || t.isEmpty || t == authUid) return authUid;
     return t;
@@ -85,7 +84,7 @@ class ActiveTrackingService {
     }, SetOptions(merge: true));
   }
 
-  /// Medication switcher: guardians sync profile; dependents only clear med fields.
+  /// Medication switcher.
   Future<void> persistMedicationSubject(
     User auth, {
     required String selectedUid,
@@ -94,9 +93,17 @@ class ActiveTrackingService {
     final snap = await _userRef(auth.uid).get();
     final role = snap.data()?['familyRole'] as String?;
     if (role == 'dependent') {
+      // Allow dependents to switch between self meds and guardian meds (if rules allow it).
+      if (selectedUid == auth.uid) {
+        await _userRef(auth.uid).set({
+          medUidField: FieldValue.delete(),
+          medLabelField: FieldValue.delete(),
+        }, SetOptions(merge: true));
+        return;
+      }
       await _userRef(auth.uid).set({
-        medUidField: FieldValue.delete(),
-        medLabelField: FieldValue.delete(),
+        medUidField: selectedUid,
+        medLabelField: label,
       }, SetOptions(merge: true));
       return;
     }
