@@ -299,7 +299,6 @@ class _SearchScreenState extends State<SearchScreen> {
               lowText: t.lowText ?? '',
               unit: t.unit,
               simplifiedExplanation: t.simplifiedExplanation,
-              referenceText: t.referenceText,
               sourceUrl: t.sourceUrl,
             ),
           ),
