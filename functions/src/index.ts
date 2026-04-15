@@ -11,6 +11,7 @@
 
 import * as admin from "firebase-admin";
 import {onObjectFinalized} from "firebase-functions/v2/storage";
+import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {logger} from "firebase-functions";
 import {ImageAnnotatorClient} from "@google-cloud/vision";
 
@@ -260,6 +261,78 @@ export const onAnalysisImageUploaded = onObjectFinalized(
         filePath,
       });
       throw err;
+    }
+  },
+);
+
+/**
+ * Push notification fanout: when the app writes a notification document to Firestore,
+ * send an FCM push so it appears even if the app is closed.
+ *
+ * Collection: `notifications/{id}`
+ * Expected fields: userId, title, body, data (optional)
+ */
+export const onNotificationCreated = onDocumentCreated(
+  {
+    region: "europe-west1",
+    document: "notifications/{notificationId}",
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+    const notifId = snap.id;
+    const n = snap.data() as Record<string, unknown>;
+
+    const userId = (n.userId as string | undefined)?.trim();
+    const title = (n.title as string | undefined)?.trim() || "Labby";
+    const body = (n.body as string | undefined)?.trim() || "";
+    const data = (n.data as Record<string, string> | undefined) ?? {};
+
+    if (!userId || body.length === 0) {
+      logger.info("Skip push: missing userId/body", {notifId});
+      return;
+    }
+
+    // Prevent duplicates if this function is retried.
+    if (n.fcmMessageId || n.sentAt) {
+      logger.info("Skip push: already sent", {notifId});
+      return;
+    }
+
+    try {
+      const userSnap = await admin.firestore().collection("users").doc(userId).get();
+      const token = (userSnap.data()?.fcmToken as string | undefined)?.trim();
+      if (!token) {
+        logger.info("Skip push: missing fcmToken", {notifId, userId});
+        return;
+      }
+
+      const res = await admin.messaging().send({
+        token,
+        notification: {title, body},
+        data: {
+          notificationId: notifId,
+          ...data,
+        },
+        android: {
+          notification: {
+            channelId: "labby_general",
+          },
+        },
+      });
+
+      await snap.ref.set(
+        {
+          sentAt: admin.firestore.FieldValue.serverTimestamp(),
+          fcmMessageId: res,
+        },
+        {merge: true},
+      );
+
+      logger.info("Push sent", {notifId, userId});
+    } catch (e) {
+      logger.error("onNotificationCreated failed", e as Error, {notifId, userId});
+      throw e;
     }
   },
 );

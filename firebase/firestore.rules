@@ -94,6 +94,11 @@ service cloud.firestore {
       );
     }
 
+    match /notifications/{docId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
     // Public lab tests catalog.
     // Read allowed to everyone; write allowed to signed-in users (for seeding/admin tooling).
     match /lab_tests/{docId} {

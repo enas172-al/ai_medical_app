@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 
+import '../../core/services/medication_reminder_sync_service.dart';
+import '../../core/services/notification_service.dart';
+
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -12,6 +15,7 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
   bool pushEnabled = true;
   bool emailEnabled = true;
+  bool _syncingMeds = false;
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +153,90 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Medication reminders sync
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'تذكيرات الأدوية',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'إذا كنت بدّلت هاتف أو حذفت التطبيق، اضغط هنا لإعادة تفعيل تذكيرات كل أدويتك على هذا الجهاز.',
+                      style: TextStyle(color: Colors.grey, fontSize: 12, height: 1.5),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: _syncingMeds
+                            ? null
+                            : () async {
+                                setState(() => _syncingMeds = true);
+                                try {
+                                  final enabled = await NotificationService.instance.areNotificationsEnabled();
+                                  if (enabled == false && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الجهاز ثم جرّب مرة ثانية.'),
+                                      ),
+                                    );
+                                  }
+                                  await MedicationReminderSyncService.instance.resyncNow();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('تم إعادة تفعيل تذكيرات الأدوية.')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('صار خطأ: $e')),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) setState(() => _syncingMeds = false);
+                                }
+                              },
+                        icon: _syncingMeds
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.refresh),
+                        label: Text(_syncingMeds ? 'جاري...' : 'إعادة تفعيل تذكيرات الأدوية'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1FB6A6),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),

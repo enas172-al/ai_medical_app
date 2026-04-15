@@ -142,6 +142,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
             }
             final subjectUid = _medicationSubjectUid ?? auth.uid;
             await NotificationService.instance.requestPermissionsIfNeeded();
+            final enabled = await NotificationService.instance.areNotificationsEnabled();
+            if (enabled == false && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الجهاز ثم جرّب مرة ثانية.'),
+                ),
+              );
+            }
             final med = MedicationModel(
               id: initialMed?.id,
               userId: subjectUid,

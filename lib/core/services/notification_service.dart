@@ -49,7 +49,7 @@ class NotificationService {
           _channelId,
           _channelName,
           description: 'Take medication on time',
-          importance: Importance.defaultImportance,
+          importance: Importance.high,
         ),
       );
       await android?.createNotificationChannel(
@@ -92,8 +92,16 @@ class NotificationService {
     if (_tzLoaded) return;
     tz_data.initializeTimeZones();
     try {
-      final info = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(info.identifier));
+      // flutter_timezone may return either a String or a TimezoneInfo (depending on version).
+      final Object info = await FlutterTimezone.getLocalTimezone();
+      late final String tzName;
+      if (info is String) {
+        tzName = info;
+      } else {
+        final id = (info as dynamic).identifier;
+        tzName = id is String ? id : id.toString();
+      }
+      tz.setLocalLocation(tz.getLocation(tzName));
     } catch (_) {
       tz.setLocalLocation(tz.getLocation('UTC'));
     }
@@ -111,6 +119,17 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
+  }
+
+  Future<bool?> areNotificationsEnabled() async {
+    if (!_supportsLocalSchedule) return null;
+    if (!_inited) await init();
+    if (Platform.isAndroid) {
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      return await android?.areNotificationsEnabled();
+    }
+    return true;
   }
 
   static int _notificationId(String medId, int slot) =>
@@ -132,15 +151,6 @@ class NotificationService {
     } catch (_) {
       return null;
     }
-  }
-
-  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-    return scheduled;
   }
 
   Future<void> cancelMedicationReminders(String? medId) async {
@@ -165,8 +175,8 @@ class NotificationService {
         _channelId,
         _channelName,
         channelDescription: 'Take medication on time',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        importance: Importance.high,
+        priority: Priority.high,
       ),
       iOS: const DarwinNotificationDetails(),
     );
@@ -176,7 +186,14 @@ class NotificationService {
       if (mins == null) continue;
       final h = mins ~/ 60;
       final m = mins % 60;
-      final when = _nextInstanceOfTime(h, m);
+      final now = tz.TZDateTime.now(tz.local);
+      final baseToday = tz.TZDateTime(tz.local, now.year, now.month, now.day, h, m);
+      // If the user adds the medication at the exact reminder minute (or shortly after),
+      // show an immediate notification once, then schedule the daily repeating reminder from tomorrow.
+      if (baseToday.isBefore(now) && now.difference(baseToday) <= const Duration(minutes: 1)) {
+        await showImmediate(title: _channelName, body: medicationName);
+      }
+      final when = baseToday.isBefore(now) ? baseToday.add(const Duration(days: 1)) : baseToday;
 
       await _plugin.zonedSchedule(
         id: _notificationId(medId, i),

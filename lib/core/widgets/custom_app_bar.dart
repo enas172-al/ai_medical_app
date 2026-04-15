@@ -3,6 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 import '../../features/notifications/notification_sheet.dart';
 import '../../features/search/search_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/notifications_repository.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -15,7 +17,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.title,
     this.isHome = false,
-    this.notificationCount = 2,
+    this.notificationCount = 0,
     this.showBack = false,
     this.actions,
   });
@@ -140,30 +142,45 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// 🔔 إشعارات
   Widget _buildNotificationIcon(BuildContext context) {
-    return Stack(
-      children: [
-        _buildIcon(context, Icons.notifications_none),
-        if (notificationCount > 0)
-          Positioned(
-            right: 6,
-            top: 6,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                "$notificationCount",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-      ],
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnap) {
+        final uid = authSnap.data?.uid;
+        if (uid == null) {
+          return _buildIcon(context, Icons.notifications_none);
+        }
+        return StreamBuilder<int>(
+          stream: NotificationsRepository().watchUnreadCount(uid),
+          builder: (context, countSnap) {
+            final count = countSnap.data ?? notificationCount;
+            return Stack(
+              children: [
+                _buildIcon(context, Icons.notifications_none),
+                if (count > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        "$count",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
