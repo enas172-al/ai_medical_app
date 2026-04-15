@@ -226,7 +226,7 @@
   "enable_all": "Enable All",
   "important_info": "Important Information",
   "notification_control_desc": "You can control notifications anytime from settings. Some important security-related notifications cannot be disabled.",
-  "welcome_user": "Welcome Ahmed",
+  "welcome_user": "Welcome {}",
   "how_are_you_today": "How are you today?",
   "ai_in_medicine": "✨ AI in Medicine",
   "track_health_comprehensively": "Track your health comprehensively and quickly",
