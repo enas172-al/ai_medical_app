@@ -32,12 +32,14 @@ class ScanResultsScreen extends StatefulWidget {
 class _ScanResultsScreenState extends State<ScanResultsScreen> {
   final DatabaseService _db = DatabaseService();
   late List<ParsedLabCandidate> _items;
+  late String _ocrText;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _items = LabParseService.parse(widget.extractedText ?? '');
+    _ocrText = (widget.extractedText ?? '').trim();
+    _items = LabParseService.parse(_ocrText);
   }
 
   Color _statusColor(String status) {
@@ -79,6 +81,14 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   }
 
   Future<void> _saveToFirestore() async {
+    if (_items.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('scan_no_tests_hint'.tr())),
+        );
+      }
+      return;
+    }
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       if (mounted) {
@@ -153,11 +163,15 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   @override
   Widget build(BuildContext context) {
     final results = _items;
-    final hasOcrText = widget.extractedText != null && widget.extractedText!.trim().isNotEmpty;
-    final summaryTitle = !hasOcrText
+    final hasOcrText = _ocrText.isNotEmpty;
+    final fromScan = widget.imagePath != null;
+    final summaryTitle = !fromScan && !hasOcrText
         ? "labby_title".tr()
-        : (results.isEmpty ? "scan_no_tests_title".tr() : "analysis_summary".tr());
-    final summaryAccent = results.isEmpty && hasOcrText ? Colors.orange.shade800 : const Color(0xFF1FB6A6);
+        : (!hasOcrText
+            ? "scan_ocr_empty_title".tr()
+            : (results.isEmpty ? "scan_no_tests_title".tr() : "analysis_summary".tr()));
+    final summaryAccent =
+        results.isEmpty ? Colors.orange.shade800 : const Color(0xFF1FB6A6);
 
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -231,7 +245,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
-                          results.isEmpty && hasOcrText ? Icons.document_scanner_outlined : Icons.fact_check_outlined,
+                          results.isNotEmpty ? Icons.fact_check_outlined : Icons.document_scanner_outlined,
                           color: summaryAccent,
                           size: 26,
                         ),
@@ -263,9 +277,13 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
                             ],
                             const SizedBox(height: 10),
                             Text(
-                              !hasOcrText
+                              !fromScan && !hasOcrText
                                   ? "example_dob".tr()
-                                  : (results.isEmpty ? "scan_no_tests_hint".tr() : "ocr_info_msg".tr()),
+                                  : (!hasOcrText
+                                      ? "scan_ocr_empty_body".tr()
+                                      : (results.isEmpty
+                                          ? "scan_no_tests_hint".tr()
+                                          : "ocr_info_msg".tr())),
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 13,

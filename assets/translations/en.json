@@ -392,6 +392,8 @@
   "ocr_info_msg": "Values were read automatically from the image. Double-check numbers and ranges, and see your doctor before any medical decisions.",
   "scan_extracted_count": "{count} tests recognized",
   "scan_no_tests_title": "Could not extract a lab table",
+  "scan_ocr_empty_title": "No text could be read from the image",
+  "scan_ocr_empty_body": "The built-in scanner works best with Latin (English) characters. If your report is Arabic-only, try a sharper photo, or use a version that also shows test names in English next to the values.",
   "scan_no_tests_hint": "Try scanning again with better lighting and focus, or make sure the report text is fully visible.",
   "scan_table_section_title": "Results table",
   "interpretations_and_advice": "Interpretations & Advice",

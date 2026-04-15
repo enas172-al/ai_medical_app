@@ -79,34 +79,6 @@ class LabParseService {
       ));
     }
 
-    if (found.isEmpty) return defaultSamples();
     return found;
-  }
-
-  static List<ParsedLabCandidate> defaultSamples() {
-    return [
-      ParsedLabCandidate(
-        testName: 'Glucose',
-        nameKey: 'fasting_sugar',
-        subNameKey: 'glucose_sub',
-        value: 95,
-        unit: 'mg/dL',
-        min: 70,
-        max: 100,
-        interpretationKey: 'glucose_interpretation',
-        adviceKey: 'glucose_advice',
-      ),
-      ParsedLabCandidate(
-        testName: 'Hemoglobin',
-        nameKey: 'hemoglobin',
-        subNameKey: 'hemoglobin_sub',
-        value: 15.2,
-        unit: 'g/dL',
-        min: 13.5,
-        max: 17.5,
-        interpretationKey: 'hemoglobin_interpretation',
-        adviceKey: 'hemoglobin_advice',
-      ),
-    ];
   }
 }
