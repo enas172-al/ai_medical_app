@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'home_detail_screen.dart';
 import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
 import '../../results/view/screens/analysis_detail_screen.dart';
+import '../../../core/models/analysis_model.dart';
+import '../../../core/models/app_notification_model.dart';
+import '../../../core/services/database_service.dart';
+import '../../../core/services/notifications_repository.dart';
 
 class HomeScreen extends StatelessWidget {
   final bool isDashboardVisible;
@@ -28,6 +33,14 @@ class HomeScreen extends StatelessWidget {
       );
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    final userName = (user?.displayName?.trim().isNotEmpty == true)
+        ? user!.displayName!.trim()
+        : (user?.email?.split('@').first.trim().isNotEmpty == true)
+            ? user!.email!.split('@').first.trim()
+            : "anonymous_user".tr();
+    final userId = user?.uid;
+
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -40,7 +53,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 ///  ترحيب
                 Text(
-                  "welcome_user".tr(),
+                  "welcome_user".tr(args: [userName]),
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -206,48 +219,66 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                _buildResultCard(
-                  context,
-                  "fasting_sugar".tr(),
-                  "95",
-                  "mg/dL",
-                  "normal_status".tr(),
-                  const Color(0xFF52C41A),
-                  const Color(0xFFF6FFED),
-                  const Color(0xFFB7EB8F),
-                ),
-                _buildResultCard(
-                  context,
-                  "cholesterol".tr(),
-                  "220",
-                  "mg/dL",
-                  "high_status".tr(),
-                  const Color(0xFFF5222D),
-                  const Color(0xFFFFF1F0),
-                  const Color(0xFFFFA39E),
-                ),
-
-                _buildResultCard(
-                  context,
-                  "blood_pressure".tr(),
-                  "120/80",
-                  "mmHg",
-                  "normal_status".tr(),
-                  const Color(0xFF52C41A),
-                  const Color(0xFFF6FFED),
-                  const Color(0xFFB7EB8F),
-                ),
-                const SizedBox(height: 10),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 20),
+                if (userId == null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Text(
-                      "20 مارس 2026",
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                      "history_sign_in".tr(),
+                      style: const TextStyle(color: Colors.grey),
                     ),
+                  )
+                else
+                  StreamBuilder<List<AnalysisModel>>(
+                    stream: DatabaseService().getAnalyses(userId),
+                    builder: (context, snap) {
+                      if (snap.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "${"no_data_found".tr()} (${snap.error})",
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+                      if (!snap.hasData) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final items = snap.data ?? const <AnalysisModel>[];
+                      if (items.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "history_empty".tr(),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+
+                      final top = items.take(3).toList();
+                      final latestDate = _formatShortDate(items.first.date);
+
+                      return Column(
+                        children: [
+                          for (final a in top)
+                            _buildResultCardFromAnalysis(context, a),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Text(
+                                latestDate,
+                                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                ),
 
                 const SizedBox(height: 30),
 
@@ -261,29 +292,100 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                _buildReminderCard(
-                  title: "medication_time".tr(),
-                  subtitle: "bp_med_reminder".tr(),
-                  icon: Icons.notifications_none,
-                  color: const Color(0xFFC77800),
-                  backgroundColor: const Color(0xFFFFFDF5),
-                  borderColor: const Color(0xFFFFE082),
-                ),
-                const SizedBox(height: 12),
-                _buildReminderCard(
-                  title: "test_reminder".tr(),
-                  subtitle: "hba1c_reminder".tr(),
-                  icon: Icons.notifications_none,
-                  color: const Color(0xFF1565C0),
-                  backgroundColor: const Color(0xFFF0F7FF),
-                  borderColor: const Color(0xFFBBDEFB),
-                ),
+                if (userId == null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      "history_sign_in".tr(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  )
+                else
+                  StreamBuilder<List<AppNotificationModel>>(
+                    stream: NotificationsRepository().watchForUser(userId, limit: 2),
+                    builder: (context, snap) {
+                      if (snap.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                            "${"no_data_found".tr()} (${snap.error})",
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+                      if (!snap.hasData) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final list = snap.data ?? const <AppNotificationModel>[];
+                      if (list.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                            "no_data_found".tr(),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: [
+                          for (int i = 0; i < list.length; i++) ...[
+                            _buildReminderCardFromNotification(list[i]),
+                            if (i != list.length - 1) const SizedBox(height: 12),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
                 const SizedBox(height: 40),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  static String _formatShortDate(DateTime d) {
+    // Keep formatting dependency-free.
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+
+  static String _localizedStatus(String raw) {
+    final s = raw.trim().toLowerCase();
+    if (s == 'high') return "high_status".tr();
+    if (s == 'low') return "low_status".tr();
+    return "normal_status".tr();
+  }
+
+  static ({Color fg, Color bg, Color border}) _statusPalette(String localizedStatus) {
+    if (localizedStatus == "high_status".tr()) {
+      return (fg: const Color(0xFFF5222D), bg: const Color(0xFFFFF1F0), border: const Color(0xFFFFA39E));
+    }
+    if (localizedStatus == "low_status".tr()) {
+      return (fg: const Color(0xFFC77800), bg: const Color(0xFFFFFDF5), border: const Color(0xFFFFE082));
+    }
+    return (fg: const Color(0xFF52C41A), bg: const Color(0xFFF6FFED), border: const Color(0xFFB7EB8F));
+  }
+
+  Widget _buildResultCardFromAnalysis(BuildContext context, AnalysisModel a) {
+    final status = _localizedStatus(a.status);
+    final pal = _statusPalette(status);
+    return _buildResultCard(
+      context,
+      a.testName,
+      a.value.toString(),
+      a.unit,
+      status,
+      pal.fg,
+      pal.bg,
+      pal.border,
+      date: _formatShortDate(a.date),
     );
   }
 
@@ -296,6 +398,7 @@ class HomeScreen extends StatelessWidget {
     Color statusColor,
     Color statusBg,
     Color borderColor,
+    {required String date}
   ) {
     return GestureDetector(
       onTap: () {
@@ -307,7 +410,7 @@ class HomeScreen extends StatelessWidget {
               value: value,
               unit: unit,
               status: status,
-              date: "2024-04-01",
+              date: date,
               statusColor: statusColor,
             ),
           ),
@@ -404,6 +507,45 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildReminderCardFromNotification(AppNotificationModel n) {
+    final t = n.type.trim().toLowerCase();
+    final isMedication = t.contains('med');
+    final isAnalysis = t.contains('analysis') || t.contains('lab');
+
+    final icon = isMedication
+        ? Icons.medication_outlined
+        : isAnalysis
+            ? Icons.science_outlined
+            : Icons.notifications_none;
+
+    final color = isMedication
+        ? const Color(0xFFC77800)
+        : isAnalysis
+            ? const Color(0xFF1565C0)
+            : const Color(0xFF1FB6A6);
+
+    final bg = isMedication
+        ? const Color(0xFFFFFDF5)
+        : isAnalysis
+            ? const Color(0xFFF0F7FF)
+            : const Color(0xFFEFFBF9);
+
+    final border = isMedication
+        ? const Color(0xFFFFE082)
+        : isAnalysis
+            ? const Color(0xFFBBDEFB)
+            : const Color(0xFFB2DFDB);
+
+    return _buildReminderCard(
+      title: n.title.isNotEmpty ? n.title : "alerts".tr(),
+      subtitle: n.body,
+      icon: icon,
+      color: color,
+      backgroundColor: bg,
+      borderColor: border,
     );
   }
 }

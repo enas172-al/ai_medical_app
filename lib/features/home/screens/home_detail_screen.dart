@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../results/view/widgets/expandable_result_item.dart';
+import '../../../core/models/analysis_model.dart';
+import '../../../core/services/database_service.dart';
 
 class HomeDetailScreen extends StatelessWidget {
   const HomeDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid;
+
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -55,7 +61,7 @@ class HomeDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                "example_dob".tr(),
+                user?.email ?? "example_dob".tr(),
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
@@ -115,77 +121,63 @@ class HomeDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Glucose
-              ExpandableCard(
-                title: "fasting_sugar".tr(),
-                subtitle: "Fasting Sugar",
-                value: "95",
-                unit: "mg/dL",
-                status: "normal_status".tr(),
-                normalRange: "mg/dL 70-100",
-                interpretation: "fasting_sugar_interp".tr(),
-                recommendation: "balanced_diet_advice".tr(),
-              ),
+              if (userId == null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    "history_sign_in".tr(),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                )
+              else
+                StreamBuilder<List<AnalysisModel>>(
+                  stream: DatabaseService().getAnalyses(userId),
+                  builder: (context, snap) {
+                    if (snap.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          "${"no_data_found".tr()} (${snap.error})",
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }
+                    if (!snap.hasData) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final list = snap.data ?? const <AnalysisModel>[];
+                    if (list.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          "history_empty".tr(),
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }
 
-              // Hemoglobin
-              ExpandableCard(
-                title: "hemoglobin".tr(),
-                subtitle: "Hemoglobin",
-                value: "15.2",
-                unit: "g/dL",
-                status: "normal_status".tr(),
-                normalRange: "g/dL 13.5-17.5",
-                interpretation: "hemoglobin_interp".tr(),
-                recommendation: "iron_foods_advice".tr(),
-              ),
-
-              // Cholesterol
-              ExpandableCard(
-                title: "cholesterol".tr(),
-                subtitle: "Cholesterol",
-                value: "220",
-                unit: "mg/dL",
-                status: "high_status".tr(),
-                normalRange: "mg/dL 200 >",
-                interpretation: "cholesterol_interp".tr(),
-                recommendation: "reduce_fat_advice".tr(),
-              ),
-
-              // Vitamin D
-              ExpandableCard(
-                title: "vitamin_d".tr(),
-                subtitle: "Vitamin D",
-                value: "18",
-                unit: "ng/mL",
-                status: "low_status".tr(),
-                normalRange: "ng/mL 30-100",
-                interpretation: "vitamin_d_interp".tr(),
-                recommendation: "sun_exposure_advice".tr(),
-              ),
-
-              // White Blood Cells
-              ExpandableCard(
-                title: "wbc".tr(),
-                subtitle: "White Blood Cells",
-                value: "7.5",
-                unit: "μL/10³x",
-                status: "normal_status".tr(),
-                normalRange: "μL/10³x 4.5-11.0",
-                interpretation: "wbc_interp".tr(),
-                recommendation: "immune_system_good_advice".tr(),
-              ),
-
-              // Blood Pressure
-              ExpandableCard(
-                title: "blood_pressure".tr(),
-                subtitle: "Blood Pressure",
-                value: "120/80",
-                unit: "mmHg",
-                status: "normal_status".tr(),
-                normalRange: "mmHg 120/80 >",
-                interpretation: "bp_interp".tr(),
-                recommendation: "exercise_stress_advice".tr(),
-              ),
+                    return Column(
+                      children: [
+                        for (final a in list)
+                          ExpandableCard(
+                            title: a.testName,
+                            subtitle: a.testName,
+                            value: a.value.toString(),
+                            unit: a.unit,
+                            status: _localizedStatus(a.status),
+                            normalRange: _normalRangeText(a),
+                            interpretation: a.simplifiedExplanation?.trim().isNotEmpty == true
+                                ? a.simplifiedExplanation!.trim()
+                                : "ai_analysis_note".tr(),
+                            recommendation: "medical_review_needed_rule".tr(),
+                          ),
+                      ],
+                    );
+                  },
+                ),
 
               const SizedBox(height: 10),
 
@@ -211,5 +203,25 @@ class HomeDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static String _localizedStatus(String raw) {
+    final s = raw.trim().toLowerCase();
+    if (s == 'high') return "high_status".tr();
+    if (s == 'low') return "low_status".tr();
+    return "normal_status".tr();
+  }
+
+  static String _normalRangeText(AnalysisModel a) {
+    final min = a.normalRange['min'];
+    final max = a.normalRange['max'];
+    final unit = a.unit.trim();
+    if (min == null && max == null) return unit.isEmpty ? '-' : unit;
+    final range = (min != null && max != null)
+        ? "${min.toString()}-${max.toString()}"
+        : (min != null)
+            ? ">= ${min.toString()}"
+            : "<= ${max.toString()}";
+    return unit.isEmpty ? range : "$unit $range";
   }
 }

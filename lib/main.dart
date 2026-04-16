@@ -10,6 +10,7 @@ import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
+
 import 'core/firebase_bootstrap.dart';
 import 'core/firebase_messaging_background.dart';
 import 'core/services/notification_service.dart';
@@ -17,8 +18,10 @@ import 'core/services/push_messaging_service.dart';
 import 'core/services/medication_reminder_sync_service.dart';
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   if (!kIsWeb) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:

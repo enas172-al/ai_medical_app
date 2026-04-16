@@ -2,7 +2,12 @@ import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../results/view/screens/analysis_detail_screen.dart';
+import '../../../core/models/analysis_model.dart';
+import '../../../core/models/app_notification_model.dart';
+import '../../../core/services/database_service.dart';
+import '../../../core/services/notifications_repository.dart';
 
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -10,6 +15,14 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid;
+    final userName = (user?.displayName?.trim().isNotEmpty == true)
+        ? user!.displayName!.trim()
+        : (user?.email?.split('@').first.trim().isNotEmpty == true)
+            ? user!.email!.split('@').first.trim()
+            : "anonymous_user".tr();
+
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -26,27 +39,27 @@ class DashboardScreen extends StatelessWidget {
                 _buildBrandingHero(),
 
                 // 3. Health Dashboard Title
-                _buildTitleSection(),
+                _buildTitleSection(userName: userName),
 
                 const SizedBox(height: 10),
 
                 // 4. General Status (الحالة العامة)
-                _buildGeneralStatusSection(),
+                _buildGeneralStatusSection(userId: userId),
 
                 const SizedBox(height: 25),
 
                 // 5. Alerts Section (التنبيهات)
-                _buildAlertsSection(),
+                _buildAlertsSection(userId: userId),
 
                 const SizedBox(height: 25),
 
                 // 6. Chart Section (الرسم البياني)
-                _buildChartSection(),
+                _buildChartSection(userId: userId),
 
                 const SizedBox(height: 25),
 
                 // 7. Latest Analysis (آخر التحاليل)
-                _buildLatestAnalysisSection(context),
+                _buildLatestAnalysisSection(context, userId: userId),
 
                 const SizedBox(height: 25),
 
@@ -107,7 +120,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTitleSection() {
+  Widget _buildTitleSection({required String userName}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Center(
@@ -123,7 +136,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              "welcome_ahmed".tr(),
+              "welcome_user".tr(args: [userName]),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
@@ -135,7 +148,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGeneralStatusSection() {
+  Widget _buildGeneralStatusSection({required String? userId}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -153,42 +166,65 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBE6),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFFFE58F), width: 1),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  "needs_slight_attention".tr(),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFD48806),
+          if (userId == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                "history_sign_in".tr(),
+                style: const TextStyle(color: Colors.grey),
+              ),
+            )
+          else
+            StreamBuilder<List<AnalysisModel>>(
+              stream: DatabaseService().getAnalyses(userId),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final list = snap.data ?? const <AnalysisModel>[];
+                final status = _computeGeneralStatus(list);
+
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: status.bg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: status.border, width: 1),
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "mostly_normal_some_notes".tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF8C8C8C),
+                  child: Column(
+                    children: [
+                      Text(
+                        status.title,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: status.fg,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        status.subtitle,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF8C8C8C),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                );
+              },
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildAlertsSection() {
+  Widget _buildAlertsSection({required String? userId}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -206,23 +242,42 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildAlertCard(
-            title: "vitamin_d_low".tr(),
-            subtitle: "visit_doctor_vitamin_d".tr(),
-            icon: Icons.report_problem_outlined,
-            color: const Color(0xFFFAAD14),
-            bgColor: const Color(0xFFFFF7E6),
-            borderColor: const Color(0xFFFFD591),
-          ),
-          const SizedBox(height: 12),
-          _buildAlertCard(
-            title: "periodic_analysis".tr(),
-            subtitle: "hba1c_due_date".tr(),
-            icon: Icons.info_outline,
-            color: const Color(0xFF1890FF),
-            bgColor: const Color(0xFFE6F7FF),
-            borderColor: const Color(0xFF91D5FF),
-          ),
+          if (userId == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text(
+                "history_sign_in".tr(),
+                style: const TextStyle(color: Colors.grey),
+              ),
+            )
+          else
+            StreamBuilder<List<AppNotificationModel>>(
+              stream: NotificationsRepository().watchForUser(userId, limit: 3),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final list = snap.data ?? const <AppNotificationModel>[];
+                if (list.isEmpty) {
+                  return Text(
+                    "no_data_found".tr(),
+                    style: const TextStyle(color: Colors.grey),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    for (int i = 0; i < list.length; i++) ...[
+                      _buildAlertCardFromNotification(list[i]),
+                      if (i != list.length - 1) const SizedBox(height: 12),
+                    ],
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );
@@ -269,7 +324,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildChartSection() {
+  Widget _buildChartSection({required String? userId}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -325,10 +380,45 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  height: 200,
-                  child: LineChart(_sugarLevelData()),
-                ),
+                if (userId == null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      "history_sign_in".tr(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  )
+                else
+                  FutureBuilder<List<AnalysisModel>>(
+                    future: DatabaseService().getAnalysesOnce(userId),
+                    builder: (context, snap) {
+                      if (!snap.hasData) {
+                        return const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final list = snap.data ?? const <AnalysisModel>[];
+                      final points = _buildSugarSeries(list);
+                      if (points.isEmpty) {
+                        return SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: Text(
+                              "no_data_found".tr(),
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return SizedBox(
+                        height: 200,
+                        child: LineChart(_sugarLevelData(points)),
+                      );
+                    },
+                  ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -382,7 +472,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  LineChartData _sugarLevelData() {
+  LineChartData _sugarLevelData(List<FlSpot> spots) {
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -439,19 +529,12 @@ class DashboardScreen extends StatelessWidget {
       ),
       borderData: FlBorderData(show: false),
       minX: 0,
-      maxX: 5,
+      maxX: (spots.length - 1).toDouble().clamp(1, 30),
       minY: 0,
       maxY: 120,
       lineBarsData: [
         LineChartBarData(
-          spots: [
-            FlSpot(0, 95),
-            FlSpot(1, 105),
-            FlSpot(2, 90),
-            FlSpot(3, 110),
-            FlSpot(4, 95),
-            FlSpot(5, 100),
-          ],
+          spots: spots,
           isCurved: true,
           color: const Color(0xFF1FB6A6),
           barWidth: 3,
@@ -465,7 +548,7 @@ class DashboardScreen extends StatelessWidget {
         LineChartBarData(
           spots: [
             FlSpot(0, 80),
-            FlSpot(5, 80),
+            FlSpot((spots.length - 1).toDouble().clamp(1, 30), 80),
           ],
           isCurved: false,
           color: Colors.orange,
@@ -477,7 +560,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLatestAnalysisSection(BuildContext context) {
+  Widget _buildLatestAnalysisSection(BuildContext context, {required String? userId}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -498,38 +581,181 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildAnalysisItem(
-              context,
-              "fasting_sugar".tr(),
-              "2024-04-01",
-              "normal_status".tr(),
-              "95",
-              "mg/dL",
-              const Color(0xFF52C41A),
-              const Color(0xFFF6FFED),
-              Icons.bolt),
-          _buildAnalysisItem(
-              context,
-              "cholesterol".tr(),
-              "2024-03-28",
-              "high_status".tr(),
-              "220",
-              "mg/dL",
-              const Color(0xFFF5222D),
-              const Color(0xFFFFF1F0),
-              Icons.warning_amber_rounded),
-          _buildAnalysisItem(
-              context,
-              "blood_pressure".tr(),
-              "2024-04-05",
-              "normal_status".tr(),
-              "120/80",
-              "mmHg",
-              const Color(0xFF52C41A),
-              const Color(0xFFF6FFED),
-              Icons.water_drop_outlined),
+          if (userId == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                "history_sign_in".tr(),
+                style: const TextStyle(color: Colors.grey),
+              ),
+            )
+          else
+            StreamBuilder<List<AnalysisModel>>(
+              stream: DatabaseService().getAnalyses(userId),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final list = snap.data ?? const <AnalysisModel>[];
+                if (list.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      "history_empty".tr(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+
+                final top = list.take(3).toList();
+                return Column(
+                  children: [
+                    for (final a in top)
+                      _buildAnalysisItemFromModel(context, a),
+                  ],
+                );
+              },
+            ),
         ],
       ),
+    );
+  }
+
+  static String _formatShortDate(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+
+  static String _localizedStatus(String raw) {
+    final s = raw.trim().toLowerCase();
+    if (s == 'high') return "high_status".tr();
+    if (s == 'low') return "low_status".tr();
+    return "normal_status".tr();
+  }
+
+  static ({Color fg, Color bg, Color border, IconData icon}) _statusPalette(String localizedStatus) {
+    if (localizedStatus == "high_status".tr()) {
+      return (fg: const Color(0xFFF5222D), bg: const Color(0xFFFFF1F0), border: const Color(0xFFFFA39E), icon: Icons.warning_amber_rounded);
+    }
+    if (localizedStatus == "low_status".tr()) {
+      return (fg: const Color(0xFFFAAD14), bg: const Color(0xFFFFF7E6), border: const Color(0xFFFFD591), icon: Icons.report_problem_outlined);
+    }
+    return (fg: const Color(0xFF52C41A), bg: const Color(0xFFF6FFED), border: const Color(0xFFB7EB8F), icon: Icons.check_circle_outline);
+  }
+
+  Widget _buildAnalysisItemFromModel(BuildContext context, AnalysisModel a) {
+    final status = _localizedStatus(a.status);
+    final pal = _statusPalette(status);
+    return _buildAnalysisItem(
+      context,
+      a.testName,
+      _formatShortDate(a.date),
+      status,
+      a.value.toString(),
+      a.unit,
+      pal.fg,
+      pal.bg,
+      pal.icon,
+    );
+  }
+
+  static List<FlSpot> _buildSugarSeries(List<AnalysisModel> all) {
+    // Try to find glucose/sugar results from existing analyses.
+    final filtered = all.where((a) {
+      final name = a.testName.toLowerCase();
+      return name.contains('glucose') || name.contains('sugar') || name.contains('سكر');
+    }).toList();
+    final list = (filtered.isNotEmpty ? filtered : all).take(6).toList().reversed.toList();
+    final spots = <FlSpot>[];
+    for (int i = 0; i < list.length; i++) {
+      final v = list[i].value;
+      if (v.isNaN) continue;
+      spots.add(FlSpot(i.toDouble(), v.clamp(0, 500)));
+    }
+    return spots;
+  }
+
+  Widget _buildAlertCardFromNotification(AppNotificationModel n) {
+    final t = n.type.trim().toLowerCase();
+    final isMedication = t.contains('med');
+    final isAnalysis = t.contains('analysis') || t.contains('lab');
+
+    final icon = isMedication
+        ? Icons.medication_outlined
+        : isAnalysis
+            ? Icons.science_outlined
+            : Icons.notifications_none;
+
+    final color = isMedication
+        ? const Color(0xFFFAAD14)
+        : isAnalysis
+            ? const Color(0xFF1890FF)
+            : const Color(0xFF1FB6A6);
+
+    final bgColor = isMedication
+        ? const Color(0xFFFFF7E6)
+        : isAnalysis
+            ? const Color(0xFFE6F7FF)
+            : const Color(0xFFEFFBF9);
+
+    final borderColor = isMedication
+        ? const Color(0xFFFFD591)
+        : isAnalysis
+            ? const Color(0xFF91D5FF)
+            : const Color(0xFFB2DFDB);
+
+    return _buildAlertCard(
+      title: n.title.isNotEmpty ? n.title : "alerts".tr(),
+      subtitle: n.body,
+      icon: icon,
+      color: color,
+      bgColor: bgColor,
+      borderColor: borderColor,
+    );
+  }
+
+  static ({String title, String subtitle, Color fg, Color bg, Color border}) _computeGeneralStatus(
+    List<AnalysisModel> list,
+  ) {
+    // If there is any High/Low in last 30 days → "needs_slight_attention", else if there are analyses → Normal.
+    final now = DateTime.now();
+    final recent = list.where((a) => now.difference(a.date).inDays <= 30).toList();
+    final hasAbnormal = recent.any((a) {
+      final s = a.status.trim().toLowerCase();
+      return s == 'high' || s == 'low';
+    });
+
+    if (list.isEmpty) {
+      return (
+        title: "no_data_found".tr(),
+        subtitle: "history_empty".tr(),
+        fg: const Color(0xFF8C8C8C),
+        bg: const Color(0xFFF5F5F5),
+        border: const Color(0xFFE0E0E0),
+      );
+    }
+
+    if (hasAbnormal) {
+      return (
+        title: "needs_slight_attention".tr(),
+        subtitle: "mostly_normal_some_notes".tr(),
+        fg: const Color(0xFFD48806),
+        bg: const Color(0xFFFFFBE6),
+        border: const Color(0xFFFFE58F),
+      );
+    }
+
+    return (
+      title: "normal_status".tr(),
+      subtitle: "analysis_success".tr(),
+      fg: const Color(0xFF2E7D32),
+      bg: const Color(0xFFF6FFED),
+      border: const Color(0xFFB7EB8F),
     );
   }
 

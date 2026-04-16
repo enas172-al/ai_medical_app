@@ -11,6 +11,7 @@ import '../../../core/services/database_service.dart';
 import '../../../core/services/lab_parse_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/processing_service.dart';
+import '../../../core/services/notifications_repository.dart';
 
 class ScanResultsScreen extends StatefulWidget {
   final String? extractedText;
@@ -109,6 +110,17 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         );
       }
       if (hasAbnormal) {
+        // Persist an in-app notification so it appears in Firestore-backed UI.
+        await NotificationsRepository().addForUser(
+          userId: uid,
+          title: 'lab_alert_title'.tr(),
+          body: 'lab_alert_body'.tr(),
+          type: 'analysis',
+          data: {
+            if (widget.imageUrl != null) 'imageUrl': widget.imageUrl,
+          },
+          createdAt: now,
+        );
         await NotificationService.instance.showImmediate(
           title: 'lab_alert_title'.tr(),
           body: 'lab_alert_body'.tr(),

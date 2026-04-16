@@ -395,8 +395,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.email,
                       Colors.blue,
                     ),
-                    infoRow("date_of_birth".tr(), dobStr, Icons.calendar_today, Colors.purple),
-                    infoRow("gender".tr(), genderLabel, Icons.wc, Colors.pink),
+                    GestureDetector(
+                      onTap: viewingOther ? null : () => _editDob(context, fbUser.uid, d),
+                      child: infoRow(
+                        "date_of_birth".tr(),
+                        dobStr,
+                        Icons.calendar_today,
+                        viewingOther ? Colors.grey : Colors.purple,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: viewingOther ? null : () => _editGender(context, fbUser.uid, d),
+                      child: infoRow(
+                        "gender".tr(),
+                        genderLabel,
+                        Icons.wc,
+                        viewingOther ? Colors.grey : Colors.pink,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -405,6 +421,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _editDob(BuildContext context, String uid, Map<String, dynamic>? d) async {
+    DateTime? current;
+    final v = d?['dateOfBirth'] ?? d?['dob'];
+    if (v is Timestamp) current = v.toDate();
+    final now = DateTime.now();
+    final initial = current ?? DateTime(now.year - 20, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900, 1, 1),
+      lastDate: now,
+    );
+    if (!mounted || picked == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(uid).set(
+        {
+          'dateOfBirth': Timestamp.fromDate(picked),
+          'profileUpdatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('save_changes'.tr())),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _editGender(BuildContext context, String uid, Map<String, dynamic>? d) async {
+    final current = (d?['gender'] as String?)?.trim().toLowerCase();
+    String selected = (current == 'female' || current == 'f' || current == 'أنثى' || current == 'انثى')
+        ? 'female'
+        : 'male';
+
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "gender".tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  onTap: () => Navigator.pop(context, 'male'),
+                  leading: const Icon(Icons.male),
+                  title: Text("male".tr()),
+                  trailing: selected == 'male'
+                      ? const Icon(Icons.check, color: Color(0xFF1FB6A6))
+                      : null,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  onTap: () => Navigator.pop(context, 'female'),
+                  leading: const Icon(Icons.female),
+                  title: Text("female".tr()),
+                  trailing: selected == 'female'
+                      ? const Icon(Icons.check, color: Color(0xFF1FB6A6))
+                      : null,
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!mounted || result == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(uid).set(
+        {
+          'gender': result,
+          'profileUpdatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('save_changes'.tr())),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   String _profileFormatDob(dynamic v) {

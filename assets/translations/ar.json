@@ -226,7 +226,7 @@
   "enable_all": "تفعيل الكل",
   "important_info": "معلومة مهمة",
   "notification_control_desc": "يمكنك التحكم في الإشعارات في أي وقت من الإعدادات. بعض الإشعارات المهمة المتعلقة بالأمان لا يمكن إيقافها.",
-  "welcome_user": "مرحباً أحمد",
+  "welcome_user": "مرحباً {}",
   "how_are_you_today": "كيف حالك اليوم؟",
   "ai_in_medicine": "✨ الذكاء الاصطناعي في الطب",
   "track_health_comprehensively": "تتبع صحتك بشكل شامل وسريع",
