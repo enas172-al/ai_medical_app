@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      // Own doc, guardian reading a dependent (resource.data works for list queries),
+      // or dependent reading their guardian's profile.
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        (
+          'guardianUid' in resource.data &&
+          resource.data.guardianUid == request.auth.uid
+        ) ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          'guardianUid' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.guardianUid == userId
+        ) ||
+        (
+          // Fallback: if the dependent link exists but users/{uid}.guardianUid wasn't written yet.
+          exists(/databases/$(database)/documents/family_links/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/family_links/$(request.auth.uid)).data.guardianUid == userId
+        )
+      );
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Invite codes: guardians create their mapping; any signed-in user can read to validate a code.
+    match /family_codes/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+          && request.resource.data.guardianUid == request.auth.uid
+          && request.resource.data.keys().hasAll(['guardianUid', 'createdAt']);
+      allow update, delete: if request.auth != null
+          && resource.data.guardianUid == request.auth.uid;
+    }
+
+    // One document per dependent; created by the dependent to register the link with a guardian.
+    // Use resource.data (not get()) so list queries like where guardianUid == request.auth.uid work.
+    match /family_links/{dependentUid} {
+      allow read: if request.auth != null && (
+        request.auth.uid == dependentUid ||
+        resource.data.guardianUid == request.auth.uid
+      );
+      allow create: if request.auth != null
+          && request.auth.uid == dependentUid
+          && request.resource.data.dependentUid == request.auth.uid
+          && request.resource.data.guardianUid is string;
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == dependentUid ||
+        resource.data.guardianUid == request.auth.uid
+      );
+    }
+
+    match /analyses/{docId} {
+      allow read, delete, update: if request.auth != null
+          && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+          && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /medications/{docId} {
+      // Own meds, or guardian managing a linked dependent (see family_links/{dependentUid}).
+      function guardianOfMedicationSubject(subjectUid) {
+        return exists(/databases/$(database)/documents/family_links/$(subjectUid)) &&
+          get(/databases/$(database)/documents/family_links/$(subjectUid)).data.guardianUid == request.auth.uid;
+      }
+
+      // Dependent reading/writing guardian meds (reverse direction).
+      function dependentOfGuardian(guardianUid) {
+        return (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.guardianUid == guardianUid
+        ) || (
+          exists(/databases/$(database)/documents/family_links/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/family_links/$(request.auth.uid)).data.guardianUid == guardianUid
+        );
+      }
+
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(resource.data.userId) ||
+        dependentOfGuardian(resource.data.userId)
+      );
+      allow create: if request.auth != null && (
+        request.resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(request.resource.data.userId) ||
+        dependentOfGuardian(request.resource.data.userId)
+      );
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        guardianOfMedicationSubject(resource.data.userId) ||
+        dependentOfGuardian(resource.data.userId)
+      );
+    }
+
+    match /notifications/{docId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Public lab tests catalog.
+    // Read allowed to everyone; write allowed to signed-in users (for seeding/admin tooling).
+    match /lab_tests/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Legacy name (kept for backward compatibility).
+    match /test_definitions/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Meta flags for one-time seeding.
+    match /meta/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

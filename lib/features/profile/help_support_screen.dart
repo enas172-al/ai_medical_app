@@ -1,0 +1,585 @@
+import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'user_guide_screen.dart';
+import 'privacy_policy_screen.dart';
+import 'terms_of_use_screen.dart';
+
+class HelpSupportScreen extends StatefulWidget {
+  const HelpSupportScreen({super.key});
+
+  @override
+  State<HelpSupportScreen> createState() => _HelpSupportScreenState();
+}
+
+class _HelpSupportScreenState extends State<HelpSupportScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEAF4FB),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 1,
+        centerTitle: true,
+        title: Text(
+          "help_support_title".tr(),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+
+          ),
+        ),
+        leading: Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+      ),
+      body: Directionality(
+        textDirection: ui.TextDirection.rtl,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🌐 Banner
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1FB6A6), Color(0xFF17A2A2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1FB6A6).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    )
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.help_outline, color: Colors.white, size: 56),
+                    SizedBox(height: 12),
+                    Text(
+                      "how_can_we_help".tr(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      "here_to_support".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 🔍 Search Bar
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "search_help_topic".tr(),
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "support".tr(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildContactRow(
+                      "email_contact".tr(),
+                      "support@labby.app",
+                      Icons.email_outlined,
+                      Colors.blueAccent,
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                            'mailto:support@labby.app?subject=طلب%20مساعدة&body=مرحبًا،%20أحتاج%20مساعدة...'
+                        );
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("could_not_open_email".tr()),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+
+                    const Divider(height: 24, color: Color(0xFFEEEEEE)),
+
+                    _buildContactRow(
+                      "phone_contact".tr(),
+                      "+966 50 123 4567",
+                      Icons.call_outlined,
+                      Colors.purpleAccent,
+                      onTap: () async {
+                        final Uri url = Uri.parse('tel:+966501234567');
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("could_not_open_phone".tr()),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "faq".tr(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    FAQItem(
+                      question: "faq_q1".tr(),
+                      answer: "faq_a1".tr(),
+                    ),
+                    FAQItem(
+                      question: "faq_q2".tr(),
+                      answer: "faq_a2".tr(),
+                    ),
+                    FAQItem(
+                      question: "faq_q3".tr(),
+                      answer: "faq_a3".tr(),
+                    ),
+                    FAQItem(
+                      question: "faq_q4".tr(),
+                      answer: "faq_a4".tr(),
+                    ),
+                    FAQItem(
+                      question: "faq_q5".tr(),
+                      answer: "faq_a5".tr(),
+                    ),
+                    FAQItem(
+                      question: "faq_q6".tr(),
+                      answer: "faq_a6".tr(),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 🔗 Useful Links
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "support_information".tr(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLinkRow(
+                      context,
+                      "user_guide".tr(),
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UserGuideScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 24, color: Color(0xFFEEEEEE)),
+                    _buildLinkRow(
+                      context, 
+                      "privacy_policy".tr(), 
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 24, color: Color(0xFFEEEEEE)),
+                    _buildLinkRow(
+                      context, 
+                      "terms_of_use".tr(), 
+                      Icons.article_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsOfUseScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 📱 App Info
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 64,
+                      width: 64,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1FB6A6),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Text("❤️", style: TextStyle(fontSize: 28)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "app_title".tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "version_number".tr(),
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "all_rights_reserved".tr(),
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Emergency Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF0F0),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text("🚨", style: TextStyle(fontSize: 18)),
+                        SizedBox(width: 8),
+                        Text(
+                          "medical_emergency".tr(),
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "emergency_note".tr(),
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final Uri url = Uri.parse('tel:997');
+                          if (!await launchUrl(url)) {
+                            debugPrint('Could not launch $url');
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.red.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: Text("📞", style: TextStyle(fontSize: 16)),
+                        label: Text(
+                          "call_ambulance".tr(),
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+                ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactRow(String title, String subtitle, IconData icon, Color iconColor, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap ?? () {},
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkRow(BuildContext context, String title, IconData icon, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap ?? () {},
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF1FB6A6), size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class FAQItem extends StatefulWidget {
+  final String question;
+  final String answer;
+
+  const FAQItem({
+    super.key,
+    required this.question,
+    required this.answer,
+  });
+
+  @override
+  State<FAQItem> createState() => _FAQItemState();
+}
+
+class _FAQItemState extends State<FAQItem> {
+  bool isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isExpanded ? const Color(0xFF1FB6A6) : Colors.grey.shade200,
+          width: isExpanded ? 1.5 : 1.0,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          onExpansionChanged: (expanded) {
+            setState(() {
+              isExpanded = expanded;
+            });
+          },
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          title: Text(
+            widget.question,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+          iconColor: Colors.grey,
+          collapsedIconColor: Colors.grey,
+          childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          children: [
+            Text(
+              widget.answer,
+              style: const TextStyle(
+                color: Colors.grey,
+                height: 1.5,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
