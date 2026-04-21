@@ -13,6 +13,18 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
+  /// Updates `users/{uid}` after any successful sign-in (including MFA second step).
+  Future<void> mergeUserDocumentOnSignIn(User user, {String? emailFallback}) async {
+    await _db.collection('users').doc(user.uid).set({
+      'uid': user.uid,
+      'userId': user.uid,
+      'email': user.email ?? emailFallback,
+      'lastLogin': FieldValue.serverTimestamp(),
+      if (user.displayName != null) 'displayName': user.displayName,
+      if (user.displayName != null) 'name': user.displayName,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> _applyFamilyLinkIfPresent(User u, String? rawCode) async {
     if (rawCode == null || rawCode.trim().isEmpty) return;
     await _familyLink.linkDependentAccount(
@@ -99,14 +111,7 @@ class AuthService {
 
       if (credential.user != null) {
         final u = credential.user!;
-        await _db.collection('users').doc(u.uid).set({
-          'uid': u.uid,
-          'userId': u.uid,
-          'email': u.email ?? email,
-          'lastLogin': FieldValue.serverTimestamp(),
-          if (u.displayName != null) 'displayName': u.displayName,
-          if (u.displayName != null) 'name': u.displayName,
-        }, SetOptions(merge: true));
+        await mergeUserDocumentOnSignIn(u, emailFallback: email);
         await _applyFamilyLinkIfPresent(u, familyLinkCode);
       }
       return credential;
@@ -132,18 +137,9 @@ class AuthService {
 
       if (userCredential.user != null) {
         final u = userCredential.user!;
-        final uid = u.uid;
-        final dn = u.displayName;
         final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
         try {
-          await _db.collection('users').doc(uid).set({
-            'uid': uid,
-            'userId': uid,
-            'email': u.email,
-            'lastLogin': FieldValue.serverTimestamp(),
-            if (dn != null) 'displayName': dn,
-            if (dn != null) 'name': dn,
-          }, SetOptions(merge: true));
+          await mergeUserDocumentOnSignIn(u);
           await _applyFamilyLinkIfPresent(u, familyLinkCode);
         } on FamilyLinkException catch (_) {
           if (isNewUser) {

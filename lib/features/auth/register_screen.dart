@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../profile/profile_setup_screen.dart';
+import '../../core/mfa/phone_mfa_flow.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/family_link_service.dart';
 
@@ -47,7 +49,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         if (userCredential != null && mounted) {
-        
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -89,6 +90,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       if (userCredential != null && mounted) {
         Navigator.pushReplacementNamed(context, '/home'); // Or to ProfileSetup if you want
+      }
+    } on FirebaseAuthMultiFactorException catch (e) {
+      if (!mounted) return;
+      final cred = await PhoneMfaFlow.resolveSignIn(context, e);
+      if (!mounted) return;
+      if (cred?.user != null) {
+        await AuthService().mergeUserDocumentOnSignIn(cred!.user!);
+        if (!context.mounted) return;
+        Navigator.pushReplacementNamed(context, '/home');
       }
     } on FamilyLinkException catch (e) {
       if (mounted) {

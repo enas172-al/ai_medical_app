@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -25,6 +26,13 @@ Future<void> initializeFirebaseApp() async {
         await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
         // Ensure UI reflects server state (avoid stale cache after console deletes).
         FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: false);
+        // Debug helper: allow using Firebase Console "test phone numbers" without real device attestation.
+        // Never rely on this for release builds.
+        if (kDebugMode) {
+          await FirebaseAuth.instance.setSettings(
+            appVerificationDisabledForTesting: true,
+          );
+        }
         return;
       case TargetPlatform.windows:
       case TargetPlatform.linux:

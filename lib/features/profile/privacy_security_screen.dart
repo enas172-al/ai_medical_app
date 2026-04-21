@@ -7,8 +7,34 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/mfa/phone_mfa_flow.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/services/privacy_settings_firestore_service.dart';
+
+/// Firestore [Timestamp], [GeoPoint], [DocumentReference], etc. are not JSON-encodable as-is.
+dynamic _jsonEncodableFromFirestore(dynamic value) {
+  if (value == null) return null;
+  if (value is Timestamp) return value.toDate().toUtc().toIso8601String();
+  if (value is DateTime) return value.toUtc().toIso8601String();
+  if (value is GeoPoint) {
+    return {'latitude': value.latitude, 'longitude': value.longitude};
+  }
+  if (value is DocumentReference) {
+    return value.path;
+  }
+  if (value is Map) {
+    return value.map(
+      (k, v) => MapEntry(k.toString(), _jsonEncodableFromFirestore(v)),
+    );
+  }
+  if (value is Iterable) {
+    return value.map(_jsonEncodableFromFirestore).toList();
+  }
+  if (value is String || value is num || value is bool) {
+    return value;
+  }
+  return value.toString();
+}
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -27,6 +53,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool dataEncryption = true;
   bool familyShare = true;
   bool analyticsData = false;
+  bool _twoFactorBusy = false;
 
   @override
   void initState() {
@@ -87,6 +114,97 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       }
     } catch (_) {
       // Offline / rules: keep local prefs only.
+    }
+
+    final authUser = FirebaseAuth.instance.currentUser;
+    if (authUser != null) {
+      try {
+        final factors = await authUser.multiFactor.getEnrolledFactors();
+        final enrolled = factors.isNotEmpty;
+        if (!mounted) return;
+        if (enrolled != twoFactorAuth) {
+          setState(() => twoFactorAuth = enrolled);
+          await SettingsService().setTwoFactorAuth(enrolled);
+          await PrivacySettingsFirestoreService().syncAll(
+            authUser.uid,
+            biometricAuth: biometricAuth,
+            twoFactorAuth: enrolled,
+            autoLock: autoLock,
+            dataEncryption: dataEncryption,
+            familyShare: familyShare,
+            analyticsData: analyticsData,
+          );
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _onTwoFactorToggle(bool want) async {
+    setState(() => _twoFactorBusy = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      if (want) {
+        final factors = await user.multiFactor.getEnrolledFactors();
+        if (factors.isNotEmpty) {
+          if (!mounted) return;
+          setState(() => twoFactorAuth = true);
+          await SettingsService().setTwoFactorAuth(true);
+          await _savePrivacyToCloud();
+          return;
+        }
+        if (!mounted) return;
+        final ok = await PhoneMfaFlow.enrollPhone(context, user);
+        if (!mounted) return;
+        if (ok) {
+          setState(() => twoFactorAuth = true);
+          await SettingsService().setTwoFactorAuth(true);
+          await _savePrivacyToCloud();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('mfa_enroll_success'.tr())),
+            );
+          }
+        }
+      } else {
+        final factors = await user.multiFactor.getEnrolledFactors();
+        if (factors.isEmpty) {
+          if (!mounted) return;
+          setState(() => twoFactorAuth = false);
+          await SettingsService().setTwoFactorAuth(false);
+          await _savePrivacyToCloud();
+          return;
+        }
+        if (!mounted) return;
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('mfa_disable_confirm_title'.tr()),
+            content: Text('mfa_disable_confirm_body'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text('cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text('mfa_disable_confirm_yes'.tr()),
+              ),
+            ],
+          ),
+        );
+        if (confirm != true) return;
+        for (final f in factors) {
+          await user.multiFactor.unenroll(multiFactorInfo: f);
+        }
+        if (!mounted) return;
+        setState(() => twoFactorAuth = false);
+        await SettingsService().setTwoFactorAuth(false);
+        await _savePrivacyToCloud();
+      }
+    } finally {
+      if (mounted) setState(() => _twoFactorBusy = false);
     }
   }
 
@@ -238,11 +356,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.phone_iphone_outlined,
                       iconColor: Colors.purple.shade300,
                       value: twoFactorAuth,
-                      onChanged: (val) async {
-                        setState(() => twoFactorAuth = val);
-                        await SettingsService().setTwoFactorAuth(val);
-                        await _savePrivacyToCloud();
-                      },
+                      onChanged: _twoFactorBusy
+                          ? null
+                          : (val) {
+                              _onTwoFactorToggle(val);
+                            },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildIconToggleRow(
@@ -427,7 +545,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     required IconData icon,
     required Color iconColor,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required void Function(bool)? onChanged,
   }) {
     return Row(
       children: [
@@ -1082,16 +1200,30 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                                   
                                   // Fetch meds
                                   setStateDialog(() => exportStatus = "جاري تجميع الأدوية...");
-                                  final medsQuery = await db.collection('users').doc(user.uid).collection('medications').get();
-                                  
+                                  // Root collections (same paths as [DatabaseService]); NOT users/{uid}/...
+                                  final medsQuery = await db
+                                      .collection('medications')
+                                      .where('userId', isEqualTo: user.uid)
+                                      .get();
+
                                   // Fetch analyses
                                   setStateDialog(() => exportStatus = "جاري تجميع التحاليل...");
-                                  final analysesQuery = await db.collection('users').doc(user.uid).collection('analyses').get();
+                                  final analysesQuery = await db
+                                      .collection('analyses')
+                                      .where('userId', isEqualTo: user.uid)
+                                      .get();
 
                                   final data = {
-                                    "user_profile": userDoc.data() ?? {},
-                                    "medications": medsQuery.docs.map((e) => e.data()).toList(),
-                                    "analyses": analysesQuery.docs.map((e) => e.data()).toList(),
+                                    "user_profile": _jsonEncodableFromFirestore(
+                                          userDoc.data() ?? <String, dynamic>{},
+                                        ) ??
+                                        <String, dynamic>{},
+                                    "medications": medsQuery.docs
+                                        .map((e) => _jsonEncodableFromFirestore(e.data()))
+                                        .toList(),
+                                    "analyses": analysesQuery.docs
+                                        .map((e) => _jsonEncodableFromFirestore(e.data()))
+                                        .toList(),
                                     "export_date": DateTime.now().toIso8601String(),
                                   };
 

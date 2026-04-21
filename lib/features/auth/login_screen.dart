@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/mfa/phone_mfa_flow.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/family_link_service.dart';
 
@@ -30,24 +32,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final userCredential = await AuthService().signInWithGoogle();
-      if (userCredential != null && mounted) {
+      if (!context.mounted) return;
+      if (userCredential != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } on FirebaseAuthMultiFactorException catch (e) {
+      if (!context.mounted) return;
+      final cred = await PhoneMfaFlow.resolveSignIn(context, e);
+      if (!context.mounted) return;
+      if (cred?.user != null) {
+        await AuthService().mergeUserDocumentOnSignIn(cred!.user!);
+        if (!context.mounted) return;
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FamilyLinkException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.messageKey.tr())),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.messageKey.tr())),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}")),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
     } finally {
-      if (mounted) {
+      if (context.mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -74,24 +84,30 @@ class _LoginScreenState extends State<LoginScreen> {
         email: email,
         password: password,
       );
-      if (mounted) {
+      if (!context.mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthMultiFactorException catch (e) {
+      if (!context.mounted) return;
+      final cred = await PhoneMfaFlow.resolveSignIn(context, e);
+      if (!context.mounted) return;
+      if (cred?.user != null) {
+        await AuthService().mergeUserDocumentOnSignIn(cred!.user!, emailFallback: email);
+        if (!context.mounted) return;
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FamilyLinkException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.messageKey.tr())),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.messageKey.tr())),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}")),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
     } finally {
-      if (mounted) {
+      if (context.mounted) {
         setState(() {
           _isLoading = false;
         });
