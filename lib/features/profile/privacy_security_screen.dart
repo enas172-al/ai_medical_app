@@ -181,7 +181,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       value: twoFactorAuth,
                       onChanged: (val) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("feature_coming_soon".tr(fallback: "Feature coming soon"))),
+                          SnackBar(content: Text("feature_coming_soon".tr())),
                         );
                       },
                     ),
@@ -647,7 +647,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                               if (context.mounted) {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('تمت العملية!'.tr(fallback: "تم تغيير كلمة المرور بنجاح"))),
+                                  SnackBar(content: Text('password_changed_success'.tr())),
                                 );
                               }
                             } on FirebaseAuthException catch (e) {

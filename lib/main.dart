@@ -15,6 +15,7 @@ import 'core/firebase_messaging_background.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/push_messaging_service.dart';
 import 'core/services/medication_reminder_sync_service.dart';
+import 'core/services/periodic_analysis_reminder_service.dart';
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
 import 'core/widgets/biometric_gate.dart';
@@ -52,6 +53,7 @@ void main() async {
       await NotificationService.instance.init();
       await PushMessagingService.instance.init();
       MedicationReminderSyncService.instance.start();
+      PeriodicAnalysisReminderService.instance.start();
     } catch (e, st) {
       debugPrint('Notification/FCM init failed: $e\n$st');
     }

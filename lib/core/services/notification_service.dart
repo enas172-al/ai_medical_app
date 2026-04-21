@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,6 +20,12 @@ class NotificationService {
   static const _channelName = 'Medication reminders';
   static const _generalChannelId = 'labby_general';
   static const _generalChannelName = 'Labby alerts';
+  static const _periodicChannelId = 'labby_periodic';
+  static const _periodicChannelName = 'Periodic lab reminders';
+
+  // Stable IDs for periodic lab reminders.
+  static const int _periodicIdMonthly = 900001;
+  static const int _periodicIdSemiAnnual = 900002;
 
   bool get _supportsLocalSchedule =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
@@ -57,7 +64,15 @@ class NotificationService {
           _generalChannelId,
           _generalChannelName,
           description: 'Lab results and push messages',
-          importance: Importance.high,
+          importance: Importance.max,
+        ),
+      );
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _periodicChannelId,
+          _periodicChannelName,
+          description: 'Periodic lab check reminders',
+          importance: Importance.max,
         ),
       );
     }
@@ -79,11 +94,88 @@ class NotificationService {
           _generalChannelId,
           _generalChannelName,
           channelDescription: 'Lab results and push messages',
-          importance: Importance.high,
-          priority: Priority.high,
+          importance: Importance.max,
+          priority: Priority.max,
+          color: const Color(0xFF1FB6A6),
+          enableLights: true,
+          enableVibration: true,
+          styleInformation: BigTextStyleInformation(
+            body,
+            contentTitle: title,
+          ),
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentSound: true,
+          presentBadge: true,
+        ),
       ),
+    );
+  }
+
+  Future<void> cancelPeriodicLabReminders() async {
+    if (!_supportsLocalSchedule) return;
+    await _plugin.cancel(id: _periodicIdMonthly);
+    await _plugin.cancel(id: _periodicIdSemiAnnual);
+  }
+
+  /// Schedules periodic lab reminders as one-shot notifications.
+  /// Called on startup; will overwrite previous schedules.
+  Future<void> schedulePeriodicLabReminders({
+    required String monthlyTitle,
+    required String monthlyBody,
+    required String semiAnnualTitle,
+    required String semiAnnualBody,
+    int hour = 9,
+    int minute = 0,
+  }) async {
+    if (!_supportsLocalSchedule) return;
+    if (!_inited) await init();
+    await _ensureTimezoneLoaded();
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _periodicChannelId,
+        _periodicChannelName,
+        channelDescription: 'Periodic lab check reminders',
+        importance: Importance.max,
+        priority: Priority.max,
+        color: const Color(0xFF1FB6A6),
+        enableLights: true,
+        enableVibration: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+      ),
+    );
+
+    await cancelPeriodicLabReminders();
+
+    final now = tz.TZDateTime.now(tz.local);
+    final baseToday = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    final first = baseToday.isAfter(now) ? baseToday : baseToday.add(const Duration(days: 1));
+
+    final monthlyWhen = first.add(const Duration(days: 30));
+    final semiAnnualWhen = first.add(const Duration(days: 180));
+
+    await _plugin.zonedSchedule(
+      id: _periodicIdMonthly,
+      scheduledDate: monthlyWhen,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: monthlyTitle,
+      body: monthlyBody,
+    );
+
+    await _plugin.zonedSchedule(
+      id: _periodicIdSemiAnnual,
+      scheduledDate: semiAnnualWhen,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: semiAnnualTitle,
+      body: semiAnnualBody,
     );
   }
 

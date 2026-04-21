@@ -48,5 +48,12 @@ class AppNotificationModel {
       'isRead': isRead,
     };
   }
+
+  /// Legacy setup banner for periodic reminders; hide from feeds and counts.
+  bool get isPeriodicSetupFeedItem {
+    if ((data['type']?.toString() ?? '') == 'periodic') return true;
+    final t = title.trim();
+    return t == 'تم تفعيل تذكيرات التحاليل' || t == 'Periodic lab reminders enabled';
+  }
 }
 

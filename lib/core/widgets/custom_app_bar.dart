@@ -150,24 +150,34 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           return _buildIcon(context, Icons.notifications_none);
         }
         return StreamBuilder<int>(
-          stream: NotificationsRepository().watchUnreadCount(uid),
+          stream: NotificationsRepository().watchTotalCount(uid),
           builder: (context, countSnap) {
             final count = countSnap.data ?? notificationCount;
+            final hasAny = count > 0;
+            final label = count > 99 ? '99+' : '$count';
             return Stack(
+              clipBehavior: Clip.none,
               children: [
-                _buildIcon(context, Icons.notifications_none),
-                if (count > 0)
+                _buildIcon(
+                  context,
+                  Icons.notifications_none,
+                  iconColor: hasAny ? Colors.red : null,
+                  backgroundColor: hasAny ? Colors.red.withValues(alpha: 0.08) : null,
+                ),
+                if (hasAny)
                   Positioned(
-                    right: 6,
-                    top: 6,
+                    right: 2,
+                    top: 2,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      alignment: Alignment.center,
                       decoration: const BoxDecoration(
                         color: Colors.red,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
-                        "$count",
+                        label,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -185,11 +195,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   /// 🔹 أيقونات
-  Widget _buildIcon(BuildContext context, IconData icon) {
+  Widget _buildIcon(
+    BuildContext context,
+    IconData icon, {
+    Color? iconColor,
+    Color? backgroundColor,
+  }) {
     return Container(
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: backgroundColor ?? Colors.grey.shade100,
         shape: BoxShape.circle,
       ),
       child: InkWell(
@@ -213,7 +228,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, size: 20),
+          child: Icon(icon, size: 20, color: iconColor),
         ),
       ),
     );

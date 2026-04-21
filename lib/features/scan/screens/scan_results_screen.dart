@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui' as ui;
 
+// NOTE: keep this screen lightweight; PDF export is handled elsewhere.
 import '../../../core/models/analysis_model.dart';
 import '../../../core/models/parsed_lab_candidate.dart';
 import '../../../core/services/database_service.dart';
@@ -12,8 +13,6 @@ import '../../../core/services/lab_parse_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/processing_service.dart';
 import '../../../core/services/notifications_repository.dart';
-import 'package:flutter/services.dart';
-import '../../../core/services/pdf_export_service.dart';
 
 class ScanResultsScreen extends StatefulWidget {
   final String? extractedText;
@@ -297,23 +296,25 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
+                    child: _buildActionButton(
+                      icon: Icons.ios_share_rounded,
+                      label: "share".tr(),
+                      filled: false,
                       onTap: _shareResults,
-                      child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: GestureDetector(
+                    child: _buildActionButton(
+                      icon: Icons.save_rounded,
+                      label: "save".tr(),
+                      filled: true,
+                      busy: _saving,
                       onTap: _saving ? null : _saveToFirestore,
-                      child: Opacity(
-                        opacity: _saving ? 0.5 : 1,
-                        child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
-                      ),
                     ),
                   ),
                 ],
-              ),// test change
+              ),
               const SizedBox(height: 28),
 
               Text(

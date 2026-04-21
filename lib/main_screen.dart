@@ -52,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
           : CustomAppBar(
               isHome: currentIndex == 0,
               title: titles[currentIndex],
-              notificationCount: 3,
+              notificationCount: 0,
             ),
 
       body: IndexedStack(

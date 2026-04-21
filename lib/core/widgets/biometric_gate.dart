@@ -53,7 +53,6 @@ class _BiometricGateState extends State<BiometricGate> with WidgetsBindingObserv
   Future<void> _checkBiometrics() async {
     final settings = SettingsService();
     final authEnabled = await settings.getBiometricAuth();
-    final autoLockEnabled = await settings.getAutoLock();
 
     // If biometric is completely disabled in settings
     if (!authEnabled) {
@@ -74,10 +73,8 @@ class _BiometricGateState extends State<BiometricGate> with WidgetsBindingObserv
     try {
       final didAuthenticate = await localAuth.authenticate(
         localizedReason: 'يرجى التحقق من هويتك لفتح التطبيق',
-        options: const AuthenticationOptions(
-          biometricOnly: false, // Allows PIN/Password fallback 
-          stickyAuth: true,
-        ),
+        biometricOnly: false, // allow device PIN/Pattern fallback
+        persistAcrossBackgrounding: true,
       );
 
       if (mounted) {

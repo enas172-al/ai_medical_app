@@ -15,7 +15,24 @@ class NotificationsRepository {
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => AppNotificationModel.fromDoc(d)).toList());
+        .map((snap) => snap.docs
+            .map((d) => AppNotificationModel.fromDoc(d))
+            .where((n) => !n.isPeriodicSetupFeedItem)
+            .toList());
+  }
+
+  /// Total notifications for the user (read + unread), excluding hidden setup banners.
+  Stream<int> watchTotalCount(String userId) {
+    return _col
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snap) {
+          var c = 0;
+          for (final d in snap.docs) {
+            if (!AppNotificationModel.fromDoc(d).isPeriodicSetupFeedItem) c++;
+          }
+          return c;
+        });
   }
 
   Stream<int> watchUnreadCount(String userId) {
