@@ -15,6 +15,7 @@
   "periodic_semiannual_title": "فحص دوري شامل",
   "periodic_semiannual_body": "تذكير: يفضّل إجراء فحص شامل ومراجعة الطبيب كل 6 أشهر.",
   "save_changes": "حفظ التغييرات",
+  "settings_sync_failed": "تعذر مزامنة إعدادات الخصوصية مع الحساب: {err}",
   "personal_info": "المعلومات الشخصية",
   "profile_not_set": "غير محدد",
   "profile_viewing_as": "تعرض ملف: {}",

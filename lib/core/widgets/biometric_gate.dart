@@ -32,22 +32,29 @@ class _BiometricGateState extends State<BiometricGate> with WidgetsBindingObserv
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Auto-lock feature integration
     if (state == AppLifecycleState.paused) {
       _pausedTime = DateTime.now();
-    } else if (state == AppLifecycleState.resumed) {
-      if (_pausedTime != null) {
-        final diff = DateTime.now().difference(_pausedTime!);
-        // If app was in background for > 30 seconds, re-authenticate
-        if (diff.inSeconds > 30) {
-          setState(() {
-            _isAuthenticated = false;
-            _isChecking = true;
-          });
-          _checkBiometrics();
-        }
-      }
+      return;
     }
+    if (state != AppLifecycleState.resumed) return;
+    final pausedAt = _pausedTime;
+    _pausedTime = null;
+    if (pausedAt == null) return;
+
+    Future.microtask(() async {
+      final settings = SettingsService();
+      final autoLockEnabled = await settings.getAutoLock();
+      if (!mounted || !autoLockEnabled) return;
+
+      final diff = DateTime.now().difference(pausedAt);
+      if (diff.inSeconds > 30) {
+        setState(() {
+          _isAuthenticated = false;
+          _isChecking = true;
+        });
+        await _checkBiometrics();
+      }
+    });
   }
 
   Future<void> _checkBiometrics() async {

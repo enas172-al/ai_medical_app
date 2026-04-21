@@ -15,6 +15,7 @@
   "periodic_semiannual_title": "General checkup",
   "periodic_semiannual_body": "Reminder: consider a general checkup and doctor follow‑up every 6 months.",
   "save_changes": "Save Changes",
+  "settings_sync_failed": "Could not sync privacy settings to your account: {err}",
   "personal_info": "Personal Information",
   "profile_not_set": "Not set",
   "profile_viewing_as": "Viewing profile: {}",

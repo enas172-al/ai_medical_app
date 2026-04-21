@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/services/settings_service.dart';
+import '../../core/services/privacy_settings_firestore_service.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -18,7 +19,7 @@ class PrivacySecurityScreen extends StatefulWidget {
 
 class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   // Authentication toggles
-  bool biometricAuth = true;
+  bool biometricAuth = false;
   bool twoFactorAuth = false;
   bool autoLock = true;
 
@@ -50,6 +51,63 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         familyShare = fs;
         analyticsData = ad;
       });
+    }
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      final remote = await PrivacySettingsFirestoreService().fetch(uid);
+      if (!mounted) return;
+      if (remote != null) {
+        setState(() {
+          biometricAuth = remote.biometricAuth;
+          twoFactorAuth = remote.twoFactorAuth;
+          autoLock = remote.autoLock;
+          dataEncryption = remote.dataEncryption;
+          familyShare = remote.familyShare;
+          analyticsData = remote.analyticsData;
+        });
+        await s.setBiometricAuth(biometricAuth);
+        await s.setTwoFactorAuth(twoFactorAuth);
+        await s.setAutoLock(autoLock);
+        await s.setDataEncryption(dataEncryption);
+        await s.setFamilyShare(familyShare);
+        await s.setAnalyticsData(analyticsData);
+      } else {
+        await PrivacySettingsFirestoreService().syncAll(
+          uid,
+          biometricAuth: biometricAuth,
+          twoFactorAuth: twoFactorAuth,
+          autoLock: autoLock,
+          dataEncryption: dataEncryption,
+          familyShare: familyShare,
+          analyticsData: analyticsData,
+        );
+      }
+    } catch (_) {
+      // Offline / rules: keep local prefs only.
+    }
+  }
+
+  Future<void> _savePrivacyToCloud() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await PrivacySettingsFirestoreService().syncAll(
+        uid,
+        biometricAuth: biometricAuth,
+        twoFactorAuth: twoFactorAuth,
+        autoLock: autoLock,
+        dataEncryption: dataEncryption,
+        familyShare: familyShare,
+        analyticsData: analyticsData,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('settings_sync_failed'.tr(namedArgs: {'err': '$e'}))),
+      );
     }
   }
 
@@ -167,9 +225,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.fingerprint,
                       iconColor: const Color(0xFF1FB6A6),
                       value: biometricAuth,
-                      onChanged: (val) {
+                      onChanged: (val) async {
                         setState(() => biometricAuth = val);
-                        SettingsService().setBiometricAuth(val);
+                        await SettingsService().setBiometricAuth(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -179,10 +238,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.phone_iphone_outlined,
                       iconColor: Colors.purple.shade300,
                       value: twoFactorAuth,
-                      onChanged: (val) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("feature_coming_soon".tr())),
-                        );
+                      onChanged: (val) async {
+                        setState(() => twoFactorAuth = val);
+                        await SettingsService().setTwoFactorAuth(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -192,9 +251,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.lock_outline,
                       iconColor: Colors.blueAccent,
                       value: autoLock,
-                      onChanged: (val) {
+                      onChanged: (val) async {
                         setState(() => autoLock = val);
-                        SettingsService().setAutoLock(val);
+                        await SettingsService().setAutoLock(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -246,9 +306,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       title: "data_encryption_toggle".tr(),
                       subtitle: "data_encryption_desc".tr(),
                       value: dataEncryption,
-                      onChanged: (val) {
+                      onChanged: (val) async {
                         setState(() => dataEncryption = val);
-                        SettingsService().setDataEncryption(val);
+                        await SettingsService().setDataEncryption(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -256,9 +317,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       title: "family_share".tr(),
                       subtitle: "family_share_desc".tr(),
                       value: familyShare,
-                      onChanged: (val) {
+                      onChanged: (val) async {
                         setState(() => familyShare = val);
-                        SettingsService().setFamilyShare(val);
+                        await SettingsService().setFamilyShare(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -266,9 +328,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       title: "analytics_data".tr(),
                       subtitle: "analytics_data_desc".tr(),
                       value: analyticsData,
-                      onChanged: (val) {
+                      onChanged: (val) async {
                         setState(() => analyticsData = val);
-                        SettingsService().setAnalyticsData(val);
+                        await SettingsService().setAnalyticsData(val);
+                        await _savePrivacyToCloud();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
