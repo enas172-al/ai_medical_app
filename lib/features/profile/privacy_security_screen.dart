@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
-import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/mfa/phone_mfa_flow.dart';
+import '../../core/services/pdf_export_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/services/privacy_settings_firestore_service.dart';
 
@@ -1213,30 +1211,48 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                                       .where('userId', isEqualTo: user.uid)
                                       .get();
 
-                                  final data = {
-                                    "user_profile": _jsonEncodableFromFirestore(
-                                          userDoc.data() ?? <String, dynamic>{},
-                                        ) ??
-                                        <String, dynamic>{},
-                                    "medications": medsQuery.docs
-                                        .map((e) => _jsonEncodableFromFirestore(e.data()))
-                                        .toList(),
-                                    "analyses": analysesQuery.docs
-                                        .map((e) => _jsonEncodableFromFirestore(e.data()))
-                                        .toList(),
-                                    "export_date": DateTime.now().toIso8601String(),
-                                  };
-
-                                  final jsonStr = const JsonEncoder.withIndent('  ').convert(data);
-                                  
                                   setStateDialog(() => exportStatus = "جاري تجهيز الملف...");
-                                  final tempDir = await getTemporaryDirectory();
-                                  final file = File('${tempDir.path}/health_data_export_${user.uid.substring(0, 5)}.json');
-                                  await file.writeAsString(jsonStr);
+                                  final exportAt = DateTime.now().toIso8601String();
+                                  final profileMap = Map<String, dynamic>.from(
+                                    (_jsonEncodableFromFirestore(
+                                              userDoc.data() ?? <String, dynamic>{},
+                                            ) ??
+                                            <String, dynamic>{})
+                                        as Map,
+                                  );
+                                  final medsList = medsQuery.docs
+                                      .map(
+                                        (d) => Map<String, dynamic>.from(
+                                          (_jsonEncodableFromFirestore(d.data()) ??
+                                                  <String, dynamic>{})
+                                              as Map,
+                                        ),
+                                      )
+                                      .toList();
+                                  final analysesList = analysesQuery.docs
+                                      .map(
+                                        (d) => Map<String, dynamic>.from(
+                                          (_jsonEncodableFromFirestore(d.data()) ??
+                                                  <String, dynamic>{})
+                                              as Map,
+                                        ),
+                                      )
+                                      .toList();
+
+                                  final pdfPath =
+                                      await PdfExportService.generateHealthDataExportPdf(
+                                    userProfile: profileMap,
+                                    medications: medsList,
+                                    analyses: analysesList,
+                                    exportDateIso: exportAt,
+                                  );
 
                                   if (context.mounted) {
                                     Navigator.pop(context);
-                                    await Share.shareXFiles([XFile(file.path)], text: 'My Labby Health Data Export');
+                                    await Share.shareXFiles(
+                                      [XFile(pdfPath)],
+                                      text: 'export_pdf_share_subject'.tr(),
+                                    );
                                   }
                                 } catch (e) {
                                   setStateDialog(() {
