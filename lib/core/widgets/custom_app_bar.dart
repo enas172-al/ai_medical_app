@@ -40,7 +40,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: SafeArea(
             child: Container(
               height: 75,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
 
               child: showBack
               /// حالة صفحة البحث

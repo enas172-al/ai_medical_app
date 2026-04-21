@@ -12,15 +12,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _familyCodeController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _familyCodeController.dispose();
     super.dispose();
   }
 
@@ -30,10 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final code = _familyCodeController.text.trim();
-      final userCredential = await AuthService().signInWithGoogle(
-        familyLinkCode: code.isEmpty ? null : code,
-      );
+      final userCredential = await AuthService().signInWithGoogle();
       if (userCredential != null && mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
@@ -74,11 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final code = _familyCodeController.text.trim();
       await AuthService().signInWithEmailAndPassword(
         email: email,
         password: password,
-        familyLinkCode: code.isEmpty ? null : code,
       );
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -126,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image.asset(
-                  'assets/images/logo.png',
+                   'assets/images/logo.png',
                   width: 45,
                   height: 45,
                   fit: BoxFit.contain,
@@ -207,10 +201,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: "********",
                           prefixIcon: Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                           filled: true,
                           fillColor: Color(0xFFF1F5F9),
                           border: OutlineInputBorder(
@@ -220,31 +225,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      SizedBox(height: 15),
+                      SizedBox(height: 5),
 
-                      Text("family_code_optional".tr()),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _familyCodeController,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: InputDecoration(
-                          hintText: "family_code_hint".tr(),
-                          prefixIcon: Icon(Icons.family_restroom),
-                          filled: true,
-                          fillColor: Color(0xFFF1F5F9),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: TextButton(
+                          onPressed: () async {
+                            final email = _emailController.text.trim();
+                            if (email.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('الرجاء إدخال البريد الإلكتروني أولاً')),
+                              );
+                              return;
+                            }
+                            try {
+                              await AuthService().resetPassword(email);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('تم إرسال رابط إعادة التعيين لبريدك الإلكتروني')),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                String msg = "Error: ${e.toString()}";
+                                if (e.toString().contains("account_not_found")) {
+                                  msg = "البريد الإلكتروني غير مسجل لدينا، يرجى التأكد منه أو إنشاء حساب جديد.";
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(msg)),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text(
+                            "هل نسيت كلمة المرور؟",
+                            style: TextStyle(
+                              color: Color(0xFF1FB6A6),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "login_family_code_help".tr(),
-                        style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
-                      ),
 
-                      SizedBox(height: 25),
+                      SizedBox(height: 10),
 
                       // زر الدخول
                       SizedBox(
@@ -260,13 +284,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: _isLoading ? null : _handleEmailLogin,
                           child: Text(
                             "login_btn".tr(),
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              
+                            ),
                           ),
                         ),
                       ),
 
-                      SizedBox(height: 15),
-
+                      SizedBox(height: 10),
+                        Center(
+                        child: GestureDetector(
+                      
+                          child: Text(
+                            "أو",
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 119, 122, 121),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                        SizedBox(height: 10),
                       // زر تسجيل الدخول مع جوجل
                       SizedBox(
                         width: double.infinity,
@@ -281,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           onPressed: _isLoading ? null : _handleGoogleSignIn,
                           icon: Image.asset(
-                            'assets/images/logo.png',
+                            'assets/images/google_logo.png',
                             width: 24,
                             height: 24,
                             errorBuilder: (context, error, stackTrace) =>
@@ -294,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text(
-                                "Sign in with Google",
+                                  "المتابعة باستخدام Google     ",
                                 style: TextStyle(fontSize: 16, color: Colors.black87),
                               ),
                         ),

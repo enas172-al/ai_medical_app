@@ -12,6 +12,7 @@ class MedicationModel {
   final String? enteredByName;
   /// Same values as [UserModel.familyRole]: `guardian` or `dependent`.
   final String? enteredByFamilyRole;
+  final String? imageUrl;
 
   MedicationModel({
     this.id,
@@ -25,6 +26,7 @@ class MedicationModel {
     this.enteredByUid,
     this.enteredByName,
     this.enteredByFamilyRole,
+    this.imageUrl,
   });
 
   factory MedicationModel.fromMap(Map<String, dynamic> map, String id) {
@@ -40,6 +42,7 @@ class MedicationModel {
       enteredByUid: map['enteredByUid'] as String?,
       enteredByName: map['enteredByName'] as String?,
       enteredByFamilyRole: map['enteredByFamilyRole'] as String?,
+      imageUrl: map['imageUrl'] as String?,
     );
   }
 
@@ -55,6 +58,7 @@ class MedicationModel {
       if (enteredByUid != null) 'enteredByUid': enteredByUid,
       if (enteredByName != null) 'enteredByName': enteredByName,
       if (enteredByFamilyRole != null) 'enteredByFamilyRole': enteredByFamilyRole,
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 }

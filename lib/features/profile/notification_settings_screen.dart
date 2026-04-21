@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import '../../core/services/medication_reminder_sync_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/settings_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -16,6 +17,24 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool pushEnabled = true;
   bool emailEnabled = true;
   bool _syncingMeds = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final s = SettingsService();
+    final p = await s.getPushEnabled();
+    final e = await s.getEmailEnabled();
+    if (mounted) {
+      setState(() {
+        pushEnabled = p;
+        emailEnabled = e;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +98,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       icon: Icons.notifications_none,
                       iconColor: const Color(0xFF1FB6A6),
                       value: pushEnabled,
-                      onChanged: (val) => setState(() => pushEnabled = val),
+                      onChanged: (val) {
+                        setState(() => pushEnabled = val);
+                        SettingsService().setPushEnabled(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildToggleRow(
@@ -88,7 +110,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       icon: Icons.email_outlined,
                       iconColor: Colors.blueAccent,
                       value: emailEnabled,
-                      onChanged: (val) => setState(() => emailEnabled = val),
+                      onChanged: (val) {
+                        setState(() => emailEnabled = val);
+                        SettingsService().setEmailEnabled(val);
+                      },
                     ),
                   ],
                 ),
@@ -106,6 +131,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           pushEnabled = false;
                           emailEnabled = false;
                         });
+                        SettingsService().setPushEnabled(false);
+                        SettingsService().setEmailEnabled(false);
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -133,6 +160,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           pushEnabled = true;
                           emailEnabled = true;
                         });
+                        SettingsService().setPushEnabled(true);
+                        SettingsService().setEmailEnabled(true);
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),

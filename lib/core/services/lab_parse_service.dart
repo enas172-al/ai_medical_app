@@ -79,7 +79,6 @@ class LabParseService {
       ));
     }
 
-    if (found.isEmpty) return defaultSamples();
     return found;
   }
 

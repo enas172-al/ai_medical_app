@@ -37,6 +37,10 @@ class AuthService {
       );
 
       if (credential.user != null) {
+        // Update the Firebase Auth User profile so the name appears across the app
+        await credential.user!.updateDisplayName(name);
+        await credential.user!.reload();
+        
         final uid = credential.user!.uid;
         final linked =
             familyLinkCode != null && familyLinkCode.trim().isNotEmpty;
@@ -160,6 +164,15 @@ class AuthService {
   Future<void> signOut() async {
     await GoogleSignIn().signOut();
     await _auth.signOut();
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print("Error resetting password: $e");
+      rethrow;
+    }
   }
 
   Future<UserModel?> getUserData(String uid) async {

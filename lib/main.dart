@@ -10,7 +10,6 @@ import 'features/history/history_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/results/view/screens/result_screen.dart';
-
 import 'core/firebase_bootstrap.dart';
 import 'core/firebase_messaging_background.dart';
 import 'core/services/notification_service.dart';
@@ -18,6 +17,7 @@ import 'core/services/push_messaging_service.dart';
 import 'core/services/medication_reminder_sync_service.dart';
 import 'main_screen.dart';
 import 'features/chart/chart_screen.dart';
+import 'core/widgets/biometric_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
         '/history': (context) => HistoryScreen(),
         '/profile': (context) => ProfileScreen(),
         '/search': (context) => SearchScreen(),
-        '/home': (context) => MainScreen(),
+        '/home': (context) => const BiometricGate(child: MainScreen()),
         '/result': (context) => ResultScreen(),
         '/chart': (context) => ChartScreen(),
       },

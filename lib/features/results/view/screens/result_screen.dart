@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-
+import 'package:share_plus/share_plus.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -125,11 +125,35 @@ class ResultScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildActionButton("save_btn".tr(), Icons.save_alt_outlined),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('results_saved'.tr())),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: _buildActionButton("save_btn".tr(), Icons.save_alt_outlined),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
-                      child: _buildActionButton("share_btn".tr(), Icons.share_outlined),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () async {
+                            final buf = StringBuffer();
+                            for (final item in results) {
+                              buf.writeln('${item["name"]}: ${item["value"]} ${item["unit"]} — ${item["status"]}');
+                            }
+                            await Share.share(buf.toString());
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: _buildActionButton("share_btn".tr(), Icons.share_outlined),
+                        ),
+                      ),
                     ),
                   ],
                 ),

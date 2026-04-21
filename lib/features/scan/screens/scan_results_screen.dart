@@ -12,17 +12,21 @@ import '../../../core/services/lab_parse_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/processing_service.dart';
 import '../../../core/services/notifications_repository.dart';
+import 'package:flutter/services.dart';
+import '../../../core/services/pdf_export_service.dart';
 
 class ScanResultsScreen extends StatefulWidget {
   final String? extractedText;
   final String? imagePath;
   final String? imageUrl;
+  final List<ParsedLabCandidate> parsedItems;
 
   const ScanResultsScreen({
     super.key,
     this.extractedText,
     this.imagePath,
     this.imageUrl,
+    required this.parsedItems,
   });
 
   @override
@@ -37,7 +41,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   @override
   void initState() {
     super.initState();
-    _items = LabParseService.parse(widget.extractedText ?? '');
+    _items = widget.parsedItems;
   }
 
   Color _statusColor(String status) {
@@ -62,12 +66,103 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     }
   }
 
-  Future<void> _shareResults() async {
-    final buf = StringBuffer();
-    for (final c in _items) {
-      buf.writeln('${c.nameKey.tr()}: ${c.value} ${c.unit} — ${_statusLabel(c.status)}');
-    }
-    await SharePlus.instance.share(ShareParams(text: buf.toString()));
+  void _showShareBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "مشاركة النتائج",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: const Color(0xFF1FB6A6).withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.copy, color: Color(0xFF1FB6A6)),
+                  ),
+                  title: const Text('نسخ كنص', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final buf = StringBuffer();
+                    buf.writeln("مشاركة النتائج\n");
+                    for (final c in _items) {
+                      buf.writeln('${c.nameKey.tr()}: ${c.value} ${c.unit} — ${_statusLabel(c.status)}');
+                    }
+                    await Clipboard.setData(ClipboardData(text: buf.toString()));
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم نسخ النص إلى الحافظة!')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  ),
+                  title: const Text('حفظ كـ PDF', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    try {
+                      final items = _items.map((c) => PdfExportItem(
+                        testName: c.nameKey.tr(),
+                        value: c.value.toString(),
+                        unit: c.unit,
+                        normalRange: '${c.min}-${c.max}',
+                        status: _statusLabel(c.status),
+                      )).toList();
+                      final path = await PdfExportService.generatePdf(
+                        title: "نتائج التحاليل",
+                        subtitle: "تقرير التحليل من تطبيق Labby",
+                        items: items,
+                      );
+                      await Share.shareXFiles([XFile(path)], text: 'تقرير نتائج التحاليل');
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('حدث خطأ أثناء إنشاء PDF: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _saveToFirestore() async {
@@ -220,18 +315,26 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: _shareResults,
-                      child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _showShareBottomSheet,
+                        borderRadius: BorderRadius.circular(12),
+                        child: _buildActionButton(Icons.share_outlined, "share".tr(), Colors.black87),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: _saving ? null : _saveToFirestore,
-                      child: Opacity(
-                        opacity: _saving ? 0.5 : 1,
-                        child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _saving ? null : _saveToFirestore,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Opacity(
+                          opacity: _saving ? 0.5 : 1,
+                          child: _buildActionButton(Icons.save_outlined, "save".tr(), Colors.black87),
+                        ),
                       ),
                     ),
                   ),

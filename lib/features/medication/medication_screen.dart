@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/services/database_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../core/services/active_tracking_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/models/medication_model.dart';
@@ -141,6 +142,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
               throw Exception('login_to_save_results'.tr());
             }
             final subjectUid = _medicationSubjectUid ?? auth.uid;
+
+            String? imageUrl = initialMed?.imageUrl;
+            if (newMedData['image'] != null && newMedData['image'] is File) {
+              final uploadedUrl = await StorageService().uploadMedicationImage(newMedData['image'] as File, auth.uid);
+              if (uploadedUrl != null) {
+                imageUrl = uploadedUrl;
+              }
+            }
+
             await NotificationService.instance.requestPermissionsIfNeeded();
             final enabled = await NotificationService.instance.areNotificationsEnabled();
             if (enabled == false && context.mounted) {
@@ -161,6 +171,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
               enteredByUid: newMedData['enteredByUid'] as String?,
               enteredByName: newMedData['enteredByName'] as String?,
               enteredByFamilyRole: newMedData['enteredByFamilyRole'] as String?,
+              imageUrl: imageUrl,
             );
 
             // Prevent duplicates (same normalized name + dosage + time) among active meds.
@@ -473,19 +484,34 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: Colors.teal,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: const Icon(
-                                        Icons.medication_outlined,
-                                        color: Colors.white,
-                                        size: 26,
-                                      ),
-                                    ),
+                                    med.imageUrl != null && med.imageUrl!.isNotEmpty
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(16),
+                                            child: Image.network(
+                                              med.imageUrl!,
+                                              width: 72,
+                                              height: 72,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (ctx, err, stack) => Container(
+                                                width: 72,
+                                                height: 72,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.teal,
+                                                  borderRadius: BorderRadius.circular(16),
+                                                ),
+                                                child: const Icon(Icons.medication_outlined, color: Colors.white, size: 36),
+                                              ),
+                                            ),
+                                          )
+                                        : Container(
+                                            width: 72,
+                                            height: 72,
+                                            decoration: BoxDecoration(
+                                              color: Colors.teal,
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            child: const Icon(Icons.medication_outlined, color: Colors.white, size: 36),
+                                          ),
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(

@@ -7,10 +7,13 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
     <application
-        android:label="ai_medical_app"
+        android:label="Labby"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:usesCleartextTraffic="true"
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

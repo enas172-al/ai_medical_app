@@ -160,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   "your_health_companion".tr(),
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
-
+                const SizedBox(height: 12),
         
                 Container(
                   width: double.infinity,
@@ -177,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           "create_new_account".tr(),
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1F2937),
                           ),
@@ -286,8 +286,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 15),
-
+                        const SizedBox(height: 10),
+                        Center(
+                        child: GestureDetector(
+                          child: Text(
+                            "أو",
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 119, 122, 121),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                        SizedBox(height: 10),
                         // الدخول بجوجل
                         SizedBox(
                           width: double.infinity,
@@ -302,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             onPressed: _isLoading ? null : _handleGoogleSignIn,
                             icon: Image.asset(
-                              'assets/images/logo.png', // Temporary fallback
+                              'assets/images/google_logo.png',
                               width: 24,
                               height: 24,
                               errorBuilder: (context, error, stackTrace) =>
@@ -315,8 +326,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Text(
-                                  "Sign up with Google",
-                                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                                  "المتابعة باستخدام Google  ",
+                                  style: TextStyle(fontSize: 14, color: Colors.black87),
                                 ),
                           ),
                         ),

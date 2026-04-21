@@ -54,7 +54,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 25),
 
                 // 6. Chart Section (الرسم البياني)
-                _buildChartSection(userId: userId),
+                DashboardInteractiveChart(userId: userId),
 
                 const SizedBox(height: 25),
 
@@ -912,3 +912,287 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+
+class DashboardInteractiveChart extends StatefulWidget {
+  final String? userId;
+  const DashboardInteractiveChart({super.key, required this.userId});
+
+  @override
+  State<DashboardInteractiveChart> createState() => _DashboardInteractiveChartState();
+}
+
+class _DashboardInteractiveChartState extends State<DashboardInteractiveChart> {
+  String? _selectedTest;
+  late Future<List<AnalysisModel>> _futureAnalyses;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userId != null) {
+      _futureAnalyses = DatabaseService().getAnalysesOnce(widget.userId!);
+    } else {
+      _futureAnalyses = Future.value([]);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                "chart".tr(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.auto_graph, color: Colors.redAccent),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4)),
+              ],
+            ),
+            child: widget.userId == null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      "history_sign_in".tr(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  )
+                : FutureBuilder<List<AnalysisModel>>(
+                    future: _futureAnalyses,
+                    builder: (context, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
+                        return const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final allList = snap.data ?? const <AnalysisModel>[];
+                      
+                      final uniqueTests = allList.map((e) => e.testName).toSet().toList();
+                      if (uniqueTests.isEmpty) {
+                        return SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: Text(
+                              "no_data_found".tr(),
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (_selectedTest == null || !uniqueTests.contains(_selectedTest)) {
+                        _selectedTest = uniqueTests.first;
+                      }
+
+                      final now = DateTime.now();
+                      final filteredList = allList.where((a) {
+                        return a.testName == _selectedTest && now.difference(a.date).inDays <= 7;
+                      }).toList().reversed.toList();
+
+                      final spots = <FlSpot>[];
+                      for (int i = 0; i < filteredList.length; i++) {
+                        final v = filteredList[i].value;
+                        if (!v.isNaN) {
+                          spots.add(FlSpot(i.toDouble(), v));
+                        }
+                      }
+
+                      double maxY = 120;
+                      if (spots.isNotEmpty) {
+                         double maxVal = spots.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+                         maxY = (maxVal > 0 ? maxVal * 1.5 : 100);
+                      }
+
+                      return Column(
+                        children: [
+                          // Filter buttons omitted as per user request
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: DropdownButton<String>(
+                              value: _selectedTest,
+                              isExpanded: false,
+                              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1F2937)),
+                              dropdownColor: Colors.white,
+                              underline: const SizedBox(),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1FB6A6),
+                              ),
+                              items: uniqueTests.map((t) {
+                                return DropdownMenuItem(
+                                  value: t,
+                                  child: Text(t),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedTest = val;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          if (spots.isEmpty)
+                            SizedBox(
+                              height: 200,
+                              child: Center(
+                                child: Text(
+                                  "no_data_found".tr(),
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            )
+                          else
+                            SizedBox(
+                              height: 200,
+                              child: LineChart(_chartData(spots, maxY)),
+                            ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildLegendItem("actual_value".tr(), const Color(0xFF1FB6A6), true),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(String label, bool isSelected) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0xFF1FB6A6) : const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.grey,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color, bool isDot) {
+    return Row(
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+        const SizedBox(width: 8),
+        isDot
+            ? Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle))
+            : Container(
+                width: 20, height: 2, decoration: BoxDecoration(color: color)),
+      ],
+    );
+  }
+
+  LineChartData _chartData(List<FlSpot> spots, double maxY) {
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        horizontalInterval: (maxY / 4) > 0 ? (maxY / 4) : 10,
+        verticalInterval: 1,
+        getDrawingHorizontalLine: (value) => FlLine(
+            color: Colors.grey.withOpacity(0.1),
+            strokeWidth: 1,
+            dashArray: [5, 5]),
+        getDrawingVerticalLine: (value) => FlLine(
+            color: Colors.grey.withOpacity(0.1),
+            strokeWidth: 1,
+            dashArray: [5, 5]),
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1,
+            getTitlesWidget: (value, meta) {
+              final days = [
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
+              ];
+              int index = value.toInt();
+              if (index >= 0 && index < days.length) {
+                return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(days[index],
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 10)));
+              }
+              return const Text("");
+            },
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            interval: (maxY / 4) > 0 ? (maxY / 4) : 10,
+            getTitlesWidget: (value, meta) => Text(value.toInt().toString(),
+                style: const TextStyle(color: Colors.grey, fontSize: 10)),
+            reservedSize: 30,
+          ),
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      minX: 0,
+      maxX: (spots.length - 1).toDouble().clamp(1, 7),
+      minY: 0,
+      maxY: maxY,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          isCurved: true,
+          color: const Color(0xFF1FB6A6),
+          barWidth: 3,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            color: const Color(0xFF1FB6A6).withOpacity(0.1),
+          ),
+        ),
+      ],
+    );
+  }
+}
+

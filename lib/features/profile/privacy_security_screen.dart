@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/services/settings_service.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -19,6 +26,32 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool dataEncryption = true;
   bool familyShare = true;
   bool analyticsData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final s = SettingsService();
+    final b = await s.getBiometricAuth();
+    final tfa = await s.getTwoFactorAuth();
+    final al = await s.getAutoLock();
+    final de = await s.getDataEncryption();
+    final fs = await s.getFamilyShare();
+    final ad = await s.getAnalyticsData();
+    if (mounted) {
+      setState(() {
+        biometricAuth = b;
+        twoFactorAuth = tfa;
+        autoLock = al;
+        dataEncryption = de;
+        familyShare = fs;
+        analyticsData = ad;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +167,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.fingerprint,
                       iconColor: const Color(0xFF1FB6A6),
                       value: biometricAuth,
-                      onChanged: (val) => setState(() => biometricAuth = val),
+                      onChanged: (val) {
+                        setState(() => biometricAuth = val);
+                        SettingsService().setBiometricAuth(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildIconToggleRow(
@@ -143,7 +179,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.phone_iphone_outlined,
                       iconColor: Colors.purple.shade300,
                       value: twoFactorAuth,
-                      onChanged: (val) => setState(() => twoFactorAuth = val),
+                      onChanged: (val) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("feature_coming_soon".tr(fallback: "Feature coming soon"))),
+                        );
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildIconToggleRow(
@@ -152,7 +192,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       icon: Icons.lock_outline,
                       iconColor: Colors.blueAccent,
                       value: autoLock,
-                      onChanged: (val) => setState(() => autoLock = val),
+                      onChanged: (val) {
+                        setState(() => autoLock = val);
+                        SettingsService().setAutoLock(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildArrowActionRow(
@@ -203,21 +246,30 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       title: "data_encryption_toggle".tr(),
                       subtitle: "data_encryption_desc".tr(),
                       value: dataEncryption,
-                      onChanged: (val) => setState(() => dataEncryption = val),
+                      onChanged: (val) {
+                        setState(() => dataEncryption = val);
+                        SettingsService().setDataEncryption(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextToggleRow(
                       title: "family_share".tr(),
                       subtitle: "family_share_desc".tr(),
                       value: familyShare,
-                      onChanged: (val) => setState(() => familyShare = val),
+                      onChanged: (val) {
+                        setState(() => familyShare = val);
+                        SettingsService().setFamilyShare(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextToggleRow(
                       title: "analytics_data".tr(),
                       subtitle: "analytics_data_desc".tr(),
                       value: analyticsData,
-                      onChanged: (val) => setState(() => analyticsData = val),
+                      onChanged: (val) {
+                        setState(() => analyticsData = val);
+                        SettingsService().setAnalyticsData(val);
+                      },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
                     _buildTextArrowRow(
@@ -489,70 +541,154 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   void _showChangePasswordDialog(BuildContext context) {
+    final oldPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confirmPassCtrl = TextEditingController();
+    bool isLoading = false;
+    String? errorMsg;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            titlePadding: const EdgeInsets.all(20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            actionsPadding: const EdgeInsets.all(20),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "change_password".tr(),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildPasswordField("current_password".tr(), showVisibilityIcon: true),
-                const SizedBox(height: 16),
-                _buildPasswordField("new_password".tr()),
-                const SizedBox(height: 16),
-                _buildPasswordField("confirm_password".tr()),
-                const SizedBox(height: 8),
-              ],
-            ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1FB6A6),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return Directionality(
+            textDirection: ui.TextDirection.rtl,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: const EdgeInsets.all(20),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              actionsPadding: const EdgeInsets.all(20),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "change_password".tr(),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  child: Text("save_password".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                ),
-              )
-            ],
-          ),
-        );
+                  if (!isLoading)
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (errorMsg != null)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 15),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        errorMsg!,
+                        style: const TextStyle(color: Colors.red, fontSize: 13),
+                      ),
+                    ),
+                  _buildPasswordField("current_password".tr(), oldPassCtrl, showVisibilityIcon: true),
+                  const SizedBox(height: 16),
+                  _buildPasswordField("new_password".tr(), newPassCtrl),
+                  const SizedBox(height: 16),
+                  _buildPasswordField("confirm_password".tr(), confirmPassCtrl),
+                  const SizedBox(height: 8),
+                ],
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            final oldP = oldPassCtrl.text;
+                            final newP = newPassCtrl.text;
+                            final confirmP = confirmPassCtrl.text;
+                            
+                            if (oldP.isEmpty || newP.isEmpty || confirmP.isEmpty) {
+                              setStateDialog(() => errorMsg = "الرجاء تعبئة جميع الحقول");
+                              return;
+                            }
+                            if (newP != confirmP) {
+                              setStateDialog(() => errorMsg = "كلمتا المرور غير متطابقتين");
+                              return;
+                            }
+                            if (newP.length < 6) {
+                              setStateDialog(() => errorMsg = "كلمة المرور الجديدة ضعيفة (6 أحرف على الأقل)");
+                              return;
+                            }
+
+                            setStateDialog(() {
+                              isLoading = true;
+                              errorMsg = null;
+                            });
+
+                            try {
+                              final user = FirebaseAuth.instance.currentUser;
+                              if (user == null || user.email == null) {
+                                throw Exception("لا يوجد حساب مسجل حالياً.");
+                              }
+
+                              // Re-authenticate
+                              final cred = EmailAuthProvider.credential(
+                                email: user.email!,
+                                password: oldP,
+                              );
+                              await user.reauthenticateWithCredential(cred);
+
+                              // Update password
+                              await user.updatePassword(newP);
+
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('تمت العملية!'.tr(fallback: "تم تغيير كلمة المرور بنجاح"))),
+                                );
+                              }
+                            } on FirebaseAuthException catch (e) {
+                              setStateDialog(() {
+                                isLoading = false;
+                                errorMsg = e.message ?? "حدث خطأ في المصادقة";
+                              });
+                            } catch (e) {
+                              setStateDialog(() {
+                                isLoading = false;
+                                errorMsg = e.toString();
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1FB6A6),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: isLoading
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text("save_password".tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  ),
+                )
+              ],
+            ),
+          );
+        });
       },
     );
   }
 
-  Widget _buildPasswordField(String label, {bool showVisibilityIcon = false}) {
+  Widget _buildPasswordField(String label, TextEditingController controller, {bool showVisibilityIcon = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           obscureText: true,
           decoration: InputDecoration(
             filled: true,
@@ -570,129 +706,206 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
+    final passwordCtrl = TextEditingController();
+    bool isLoading = false;
+    String? errorMsg;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            titlePadding: const EdgeInsets.all(20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            actionsPadding: const EdgeInsets.all(20),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return Directionality(
+            textDirection: ui.TextDirection.rtl,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: const EdgeInsets.all(20),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              actionsPadding: const EdgeInsets.all(20),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.delete_outline, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(
+                        "delete_my_account".tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                  if (!isLoading)
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      "delete_my_account".tr(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
+                    if (errorMsg != null)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(bottom: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          errorMsg!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF0F0),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                            const SizedBox(width: 8),
+                            Text(
+                              "important_warning".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                            ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildBulletPoint("delete_warning_1".tr(), Colors.red),
+                          _buildBulletPoint("delete_warning_2".tr(), Colors.red),
+                          _buildBulletPoint("delete_warning_3".tr(), Colors.red),
+                          _buildBulletPoint("delete_warning_4".tr(), Colors.red),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text.rich(
+                      TextSpan(
+                        text: "delete_confirmation_text".tr(),
+                        children: [
+                          TextSpan(text: "delete_confirm_phrase".tr(), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: passwordCtrl,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "أدخل كلمة المرور للتأكيد",
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
                     ),
                   ],
                 ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF0F0),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                        const Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                        const SizedBox(width: 8),
-                        Text(
-                          "important_warning".tr(),
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                final pass = passwordCtrl.text;
+                                if (pass.isEmpty) {
+                                  setStateDialog(() => errorMsg = "يرجى إدخال كلمة المرور لتأكيد الحذف");
+                                  return;
+                                }
+
+                                setStateDialog(() {
+                                  isLoading = true;
+                                  errorMsg = null;
+                                });
+
+                                try {
+                                  final user = FirebaseAuth.instance.currentUser;
+                                  if (user == null || user.email == null) {
+                                    throw Exception("لا يوجد حساب مسجل حالياً.");
+                                  }
+
+                                  // Re-authenticate
+                                  final cred = EmailAuthProvider.credential(
+                                    email: user.email!,
+                                    password: pass,
+                                  );
+                                  await user.reauthenticateWithCredential(cred);
+
+                                  // Delete Firestore User Document
+                                  await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+                                  
+                                  // Clear Settings
+                                  await SettingsService().clearAllSettings();
+
+                                  // Delete Firebase Auth User
+                                  await user.delete();
+
+                                  if (context.mounted) {
+                                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                  }
+                                } on FirebaseAuthException catch (e) {
+                                  setStateDialog(() {
+                                    isLoading = false;
+                                    errorMsg = e.message ?? "حدث خطأ في المصادقة";
+                                  });
+                                } catch (e) {
+                                  setStateDialog(() {
+                                    isLoading = false;
+                                    errorMsg = e.toString();
+                                  });
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
                         ),
-                        ],
+                        child: isLoading
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : Text("delete_account_permanently".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
                       ),
-                      const SizedBox(height: 12),
-                      _buildBulletPoint("delete_warning_1".tr(), Colors.red),
-                      _buildBulletPoint("delete_warning_2".tr(), Colors.red),
-                      _buildBulletPoint("delete_warning_3".tr(), Colors.red),
-                      _buildBulletPoint("delete_warning_4".tr(), Colors.red),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text.rich(
-                  TextSpan(
-                    text: "delete_confirmation_text".tr(),
-                    children: [
-                      TextSpan(text: "delete_confirm_phrase".tr(), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "delete_confirm_phrase".tr(),
-                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                    filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 4,
+                      child: OutlinedButton(
+                        onPressed: isLoading ? null : () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
-            actions: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text("delete_account_permanently".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 4,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        );
+          );
+        });
       },
     );
   }
@@ -720,90 +933,152 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   void _showDownloadDataDialog(BuildContext context) {
+    bool isExporting = false;
+    String? exportStatus;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            titlePadding: const EdgeInsets.all(20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            actionsPadding: const EdgeInsets.all(20),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.download_rounded, color: Color(0xFF1FB6A6)),
-                    const SizedBox(width: 8),
-                    Text(
-                      "download_my_data".tr(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1FB6A6).withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF1FB6A6).withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    "download_data_process_desc".tr(),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              Row(
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return Directionality(
+            textDirection: ui.TextDirection.rtl,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: const EdgeInsets.all(20),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              actionsPadding: const EdgeInsets.all(20),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1FB6A6),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                  Row(
+                    children: [
+                      const Icon(Icons.download_rounded, color: Color(0xFF1FB6A6)),
+                      const SizedBox(width: 8),
+                      Text(
+                        "download_my_data".tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
-                      child: Text("extract_copy".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
+                  if (!isExporting)
+                    IconButton(
                       onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (exportStatus != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 15),
+                      child: Text(exportStatus!, style: const TextStyle(color: Color(0xFF1FB6A6), fontWeight: FontWeight.bold)),
+                    ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1FB6A6).withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF1FB6A6).withValues(alpha: 0.2)),
+                    ),
+                    child: Text(
+                      "download_data_process_desc".tr(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                        height: 1.5,
                       ),
-                      child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
                     ),
                   ),
                 ],
-              )
-            ],
-          ),
-        );
+              ),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isExporting
+                            ? null
+                            : () async {
+                                setStateDialog(() {
+                                  isExporting = true;
+                                  exportStatus = "جاري تجميع البيانات...";
+                                });
+                                try {
+                                  final user = FirebaseAuth.instance.currentUser;
+                                  if (user == null) throw Exception("No user found");
+
+                                  final db = FirebaseFirestore.instance;
+                                  
+                                  // Fetch user doc
+                                  final userDoc = await db.collection('users').doc(user.uid).get();
+                                  
+                                  // Fetch meds
+                                  setStateDialog(() => exportStatus = "جاري تجميع الأدوية...");
+                                  final medsQuery = await db.collection('users').doc(user.uid).collection('medications').get();
+                                  
+                                  // Fetch analyses
+                                  setStateDialog(() => exportStatus = "جاري تجميع التحاليل...");
+                                  final analysesQuery = await db.collection('users').doc(user.uid).collection('analyses').get();
+
+                                  final data = {
+                                    "user_profile": userDoc.data() ?? {},
+                                    "medications": medsQuery.docs.map((e) => e.data()).toList(),
+                                    "analyses": analysesQuery.docs.map((e) => e.data()).toList(),
+                                    "export_date": DateTime.now().toIso8601String(),
+                                  };
+
+                                  final jsonStr = const JsonEncoder.withIndent('  ').convert(data);
+                                  
+                                  setStateDialog(() => exportStatus = "جاري تجهيز الملف...");
+                                  final tempDir = await getTemporaryDirectory();
+                                  final file = File('${tempDir.path}/health_data_export_${user.uid.substring(0, 5)}.json');
+                                  await file.writeAsString(jsonStr);
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    await Share.shareXFiles([XFile(file.path)], text: 'My Labby Health Data Export');
+                                  }
+                                } catch (e) {
+                                  setStateDialog(() {
+                                    isExporting = false;
+                                    exportStatus = "فشل التصدير: $e";
+                                  });
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1FB6A6),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: isExporting
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : Text("extract_copy".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isExporting ? null : () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text("cancel".tr(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          );
+        });
       },
     );
   }
