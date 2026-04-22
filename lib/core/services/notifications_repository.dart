@@ -56,6 +56,9 @@ class NotificationsRepository {
         .map((snap) => snap.docs
             .map((d) => AppNotificationModel.fromDoc(d))
             .where((n) => !_isHidden(n))
+            // User asked to hide notifications once seen.
+            // We keep them in Firestore for history, but exclude read items from the list.
+            .where((n) => !n.isRead)
             .toList());
   }
 
@@ -92,6 +95,10 @@ class NotificationsRepository {
       batch.set(d.reference, {'isRead': true}, SetOptions(merge: true));
     }
     await batch.commit();
+  }
+
+  Future<void> delete(String id) async {
+    await _col.doc(id).delete();
   }
 
   Future<void> addForUser({

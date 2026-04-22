@@ -48,7 +48,7 @@ class NotificationService {
       return;
     }
 
-    final androidInit = AndroidInitializationSettings('launcher_icon');
+    final androidInit = AndroidInitializationSettings('@mipmap/launcher_icon');
     final darwinInit = DarwinInitializationSettings(
       notificationCategories: <DarwinNotificationCategory>[
         DarwinNotificationCategory(
@@ -193,7 +193,7 @@ class NotificationService {
         android: AndroidNotificationDetails(
           _generalChannelId,
           _generalChannelName,
-          icon: 'launcher_icon',
+          icon: '@mipmap/launcher_icon',
           channelDescription: 'Lab results and push messages',
           importance: Importance.max,
           priority: Priority.max,
@@ -238,7 +238,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _periodicChannelId,
         _periodicChannelName,
-        icon: 'launcher_icon',
+        icon: '@mipmap/launcher_icon',
         channelDescription: 'Periodic lab check reminders',
         importance: Importance.max,
         priority: Priority.max,
@@ -373,7 +373,10 @@ class NotificationService {
 
   Future<void> cancelMedicationReminders(String? medId) async {
     if (!_supportsLocalSchedule || medId == null || medId.isEmpty) return;
-    for (var i = 0; i < 8; i++) {
+    // We schedule up to 32 notifications per medication:
+    // for each time slot we schedule the main reminder and a +10min repeat.
+    // (Using a fixed cap keeps cancellation simple even if the time list changes.)
+    for (var i = 0; i < 32; i++) {
       await _plugin.cancel(id: _notificationId(medId, i));
     }
   }
@@ -392,7 +395,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
-        icon: 'launcher_icon',
+        icon: '@mipmap/launcher_icon',
         channelDescription: 'Take medication on time',
         importance: Importance.max,
         priority: Priority.max,
@@ -412,6 +415,9 @@ class NotificationService {
       ),
     );
 
+    // For each time, schedule:
+    // - main reminder at time (daily)
+    // - repeat reminder at time + 10 minutes (daily)
     for (var i = 0; i < times.length; i++) {
       final mins = _timeStringToMinutes(times[i]);
       if (mins == null) continue;
@@ -433,9 +439,23 @@ class NotificationService {
       });
 
       final androidMode = await _androidScheduleModeForAlarms();
+      final baseSlot = i * 2;
       await _plugin.zonedSchedule(
-        id: _notificationId(medId, i),
+        id: _notificationId(medId, baseSlot),
         scheduledDate: when,
+        notificationDetails: details,
+        androidScheduleMode: androidMode,
+        title: _channelName,
+        body: medicationName,
+        payload: payload,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+
+      // Repeat after 10 minutes (daily). If it crosses midnight, move to next day.
+      final repeatWhen = when.add(const Duration(minutes: _snoozeMinutes10));
+      await _plugin.zonedSchedule(
+        id: _notificationId(medId, baseSlot + 1),
+        scheduledDate: repeatWhen,
         notificationDetails: details,
         androidScheduleMode: androidMode,
         title: _channelName,
@@ -464,7 +484,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
-        icon: 'launcher_icon',
+        icon: '@mipmap/launcher_icon',
         channelDescription: 'Take medication on time',
         importance: Importance.max,
         priority: Priority.max,
