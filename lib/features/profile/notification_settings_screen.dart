@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../core/services/medication_reminder_sync_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/notification_settings_firestore_service.dart';
 import '../../core/services/settings_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -17,6 +20,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool pushEnabled = true;
   bool emailEnabled = true;
   bool _syncingMeds = false;
+  bool _syncingRemote = false;
 
   @override
   void initState() {
@@ -33,6 +37,41 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         pushEnabled = p;
         emailEnabled = e;
       });
+    }
+
+    // Then try to hydrate from Firestore (if signed-in), and persist to local prefs.
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    if (mounted) setState(() => _syncingRemote = true);
+    try {
+      final remote = await NotificationSettingsFirestoreService().fetch(uid);
+      if (remote == null) return;
+      await s.setPushEnabled(remote.pushEnabled);
+      await s.setEmailEnabled(remote.emailEnabled);
+      if (mounted) {
+        setState(() {
+          pushEnabled = remote.pushEnabled;
+          emailEnabled = remote.emailEnabled;
+        });
+      }
+    } catch (_) {
+      // Ignore remote sync errors; local settings remain functional.
+    } finally {
+      if (mounted) setState(() => _syncingRemote = false);
+    }
+  }
+
+  Future<void> _syncToFirebase() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await NotificationSettingsFirestoreService().syncAll(
+        uid,
+        pushEnabled: pushEnabled,
+        emailEnabled: emailEnabled,
+      );
+    } catch (_) {
+      // Don't block UI on remote errors.
     }
   }
 
@@ -74,7 +113,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: const Color.fromRGBO(0, 0, 0, 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -101,6 +140,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       onChanged: (val) {
                         setState(() => pushEnabled = val);
                         SettingsService().setPushEnabled(val);
+                        _syncToFirebase();
                       },
                     ),
                     const Divider(height: 30, color: Color(0xFFEEEEEE)),
@@ -113,6 +153,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       onChanged: (val) {
                         setState(() => emailEnabled = val);
                         SettingsService().setEmailEnabled(val);
+                        _syncToFirebase();
                       },
                     ),
                   ],
@@ -133,6 +174,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         });
                         SettingsService().setPushEnabled(false);
                         SettingsService().setEmailEnabled(false);
+                        _syncToFirebase();
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -162,6 +204,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         });
                         SettingsService().setPushEnabled(true);
                         SettingsService().setEmailEnabled(true);
+                        _syncToFirebase();
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -193,7 +236,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: const Color.fromRGBO(0, 0, 0, 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -209,11 +252,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'إذا كنت بدّلت هاتف أو حذفت التطبيق، اضغط هنا لإعادة تفعيل تذكيرات كل أدويتك على هذا الجهاز.',
-                      style: TextStyle(color: Colors.grey, fontSize: 12, height: 1.5),
                     ),
                     const SizedBox(height: 14),
                     SizedBox(
@@ -311,6 +349,17 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                               height: 1.5,
                             ),
                           ),
+                          if (_syncingRemote) ...[
+                            const SizedBox(height: 10),
+                            const Text(
+                              'جاري مزامنة الإعدادات...',
+                              style: TextStyle(
+                                color: Color(0xFF335C94),
+                                fontSize: 12,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     )
@@ -337,7 +386,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: Color.fromRGBO(
+              (iconColor.r * 255.0).round().clamp(0, 255),
+              (iconColor.g * 255.0).round().clamp(0, 255),
+              (iconColor.b * 255.0).round().clamp(0, 255),
+              0.1,
+            ),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: iconColor),

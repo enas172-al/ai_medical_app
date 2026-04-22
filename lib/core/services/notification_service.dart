@@ -48,7 +48,7 @@ class NotificationService {
       return;
     }
 
-    final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final androidInit = AndroidInitializationSettings('launcher_icon');
     final darwinInit = DarwinInitializationSettings(
       notificationCategories: <DarwinNotificationCategory>[
         DarwinNotificationCategory(
@@ -76,35 +76,62 @@ class NotificationService {
     );
 
     if (Platform.isAndroid) {
-      final android = _plugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await android?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          _channelId,
-          _channelName,
-          description: 'Take medication on time',
-          importance: Importance.high,
-        ),
-      );
-      await android?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          _generalChannelId,
-          _generalChannelName,
-          description: 'Lab results and push messages',
-          importance: Importance.max,
-        ),
-      );
-      await android?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          _periodicChannelId,
-          _periodicChannelName,
-          description: 'Periodic lab check reminders',
-          importance: Importance.max,
-        ),
-      );
+      await _ensureAndroidChannels();
     }
 
     _inited = true;
+  }
+
+  Future<void> _ensureAndroidChannels() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    await android.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        description: 'Take medication on time',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+    await android.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _generalChannelId,
+        _generalChannelName,
+        description: 'Lab results and push messages',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+    await android.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _periodicChannelId,
+        _periodicChannelName,
+        description: 'Periodic lab check reminders',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+  }
+
+  /// Android only: deletes and recreates notification channels.
+  /// Useful when channels were muted/silenced in system settings (Android won't update channel importance after creation).
+  Future<void> resetAndroidNotificationChannels() async {
+    if (!_supportsLocalSchedule || !Platform.isAndroid) return;
+    if (!_inited) await init();
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    try {
+      await android.deleteNotificationChannel(channelId: _channelId);
+      await android.deleteNotificationChannel(channelId: _generalChannelId);
+      await android.deleteNotificationChannel(channelId: _periodicChannelId);
+    } catch (_) {
+      // ignore
+    }
+    await _ensureAndroidChannels();
   }
 
   static void _onDidReceiveNotificationResponse(NotificationResponse response) {
@@ -166,6 +193,7 @@ class NotificationService {
         android: AndroidNotificationDetails(
           _generalChannelId,
           _generalChannelName,
+          icon: 'launcher_icon',
           channelDescription: 'Lab results and push messages',
           importance: Importance.max,
           priority: Priority.max,
@@ -210,6 +238,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _periodicChannelId,
         _periodicChannelName,
+        icon: 'launcher_icon',
         channelDescription: 'Periodic lab check reminders',
         importance: Importance.max,
         priority: Priority.max,
@@ -276,14 +305,29 @@ class NotificationService {
   Future<void> requestPermissionsIfNeeded() async {
     if (!_supportsLocalSchedule) return;
     if (Platform.isAndroid) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.requestNotificationsPermission();
     } else if (Platform.isIOS || Platform.isMacOS) {
       await _plugin
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
+  }
+
+  Future<AndroidScheduleMode> _androidScheduleModeForAlarms() async {
+    // Important: do NOT request exact-alarm permission here (it opens settings UI).
+    // We only *check* capability and pick the best mode.
+    if (!Platform.isAndroid) return AndroidScheduleMode.inexactAllowWhileIdle;
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    try {
+      final ok = await android?.canScheduleExactNotifications();
+      if (ok == true) return AndroidScheduleMode.exactAllowWhileIdle;
+    } catch (_) {
+      // ignore and fallback
+    }
+    return AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
   Future<bool?> areNotificationsEnabled() async {
@@ -309,8 +353,17 @@ class NotificationService {
       int m = int.parse(timeParts[1]);
       if (parts.length > 1) {
         final tail = parts.sublist(1).join(' ');
-        if ((tail.contains('ظهر') || tail.contains('مساء')) && h != 12) h += 12;
-        if (tail.contains('صباح') && h == 12) h = 0;
+        final tailLower = tail.toLowerCase();
+        final isPm = tail.contains('ظهر') ||
+            tail.contains('مساء') ||
+            tailLower.contains('pm') ||
+            tailLower.contains('p.m');
+        final isAm = tail.contains('صباح') ||
+            tailLower.contains('am') ||
+            tailLower.contains('a.m');
+
+        if (isPm && h != 12) h += 12;
+        if (isAm && h == 12) h = 0;
       }
       return h * 60 + m;
     } catch (_) {
@@ -339,9 +392,12 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
+        icon: 'launcher_icon',
         channelDescription: 'Take medication on time',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
+        enableVibration: true,
+        playSound: true,
         actions: <AndroidNotificationAction>[
           AndroidNotificationAction(
             _actionSnooze10,
@@ -376,11 +432,12 @@ class NotificationService {
         _payloadKeySnoozeMinutes: _snoozeMinutes10,
       });
 
+      final androidMode = await _androidScheduleModeForAlarms();
       await _plugin.zonedSchedule(
         id: _notificationId(medId, i),
         scheduledDate: when,
         notificationDetails: details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: androidMode,
         title: _channelName,
         body: medicationName,
         payload: payload,
@@ -407,9 +464,12 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
+        icon: 'launcher_icon',
         channelDescription: 'Take medication on time',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
+        enableVibration: true,
+        playSound: true,
         actions: const <AndroidNotificationAction>[
           AndroidNotificationAction(
             _actionSnooze10,
@@ -430,11 +490,12 @@ class NotificationService {
       _payloadKeySnoozeMinutes: minutes,
     });
 
+    final androidMode = await _androidScheduleModeForAlarms();
     await _plugin.zonedSchedule(
       id: id,
       scheduledDate: when,
       notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: androidMode,
       title: _channelName,
       body: medicationName,
       payload: payload,

@@ -7,9 +7,7 @@ import 'dashboard_screen.dart';
 import 'package:ai_medical_app/features/scan/scan_screen.dart';
 import '../../results/view/screens/analysis_detail_screen.dart';
 import '../../../core/models/analysis_model.dart';
-import '../../../core/models/app_notification_model.dart';
 import '../../../core/services/database_service.dart';
-import '../../../core/services/notifications_repository.dart';
 
 class HomeScreen extends StatelessWidget {
   final bool isDashboardVisible;
@@ -104,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(Icons.bar_chart, color: Colors.white, size: 28),
@@ -160,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(Icons.camera_alt, color: Colors.white, size: 40),
@@ -282,63 +280,7 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                /// 🔔 التنبيهات والتذكيرات
-                Text(
-                  "alerts_and_reminders".tr(),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                if (userId == null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Text(
-                      "history_sign_in".tr(),
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  )
-                else
-                  StreamBuilder<List<AppNotificationModel>>(
-                    stream: NotificationsRepository().watchForUser(userId, limit: 2),
-                    builder: (context, snap) {
-                      if (snap.hasError) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                            "${"no_data_found".tr()} (${snap.error})",
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      }
-                      if (!snap.hasData) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      final list = snap.data ?? const <AppNotificationModel>[];
-                      if (list.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                            "no_data_found".tr(),
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      }
-                      return Column(
-                        children: [
-                          for (int i = 0; i < list.length; i++) ...[
-                            _buildReminderCardFromNotification(list[i]),
-                            if (i != list.length - 1) const SizedBox(height: 12),
-                          ],
-                        ],
-                      );
-                    },
-                  ),
+                // تم إخفاء قسم "التنبيهات والتذكيرات" لتفادي لخبطة المستخدم.
                 const SizedBox(height: 40),
               ],
             ),
@@ -424,7 +366,7 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -476,76 +418,5 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReminderCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required Color backgroundColor,
-    required Color borderColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: TextStyle(color: color.withOpacity(0.8), fontSize: 13)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReminderCardFromNotification(AppNotificationModel n) {
-    final t = n.type.trim().toLowerCase();
-    final isMedication = t.contains('med');
-    final isAnalysis = t.contains('analysis') || t.contains('lab');
-
-    final icon = isMedication
-        ? Icons.medication_outlined
-        : isAnalysis
-            ? Icons.science_outlined
-            : Icons.notifications_none;
-
-    final color = isMedication
-        ? const Color(0xFFC77800)
-        : isAnalysis
-            ? const Color(0xFF1565C0)
-            : const Color(0xFF1FB6A6);
-
-    final bg = isMedication
-        ? const Color(0xFFFFFDF5)
-        : isAnalysis
-            ? const Color(0xFFF0F7FF)
-            : const Color(0xFFEFFBF9);
-
-    final border = isMedication
-        ? const Color(0xFFFFE082)
-        : isAnalysis
-            ? const Color(0xFFBBDEFB)
-            : const Color(0xFFB2DFDB);
-
-    return _buildReminderCard(
-      title: n.title.isNotEmpty ? n.title : "alerts".tr(),
-      subtitle: n.body,
-      icon: icon,
-      color: color,
-      backgroundColor: bg,
-      borderColor: border,
-    );
-  }
+  // Reminder cards were removed to avoid confusing users.
 }

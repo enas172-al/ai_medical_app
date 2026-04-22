@@ -12,6 +12,8 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/active_tracking_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/medication_reminder_firestore_service.dart';
+import '../../core/services/notifications_repository.dart';
 import '../../core/models/medication_model.dart';
 import '../profile/switch_account_screen.dart';
 
@@ -201,6 +203,31 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 medId: id,
                 medicationName: med.name,
                 times: med.times,
+              );
+            }
+
+            // Also log scheduled medication reminders to Firestore:
+            // (1) as a normal notification feed item, and
+            // (2) in a dedicated `medication_reminders` collection.
+            final t = med.times.isNotEmpty ? med.times.first : '';
+            if (t.isNotEmpty) {
+              await NotificationsRepository().addForUser(
+                userId: auth.uid,
+                title: 'تنبيه تناول الدواء',
+                body: 'تناول دواء ${med.name} الساعة $t.',
+                type: 'medication',
+                data: {
+                  'medId': id,
+                  'time': t,
+                  'medicationName': med.name,
+                },
+              );
+              await MedicationReminderFirestoreService().upsertReminder(
+                userId: auth.uid,
+                medId: id,
+                medicationName: med.name,
+                time: t,
+                daysOfWeek: med.daysOfWeek,
               );
             }
           },

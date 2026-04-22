@@ -1,13 +1,51 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
 import '../models/app_notification_model.dart';
+import 'email_webhook_service.dart';
 
 class NotificationsRepository {
   NotificationsRepository({FirebaseFirestore? firestore}) : _db = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _db;
+  final EmailWebhookService _email = EmailWebhookService();
 
   CollectionReference<Map<String, dynamic>> get _col => _db.collection('notifications');
+
+  bool _isHidden(AppNotificationModel n) {
+    if (n.isPeriodicSetupFeedItem) return true;
+    // Hide legacy test notifications that were accidentally created earlier.
+    final t = n.title.trim();
+    final b = n.body.trim();
+    if (t == 'Labby' && (b == 'تم إنشاء إشعار.' || b == 'Notification created.')) return true;
+    return false;
+  }
+
+  Future<int> deleteLegacyTestNotifications(String userId) async {
+    // Deletes only the old test notifications that were created earlier.
+    // Safe: won't touch real notifications.
+    final snap = await _col.where('userId', isEqualTo: userId).get();
+    WriteBatch batch = _db.batch();
+    var deleted = 0;
+    for (final d in snap.docs) {
+      final n = AppNotificationModel.fromDoc(d);
+      final t = n.title.trim();
+      final b = n.body.trim();
+      final isLegacyTest = t == 'Labby' && (b == 'تم إنشاء إشعار.' || b == 'Notification created.');
+      if (!isLegacyTest) continue;
+      batch.delete(d.reference);
+      deleted++;
+      // Keep batches safely under Firestore limits.
+      if (deleted % 400 == 0) {
+        await batch.commit();
+        batch = _db.batch();
+      }
+    }
+    if (deleted % 400 != 0 && deleted > 0) {
+      await batch.commit();
+    }
+    return deleted;
+  }
 
   Stream<List<AppNotificationModel>> watchForUser(String userId, {int limit = 50}) {
     return _col
@@ -17,7 +55,7 @@ class NotificationsRepository {
         .snapshots()
         .map((snap) => snap.docs
             .map((d) => AppNotificationModel.fromDoc(d))
-            .where((n) => !n.isPeriodicSetupFeedItem)
+            .where((n) => !_isHidden(n))
             .toList());
   }
 
@@ -29,7 +67,7 @@ class NotificationsRepository {
         .map((snap) {
           var c = 0;
           for (final d in snap.docs) {
-            if (!AppNotificationModel.fromDoc(d).isPeriodicSetupFeedItem) c++;
+            if (!_isHidden(AppNotificationModel.fromDoc(d))) c++;
           }
           return c;
         });
@@ -76,6 +114,17 @@ class NotificationsRepository {
       isRead: false,
     );
     await _col.add(doc.toMap());
+
+    // Optional: send an email via a free webhook (no Firebase Functions needed).
+    // Fire-and-forget to avoid delaying UI.
+    unawaited(
+      _email.maybeSendNotificationEmail(
+        userId: userId,
+        title: title,
+        body: body,
+        data: data,
+      ),
+    );
   }
 }
 

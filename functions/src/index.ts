@@ -14,6 +14,7 @@ import {onObjectFinalized} from "firebase-functions/v2/storage";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {logger} from "firebase-functions";
 import {ImageAnnotatorClient} from "@google-cloud/vision";
+import * as sgMail from "@sendgrid/mail";
 
 admin.initializeApp();
 
@@ -61,6 +62,59 @@ const KEYWORD_TO_DOC_ID: Record<string, string> = {
 const SORTED_KEYWORDS = Object.entries(KEYWORD_TO_DOC_ID).sort(
   (a, b) => b[0].length - a[0].length,
 );
+
+function envRequired(name: string): string {
+  const v = process.env[name];
+  if (!v || v.trim().length === 0) {
+    throw new Error(`Missing required env var: ${name}`);
+  }
+  return v.trim();
+}
+
+async function getUserEmail(userId: string): Promise<string | null> {
+  // Prefer cached email on users/{uid}, fallback to Auth user record.
+  try {
+    const snap = await admin.firestore().collection("users").doc(userId).get();
+    const fromDoc = (snap.data()?.email as string | undefined)?.trim();
+    if (fromDoc) return fromDoc;
+  } catch (_) {
+    // ignore
+  }
+  try {
+    const user = await admin.auth().getUser(userId);
+    return user.email?.trim() || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function isEmailEnabled(userDoc: FirebaseFirestore.DocumentData | undefined): boolean {
+  const ns = userDoc?.notificationSettings as Record<string, unknown> | undefined;
+  const enabled = ns?.emailEnabled;
+  return enabled === undefined ? true : enabled === true;
+}
+
+async function sendNotificationEmail(params: {
+  to: string;
+  subject: string;
+  bodyText: string;
+}): Promise<string> {
+  const apiKey = envRequired("SENDGRID_API_KEY");
+  const fromEmail = envRequired("SENDGRID_FROM_EMAIL");
+  const fromName = (process.env.SENDGRID_FROM_NAME || "Labby").trim();
+
+  sgMail.setApiKey(apiKey);
+
+  const msg = {
+    to: params.to,
+    from: {email: fromEmail, name: fromName},
+    subject: params.subject,
+    text: params.bodyText,
+  };
+  const [res] = await sgMail.send(msg);
+  const id = (res.headers["x-message-id"] as string | undefined) || "";
+  return id;
+}
 
 interface LabDoc {
   normalMin?: number;
@@ -276,6 +330,7 @@ export const onNotificationCreated = onDocumentCreated(
   {
     region: "europe-west1",
     document: "notifications/{notificationId}",
+    secrets: ["SENDGRID_API_KEY", "SENDGRID_FROM_EMAIL", "SENDGRID_FROM_NAME"],
   },
   async (event) => {
     const snap = event.data;
@@ -296,40 +351,74 @@ export const onNotificationCreated = onDocumentCreated(
     // Prevent duplicates if this function is retried.
     if (n.fcmMessageId || n.sentAt) {
       logger.info("Skip push: already sent", {notifId});
-      return;
+      // Note: email send is also skipped if already marked (see below).
     }
 
     try {
       const userSnap = await admin.firestore().collection("users").doc(userId).get();
-      const token = (userSnap.data()?.fcmToken as string | undefined)?.trim();
-      if (!token) {
-        logger.info("Skip push: missing fcmToken", {notifId, userId});
+      const userDoc = userSnap.data();
+
+      // 1) Push (FCM)
+      if (!n.fcmMessageId && !n.sentAt) {
+        const token = (userDoc?.fcmToken as string | undefined)?.trim();
+        if (!token) {
+          logger.info("Skip push: missing fcmToken", {notifId, userId});
+        } else {
+          const res = await admin.messaging().send({
+            token,
+            notification: {title, body},
+            data: {
+              notificationId: notifId,
+              ...data,
+            },
+            android: {
+              notification: {
+                channelId: "labby_general",
+              },
+            },
+          });
+
+          await snap.ref.set(
+            {
+              sentAt: admin.firestore.FieldValue.serverTimestamp(),
+              fcmMessageId: res,
+            },
+            {merge: true},
+          );
+          logger.info("Push sent", {notifId, userId});
+        }
+      }
+
+      // 2) Email
+      const emailAlreadySent = Boolean(n.emailMessageId || n.emailSentAt);
+      if (emailAlreadySent) {
+        logger.info("Skip email: already sent", {notifId, userId});
         return;
       }
 
-      const res = await admin.messaging().send({
-        token,
-        notification: {title, body},
-        data: {
-          notificationId: notifId,
-          ...data,
-        },
-        android: {
-          notification: {
-            channelId: "labby_general",
-          },
-        },
-      });
+      if (!isEmailEnabled(userDoc)) {
+        logger.info("Skip email: disabled by user", {notifId, userId});
+        return;
+      }
+
+      const to = await getUserEmail(userId);
+      if (!to) {
+        logger.info("Skip email: no user email", {notifId, userId});
+        return;
+      }
+
+      const subject = title;
+      const bodyText = body;
+      const messageId = await sendNotificationEmail({to, subject, bodyText});
 
       await snap.ref.set(
         {
-          sentAt: admin.firestore.FieldValue.serverTimestamp(),
-          fcmMessageId: res,
+          emailSentAt: admin.firestore.FieldValue.serverTimestamp(),
+          emailMessageId: messageId || true,
         },
         {merge: true},
       );
-
-      logger.info("Push sent", {notifId, userId});
+      logger.info("Email sent", {notifId, userId});
     } catch (e) {
       logger.error("onNotificationCreated failed", e as Error, {notifId, userId});
       throw e;

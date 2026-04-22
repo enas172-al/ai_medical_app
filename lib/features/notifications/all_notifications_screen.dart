@@ -2,7 +2,6 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/models/app_notification_model.dart';
@@ -25,29 +24,6 @@ class AllNotificationsScreen extends StatelessWidget {
     return 'صار خطأ أثناء تحميل الإشعارات. حاول مرة ثانية.';
   }
 
-  Future<void> _addTestNotification(BuildContext context, String uid) async {
-    try {
-      await NotificationsRepository().addForUser(
-        userId: uid,
-        title: 'Labby',
-        body: 'تم إنشاء إشعار.',
-        type: 'general',
-        data: const {'route': '/home'},
-      );
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إنشاء إشعار.')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل إنشاء إشعار: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -63,20 +39,6 @@ class AllNotificationsScreen extends StatelessWidget {
                 if (uid == null) return const SizedBox.shrink();
                 return Row(
                   children: [
-                    if (kDebugMode)
-                      IconButton(
-                        tooltip: 'إنشاء إشعار',
-                        onPressed: () async {
-                          await NotificationsRepository().addForUser(
-                            userId: uid,
-                            title: 'Labby',
-                            body: 'تم إنشاء إشعار.',
-                            type: 'general',
-                            data: const {'route': '/home'},
-                          );
-                        },
-                        icon: const Icon(Icons.add_alert, color: Colors.white),
-                      ),
                     TextButton(
                       onPressed: () async {
                         await NotificationsRepository().markAllRead(uid);
@@ -125,12 +87,6 @@ class AllNotificationsScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text("no_data_found".tr(), textAlign: TextAlign.center),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed: () => _addTestNotification(context, uid),
-                            icon: const Icon(Icons.add_alert),
-                            label: const Text('إنشاء إشعار'),
-                          ),
                         ],
                       ),
                     ),
