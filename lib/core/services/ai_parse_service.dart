@@ -20,7 +20,7 @@ class AIParseService {
           uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'text': text}),
-        ).timeout(const Duration(seconds: 4));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -23,6 +24,15 @@ class NotificationService {
   static const _periodicChannelId = 'labby_periodic';
   static const _periodicChannelName = 'Periodic lab reminders';
 
+  static const String _payloadKeyType = 't';
+  static const String _payloadTypeMedication = 'med';
+  static const String _payloadKeyMedicationName = 'mn';
+  static const String _payloadKeySnoozeMinutes = 'sm';
+
+  static const String _actionSnooze10 = 'snooze_10';
+  static const int _snoozeMinutes10 = 10;
+  static const int _snoozeIdBase = 800000000; // keep far away from medication IDs
+
   // Stable IDs for periodic lab reminders.
   static const int _periodicIdMonthly = 900001;
   static const int _periodicIdSemiAnnual = 900002;
@@ -38,14 +48,31 @@ class NotificationService {
       return;
     }
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinInit = DarwinInitializationSettings();
+    final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final darwinInit = DarwinInitializationSettings(
+      notificationCategories: <DarwinNotificationCategory>[
+        DarwinNotificationCategory(
+          'med_snooze',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              _actionSnooze10,
+              'غفوة 10 دقائق',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.authenticationRequired,
+              },
+            ),
+          ],
+        ),
+      ],
+    );
     await _plugin.initialize(
-      settings: const InitializationSettings(
+      settings: InitializationSettings(
         android: androidInit,
         iOS: darwinInit,
         macOS: darwinInit,
       ),
+      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
     if (Platform.isAndroid) {
@@ -78,6 +105,52 @@ class NotificationService {
     }
 
     _inited = true;
+  }
+
+  static void _onDidReceiveNotificationResponse(NotificationResponse response) {
+    NotificationService.instance._handleNotificationResponse(response);
+  }
+
+  @pragma('vm:entry-point')
+  static void notificationTapBackground(NotificationResponse response) {
+    // Note: background isolate; keep logic minimal and resilient.
+    NotificationService.instance._handleNotificationResponse(response);
+  }
+
+  Future<void> _handleNotificationResponse(NotificationResponse response) async {
+    if (!_supportsLocalSchedule) return;
+    if (!_inited) {
+      // Ensure plugin is ready for scheduling when app is launched from background action.
+      await init();
+    }
+
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) return;
+
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(payload) as Map<String, dynamic>;
+    } catch (_) {
+      return;
+    }
+
+    final type = data[_payloadKeyType]?.toString();
+    if (type != _payloadTypeMedication) return;
+
+    final medicationName = data[_payloadKeyMedicationName]?.toString();
+    if (medicationName == null || medicationName.isEmpty) return;
+
+    // Only handle snooze action; a normal tap can be handled by navigation elsewhere if needed.
+    if (response.actionId != _actionSnooze10) return;
+
+    final minsRaw = data[_payloadKeySnoozeMinutes];
+    final snoozeMins = minsRaw is int ? minsRaw : int.tryParse(minsRaw?.toString() ?? '');
+    if (snoozeMins == null || snoozeMins <= 0) return;
+
+    await _scheduleSnoozeMedicationReminder(
+      medicationName: medicationName,
+      minutes: snoozeMins,
+    );
   }
 
   /// Immediate banner (FCM foreground, abnormal lab save, etc.).
@@ -269,8 +342,18 @@ class NotificationService {
         channelDescription: 'Take medication on time',
         importance: Importance.high,
         priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            _actionSnooze10,
+            'غفوة 10 دقائق',
+            showsUserInterface: false,
+            cancelNotification: true,
+          ),
+        ],
       ),
-      iOS: const DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(
+        categoryIdentifier: 'med_snooze',
+      ),
     );
 
     for (var i = 0; i < times.length; i++) {
@@ -287,6 +370,12 @@ class NotificationService {
       }
       final when = baseToday.isBefore(now) ? baseToday.add(const Duration(days: 1)) : baseToday;
 
+      final payload = jsonEncode(<String, dynamic>{
+        _payloadKeyType: _payloadTypeMedication,
+        _payloadKeyMedicationName: medicationName,
+        _payloadKeySnoozeMinutes: _snoozeMinutes10,
+      });
+
       await _plugin.zonedSchedule(
         id: _notificationId(medId, i),
         scheduledDate: when,
@@ -294,8 +383,61 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         title: _channelName,
         body: medicationName,
+        payload: payload,
         matchDateTimeComponents: DateTimeComponents.time,
       );
     }
+  }
+
+  Future<void> _scheduleSnoozeMedicationReminder({
+    required String medicationName,
+    required int minutes,
+  }) async {
+    if (!_supportsLocalSchedule) return;
+    if (!_inited) await init();
+    await _ensureTimezoneLoaded();
+
+    final now = tz.TZDateTime.now(tz.local);
+    final when = now.add(Duration(minutes: minutes));
+
+    // Unique one-shot ID so we don't overwrite the daily schedule.
+    final id = _snoozeIdBase + (DateTime.now().millisecondsSinceEpoch.remainder(100000000));
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: 'Take medication on time',
+        importance: Importance.high,
+        priority: Priority.high,
+        actions: const <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            _actionSnooze10,
+            'غفوة 10 دقائق',
+            showsUserInterface: false,
+            cancelNotification: true,
+          ),
+        ],
+      ),
+      iOS: const DarwinNotificationDetails(
+        categoryIdentifier: 'med_snooze',
+      ),
+    );
+
+    final payload = jsonEncode(<String, dynamic>{
+      _payloadKeyType: _payloadTypeMedication,
+      _payloadKeyMedicationName: medicationName,
+      _payloadKeySnoozeMinutes: minutes,
+    });
+
+    await _plugin.zonedSchedule(
+      id: id,
+      scheduledDate: when,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: _channelName,
+      body: medicationName,
+      payload: payload,
+    );
   }
 }
