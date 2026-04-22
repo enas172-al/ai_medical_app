@@ -11,7 +11,6 @@ class AnalysisDetailsScreen extends StatelessWidget {
   final String lowText;
   final String? unit;
   final String? simplifiedExplanation;
-  final String? referenceText;
   final String? sourceUrl;
 
   const AnalysisDetailsScreen({
@@ -24,7 +23,6 @@ class AnalysisDetailsScreen extends StatelessWidget {
     required this.lowText,
     this.unit,
     this.simplifiedExplanation,
-    this.referenceText,
     this.sourceUrl,
   });
 
@@ -190,37 +188,6 @@ class AnalysisDetailsScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 16),
-
-                if ((referenceText ?? '').trim().isNotEmpty) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(Icons.list_alt, color: Colors.black54),
-                            SizedBox(width: 6),
-                            Text(
-                              "تفاصيل المعدل الطبيعي",
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Text(referenceText!.trim()),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
 
                 /// 🔹 الارتفاع
                 Container(
