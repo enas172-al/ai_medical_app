@@ -41,7 +41,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   @override
   void initState() {
     super.initState();
-    _items = LabParseService.parse(widget.extractedText ?? '');
+    _ocrText = widget.extractedText ?? '';
+    // Prefer the backend NER/AI results passed from ScanScreen; fall back to local parsing if needed.
+    _items = widget.parsedItems.isNotEmpty ? widget.parsedItems : LabParseService.parse(_ocrText);
   }
 
   Color _statusColor(String status) {

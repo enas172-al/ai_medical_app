@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/services.dart';
 import '../models/user_model.dart';
 import 'family_link_service.dart';
 
@@ -128,6 +129,12 @@ class AuthService {
       if (googleUser == null) return null;
 
       final googleAuth = await googleUser.authentication;
+      if (googleAuth.idToken == null || googleAuth.idToken!.isEmpty) {
+        throw Exception(
+          "Google Sign-In غير مهيأ بشكل صحيح. "
+          "تأكد من إضافة SHA-1 (و SHA-256) للتطبيق في Firebase ثم أعد تنزيل ملف google-services.json.",
+        );
+      }
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -151,6 +158,16 @@ class AuthService {
         }
       }
       return userCredential;
+    } on PlatformException catch (e) {
+      final msg = (e.message ?? e.toString());
+      // Most common: com.google.android.gms.common.api.ApiException: 10 (DEVELOPER_ERROR)
+      if (msg.contains('ApiException: 10') || msg.contains('api_exception: 10') || msg.contains('DEVELOPER_ERROR')) {
+        throw Exception(
+          "فشل تسجيل الدخول بجوجل بسبب إعدادات Firebase/Google OAuth (ApiException:10). "
+          "الحل: أضف SHA-1 (و SHA-256) وفعّل Google provider ثم نزّل google-services.json من جديد.",
+        );
+      }
+      rethrow;
     } catch (e) {
       print("Error signing in with Google: $e");
       rethrow;
