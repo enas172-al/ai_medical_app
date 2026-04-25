@@ -10,6 +10,7 @@ import '../../../core/models/analysis_model.dart';
 import '../../../core/models/parsed_lab_candidate.dart';
 import '../../../core/services/database_service.dart';
 import '../../../core/services/lab_parse_service.dart';
+import '../../../core/services/local_llm_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/processing_service.dart';
 import '../../../core/services/notifications_repository.dart';
@@ -37,6 +38,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   late List<ParsedLabCandidate> _items;
   late String _ocrText;
   bool _saving = false;
+  bool _llmLoading = false;
+  String? _llmExplanation;
+  String? _llmError;
 
   @override
   void initState() {
@@ -65,6 +69,30 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         return 'high_status'.tr();
       default:
         return 'normal_status'.tr();
+    }
+  }
+
+  Future<void> _generateLlmExplanation() async {
+    setState(() {
+      _llmLoading = true;
+      _llmError = null;
+    });
+    try {
+      final explanation = await LocalLLMService.explainCandidates(
+        candidates: _items,
+        patientContext: _ocrText.isNotEmpty ? 'OCR Text (raw):\n$_ocrText' : null,
+      );
+      if (!mounted) return;
+      setState(() {
+        _llmExplanation = explanation;
+        _llmLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _llmLoading = false;
+        _llmError = e.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
@@ -203,6 +231,86 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                elevation: 2,
+                shadowColor: Colors.black26,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'التفسير بالذكاء الاصطناعي (LLM محلي)',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      if (!LocalLLMService.isConfigured) ...[
+                        const Text(
+                          'باش تفعّلو: شغّل Ollama على نفس الجهاز وحدّد `OLLAMA_MODEL` وقت build/run.',
+                          style: TextStyle(color: Colors.black87, height: 1.4),
+                        ),
+                      ] else ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: _llmLoading ? null : _generateLlmExplanation,
+                                icon: _llmLoading
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.auto_awesome),
+                                label: Text(_llmLoading ? 'جارٍ التفسير...' : 'فسّر النتائج'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1FB6A6),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'ملاحظة: هذا تفسير مساعد فقط، موش تشخيص، وما يعطيش وصفات/جرعات.',
+                          style: TextStyle(color: Colors.black54, height: 1.35),
+                        ),
+                        if (_llmError != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            _llmError!,
+                            style: const TextStyle(color: Colors.red, height: 1.4),
+                          ),
+                        ],
+                        if ((_llmExplanation ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F9FC),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.black12),
+                            ),
+                            child: Text(
+                              _llmExplanation!,
+                              style: const TextStyle(height: 1.5),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               if (widget.imagePath != null) ...[
                 Material(
                   color: Colors.white,
