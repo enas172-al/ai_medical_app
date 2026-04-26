@@ -6,6 +6,7 @@ import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart
 import '../../core/services/ocr_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/ai_parse_service.dart';
+import '../../core/services/lab_parse_service.dart';
 import 'screens/scan_results_screen.dart';
 
 class ScanScreen extends StatefulWidget {
@@ -75,7 +76,31 @@ class _ScanScreenState extends State<ScanScreen> {
         return;
       }
 
-      final parsedItems = await AIParseService.parseHybrid(text);
+      // -- بداية كود الاختبار --
+      // لعرض النص المستخرج من الـ OCR في نافذة للمراجعة
+      if (mounted) {
+        setState(() => _isProcessing = false); // إيقاف التحميل مؤقتاً
+        await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('نتيجة الـ OCR (للاختبار)'),
+            content: SingleChildScrollView(
+              child: SelectableText(text),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('متابعة التحليل'),
+              ),
+            ],
+          ),
+        );
+        setState(() => _isProcessing = true); // إعادة التحميل بعد النقر على متابعة
+      }
+      // -- نهاية كود الاختبار --
+
+      // استخدم المحلل الذكي المحلي الذي قمنا ببنائه بدلاً من الذكاء الاصطناعي/الباك اند
+      final parsedItems = LabParseService.parse(text);
 
       if (mounted) {
         if (parsedItems.isEmpty) {

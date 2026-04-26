@@ -25,6 +25,7 @@ class ParsedLabCandidate {
   });
 
   String get status => ProcessingService.computeStatus(value, min, max);
+  String get severity => ProcessingService.computeSeverity(value, min, max);
 
   Map<String, double> get normalRange => {'min': min, 'max': max};
 }

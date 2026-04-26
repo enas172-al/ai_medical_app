@@ -104,6 +104,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         final explanation = ProcessingService.simplifiedExplanation(
           testName: c.testName,
           status: c.status,
+          severity: c.severity,
           value: c.value,
           min: c.min,
           max: c.max,
