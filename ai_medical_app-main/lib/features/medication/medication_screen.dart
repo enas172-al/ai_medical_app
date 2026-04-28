@@ -11,6 +11,7 @@ import '../../core/services/database_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/active_tracking_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/notifications_repository.dart';
 import '../../core/models/medication_model.dart';
 import '../profile/switch_account_screen.dart';
 
@@ -199,6 +200,25 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 frequency: med.frequency,
                 anchorDateTime: med.createdAt,
                 daysOfWeek: med.daysOfWeek,
+              );
+            }
+
+            // Log medication reminders to Firestore for history / in-app notifications list.
+            // We do not mirror Firestore feed items into immediate local notifications.
+            for (final t in med.times) {
+              if (t.trim().isEmpty) continue;
+              await NotificationsRepository().addForUser(
+                userId: auth.uid,
+                title: 'تنبيه تناول الدواء',
+                body: 'تناول دواء ${med.name} الساعة $t.',
+                type: 'medication',
+                data: {
+                  'medId': id,
+                  'time': t,
+                  'frequency': med.frequency,
+                  'medicationName': med.name,
+                },
+                createdAt: med.createdAt,
               );
             }
           },

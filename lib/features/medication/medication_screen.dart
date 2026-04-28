@@ -212,11 +212,32 @@ class _MedicationScreenState extends State<MedicationScreen> {
               );
             }
 
-            // Also log scheduled medication reminders to Firestore:
-            // (1) as a normal notification feed item, and
-            // (2) in a dedicated `medication_reminders` collection.
-            // Avoid writing medication reminders into the Firestore `notifications` feed.
-            // That feed is used for general notifications and can trigger immediate local alerts.
+            // Log medication reminders to Firestore for history / in-app notifications list.
+            // We no longer mirror Firestore feed items into immediate local notifications,
+            // so this won't cause a popup at save time.
+            for (final t in med.times) {
+              if (t.trim().isEmpty) continue;
+              await NotificationsRepository().addForUser(
+                userId: auth.uid,
+                title: 'تنبيه تناول الدواء',
+                body: 'تناول دواء ${med.name} الساعة $t.',
+                type: 'medication',
+                data: {
+                  'medId': id,
+                  'time': t,
+                  'frequency': med.frequency,
+                  'medicationName': med.name,
+                },
+                createdAt: med.createdAt,
+              );
+              await MedicationReminderFirestoreService().upsertReminder(
+                userId: auth.uid,
+                medId: id,
+                medicationName: med.name,
+                time: t,
+                daysOfWeek: med.daysOfWeek,
+              );
+            }
           },
         ),
       ),
