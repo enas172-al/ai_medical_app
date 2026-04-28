@@ -82,6 +82,13 @@ class PushMessagingService {
     _lastSeenNotifId = null;
     if (uid == null) return;
 
+    // Important:
+    // We do NOT mirror Firestore feed items into immediate local notifications.
+    // This was causing "instant" notifications right after local writes (e.g. medication add).
+    // Scheduled medication reminders should be handled by local schedules at their exact times.
+    // Push notifications are already handled by FCM (system notifications).
+    return;
+
     // While the app is running, show a local notification for newly-added docs in Firestore.
     _firestoreNotifSub = NotificationsRepository().watchForUser(uid, limit: 1).listen(
       (list) async {

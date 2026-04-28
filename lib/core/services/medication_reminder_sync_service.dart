@@ -47,6 +47,9 @@ class MedicationReminderSyncService {
         medId: id,
         medicationName: m.name,
         times: m.times,
+        frequency: m.frequency,
+        anchorDateTime: m.createdAt,
+        daysOfWeek: m.daysOfWeek,
       );
       _scheduledMedIds.add(id);
     }
@@ -80,6 +83,9 @@ class MedicationReminderSyncService {
           medId: id,
           medicationName: m.name,
           times: m.times,
+          frequency: m.frequency,
+          anchorDateTime: m.createdAt,
+          daysOfWeek: m.daysOfWeek,
         );
         _scheduledMedIds.add(id);
       }

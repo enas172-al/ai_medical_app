@@ -25,6 +25,9 @@ class MedicationScreen extends StatefulWidget {
 class _MedicationScreenState extends State<MedicationScreen> {
   final DatabaseService _databaseService = DatabaseService();
 
+  // Simple build marker to confirm the device is running the latest patched code.
+  static const String _buildMarker = 'medfix-2026-04-28-1505';
+
   /// Whose medications to list (Firestore `medications.userId`). Null = signed-in user.
   String? _medicationSubjectUid;
 
@@ -150,39 +153,42 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 ),
               );
             }
+            final String freq = (newMedData['frequency'] as String?)?.trim().isNotEmpty == true
+                ? (newMedData['frequency'] as String).trim()
+                : 'once_daily';
+
+            final List<String> times = (newMedData['times'] is List)
+                ? List<String>.from(newMedData['times'] as List)
+                : <String>[
+                    (newMedData['time'] ?? '').toString(),
+                  ].where((e) => e.trim().isNotEmpty).toList();
+
+            final DateTime anchorDateTime = (newMedData['entryDateTime'] is DateTime)
+                ? (newMedData['entryDateTime'] as DateTime)
+                : DateTime.now();
+
+            final List<int> daysOfWeek = (newMedData['daysOfWeek'] is List)
+                ? List<int>.from(newMedData['daysOfWeek'] as List)
+                : <int>[1, 2, 3, 4, 5, 6, 7];
+
             final med = MedicationModel(
               id: initialMed?.id,
               userId: subjectUid,
               name: newMedData['name'],
               dosage: newMedData['dose'],
-              times: [newMedData['time']],
-              daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
-              createdAt: initialMed?.createdAt ?? DateTime.now(),
+              times: times,
+              daysOfWeek: daysOfWeek,
+              frequency: freq,
+              createdAt: initialMed?.createdAt ?? anchorDateTime,
               enteredByUid: newMedData['enteredByUid'] as String?,
               enteredByName: newMedData['enteredByName'] as String?,
               enteredByFamilyRole: newMedData['enteredByFamilyRole'] as String?,
             );
 
-            // Prevent duplicates (same normalized name + dosage + time) among active meds.
-            final existing = await _databaseService.getMedicationsOnce(subjectUid, includeInactive: false);
-            final newNameKey = DatabaseService.normalizeMedicationKey(med.name);
-            final newDoseKey = DatabaseService.normalizeMedicationKey(med.dosage);
-            final newTimeKey = med.times.isNotEmpty ? DatabaseService.normalizeMedicationKey(med.times.first) : '';
-            final isDup = existing.any((m) {
-              if (initialMed?.id != null && m.id == initialMed!.id) return false;
-              final nameKey = DatabaseService.normalizeMedicationKey(m.name);
-              final doseKey = DatabaseService.normalizeMedicationKey(m.dosage);
-              final timeKey = m.times.isNotEmpty ? DatabaseService.normalizeMedicationKey(m.times.first) : '';
-              return nameKey == newNameKey && doseKey == newDoseKey && timeKey == newTimeKey;
-            });
-            if (isDup) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("هذا الدواء موجود بالفعل في القائمة")),
-                );
-              }
-              return;
-            }
+            // NOTE:
+            // Duplicate blocking caused false positives in real usage and prevented users
+            // from saving legitimate entries. We allow duplicates and rely on user intent.
+            // (A future improvement can offer "merge" UI instead of blocking.)
 
             final id = await _databaseService.saveMedication(med);
             if (med.times.isNotEmpty) {
@@ -190,6 +196,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 medId: id,
                 medicationName: med.name,
                 times: med.times,
+                frequency: med.frequency,
+                anchorDateTime: med.createdAt,
+                daysOfWeek: med.daysOfWeek,
               );
             }
           },
@@ -336,6 +345,11 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         "medications_subtitle".tr(),
                         style: const TextStyle(color: Colors.grey, fontSize: 14),
                         textAlign: TextAlign.start,
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        _buildMarker,
+                        style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
                       ),
                       if (authUid != null) ...[
                         const SizedBox(height: 8),
@@ -621,7 +635,7 @@ class AddMedicationDialog extends StatefulWidget {
 
 class _AddMedicationDialogState extends State<AddMedicationDialog> {
   bool _saving = false;
-  String frequency = "daily";
+  String frequency = "once_daily";
   TimeOfDay? selectedTime;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _doseController = TextEditingController();
@@ -642,8 +656,8 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
     if (widget.initialMed != null) {
       _nameController.text = widget.initialMed!.name;
       _doseController.text = widget.initialMed!.dosage;
-      frequency = "daily"; // Defaulting or mapping if you had specific logic.
-      _entryDateTime = DateTime.now();
+      frequency = widget.initialMed!.frequency;
+      _entryDateTime = widget.initialMed!.createdAt;
       final existing = widget.initialMed!;
       if (existing.enteredByName != null ||
           existing.enteredByFamilyRole != null ||
@@ -675,6 +689,29 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
     } else {
       _loadEnteredByProfile();
     }
+  }
+
+  static String _format24h(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  static List<String> _generateTimesFromStart(TimeOfDay start, String freq) {
+    final baseMins = start.hour * 60 + start.minute;
+    final List<int> offsets;
+    if (freq == 'twice_daily_q12h') {
+      offsets = const [0, 12 * 60];
+    } else if (freq == 'three_daily_q8h') {
+      offsets = const [0, 8 * 60, 16 * 60];
+    } else {
+      offsets = const [0];
+    }
+    final out = <String>[];
+    for (final off in offsets) {
+      final mins = (baseMins + off) % (24 * 60);
+      final h = mins ~/ 60;
+      final m = mins % 60;
+      out.add('${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}');
+    }
+    return out;
   }
 
   Future<void> _loadEnteredByProfile() async {
@@ -982,12 +1019,18 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                   underline: const SizedBox(),
                   icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF9CA3AF)),
                   alignment: Alignment.centerRight,
-                  items: ["daily", "twice_daily", "three_times_daily", "weekly", "monthly"]
-                      .map((String val) => DropdownMenuItem(
-                            value: val,
+                  items: const <Map<String, String>>[
+                    {'v': 'once_daily', 'l': 'مرة يومياً'},
+                    {'v': 'twice_daily_q12h', 'l': 'مرتين يومياً (كل 12 ساعة)'},
+                    {'v': 'three_daily_q8h', 'l': '3 مرات يومياً (كل 8 ساعات)'},
+                    {'v': 'weekly', 'l': 'أسبوعياً (نفس اليوم من الأسبوع)'},
+                    {'v': 'monthly', 'l': 'شهرياً (نفس يوم الشهر)'},
+                  ]
+                      .map((m) => DropdownMenuItem(
+                            value: m['v'],
                             child: Align(
                               alignment: Alignment.centerRight,
-                              child: Text(val.tr(), style: const TextStyle(color: Color(0xFF1F2937))),
+                              child: Text(m['l']!, style: const TextStyle(color: Color(0xFF1F2937))),
                             ),
                           ))
                       .toList(),
@@ -1094,16 +1137,27 @@ class _AddMedicationDialogState extends State<AddMedicationDialog> {
                             );
                             return;
                           }
+                          if (selectedTime == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("اختَر الوقت أولاً")),
+                            );
+                            return;
+                          }
                           setState(() => _saving = true);
                           try {
                             final eb = _resolvedEnteredByForSave();
+                            final t = _format24h(selectedTime!);
+                            final times = _generateTimesFromStart(selectedTime!, frequency);
+                            final days = (frequency == 'weekly')
+                                ? <int>[_entryDateTime.weekday]
+                                : <int>[1, 2, 3, 4, 5, 6, 7];
                             await widget.onAdd({
                               'name': _nameController.text,
                               'dose': _doseController.text,
-                              'time': selectedTime == null
-                                  ? "00:00"
-                                  : "${selectedTime!.hour > 12 ? selectedTime!.hour - 12 : selectedTime!.hour == 0 ? 12 : selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')} ${selectedTime!.hour >= 12 ? 'pm_label'.tr() : 'am_label'.tr()}",
+                              'time': t,
+                              'times': times,
                               'frequency': frequency,
+                              'daysOfWeek': days,
                               'enteredByUid': eb['enteredByUid'],
                               'enteredByName': eb['enteredByName'],
                               'enteredByFamilyRole': eb['enteredByFamilyRole'],

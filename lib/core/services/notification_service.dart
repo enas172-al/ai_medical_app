@@ -385,6 +385,9 @@ class NotificationService {
     required String medId,
     required String medicationName,
     required List<String> times,
+    required String frequency,
+    required DateTime anchorDateTime,
+    required List<int> daysOfWeek,
   }) async {
     if (!_supportsLocalSchedule) return;
     if (!_inited) await init();
@@ -415,47 +418,115 @@ class NotificationService {
       ),
     );
 
-    // For each time, schedule:
-    // - main reminder at time (daily)
-    // - repeat reminder at time + 10 minutes (daily)
-    for (var i = 0; i < times.length; i++) {
-      final mins = _timeStringToMinutes(times[i]);
-      if (mins == null) continue;
+    const minLead = Duration(minutes: 10);
+
+    tz.TZDateTime nextDailyAt(int hour, int minute) {
+      final now = tz.TZDateTime.now(tz.local);
+      final base = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+      if (base.isBefore(now)) return base.add(const Duration(days: 1));
+      if (base.difference(now) < minLead) return base.add(const Duration(days: 1));
+      return base;
+    }
+
+    tz.TZDateTime nextWeeklyAt({
+      required int weekday, // 1=Mon..7=Sun
+      required int hour,
+      required int minute,
+    }) {
+      final now = tz.TZDateTime.now(tz.local);
+      tz.TZDateTime candidate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+      while (candidate.weekday != weekday || !candidate.isAfter(now)) {
+        candidate = candidate.add(const Duration(days: 1));
+      }
+      if (candidate.difference(now) < minLead) {
+        candidate = candidate.add(const Duration(days: 7));
+      }
+      return candidate;
+    }
+
+    tz.TZDateTime nextMonthlyAt({
+      required int dayOfMonth,
+      required int hour,
+      required int minute,
+    }) {
+      final now = tz.TZDateTime.now(tz.local);
+      int safeDay = dayOfMonth;
+      if (safeDay < 1) safeDay = 1;
+      if (safeDay > 28) safeDay = 28; // keep valid for all months
+      tz.TZDateTime candidate = tz.TZDateTime(tz.local, now.year, now.month, safeDay, hour, minute);
+      if (!candidate.isAfter(now)) {
+        // move to next month
+        final nextMonth = (now.month == 12) ? 1 : now.month + 1;
+        final nextYear = (now.month == 12) ? now.year + 1 : now.year;
+        candidate = tz.TZDateTime(tz.local, nextYear, nextMonth, safeDay, hour, minute);
+      }
+      if (candidate.difference(now) < minLead) {
+        final nextMonth = (candidate.month == 12) ? 1 : candidate.month + 1;
+        final nextYear = (candidate.month == 12) ? candidate.year + 1 : candidate.year;
+        candidate = tz.TZDateTime(tz.local, nextYear, nextMonth, safeDay, hour, minute);
+      }
+      return candidate;
+    }
+
+    final payload = jsonEncode(<String, dynamic>{
+      _payloadKeyType: _payloadTypeMedication,
+      _payloadKeyMedicationName: medicationName,
+      _payloadKeySnoozeMinutes: _snoozeMinutes10,
+    });
+    final androidMode = await _androidScheduleModeForAlarms();
+
+    if (frequency == 'weekly') {
+      if (times.isEmpty) return;
+      final mins = _timeStringToMinutes(times.first);
+      if (mins == null) return;
       final h = mins ~/ 60;
       final m = mins % 60;
-      final now = tz.TZDateTime.now(tz.local);
-      final baseToday = tz.TZDateTime(tz.local, now.year, now.month, now.day, h, m);
-      // If the user adds the medication at the exact reminder minute (or shortly after),
-      // show an immediate notification once, then schedule the daily repeating reminder from tomorrow.
-      if (baseToday.isBefore(now) && now.difference(baseToday) <= const Duration(minutes: 1)) {
-        await showImmediate(title: _channelName, body: medicationName);
-      }
-      final when = baseToday.isBefore(now) ? baseToday.add(const Duration(days: 1)) : baseToday;
-
-      final payload = jsonEncode(<String, dynamic>{
-        _payloadKeyType: _payloadTypeMedication,
-        _payloadKeyMedicationName: medicationName,
-        _payloadKeySnoozeMinutes: _snoozeMinutes10,
-      });
-
-      final androidMode = await _androidScheduleModeForAlarms();
-      final baseSlot = i * 2;
+      final weekday = daysOfWeek.isNotEmpty ? daysOfWeek.first : anchorDateTime.weekday;
+      final when = nextWeeklyAt(weekday: weekday, hour: h, minute: m);
       await _plugin.zonedSchedule(
-        id: _notificationId(medId, baseSlot),
+        id: _notificationId(medId, 0),
         scheduledDate: when,
         notificationDetails: details,
         androidScheduleMode: androidMode,
         title: _channelName,
         body: medicationName,
         payload: payload,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
+      return;
+    }
 
-      // Repeat after 10 minutes (daily). If it crosses midnight, move to next day.
-      final repeatWhen = when.add(const Duration(minutes: _snoozeMinutes10));
+    if (frequency == 'monthly') {
+      if (times.isEmpty) return;
+      final mins = _timeStringToMinutes(times.first);
+      if (mins == null) return;
+      final h = mins ~/ 60;
+      final m = mins % 60;
+      final dayOfMonth = anchorDateTime.day;
+      final when = nextMonthlyAt(dayOfMonth: dayOfMonth, hour: h, minute: m);
       await _plugin.zonedSchedule(
-        id: _notificationId(medId, baseSlot + 1),
-        scheduledDate: repeatWhen,
+        id: _notificationId(medId, 0),
+        scheduledDate: when,
+        notificationDetails: details,
+        androidScheduleMode: androidMode,
+        title: _channelName,
+        body: medicationName,
+        payload: payload,
+        matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
+      );
+      return;
+    }
+
+    // Default: daily schedules (once/twice/three times daily)
+    for (var i = 0; i < times.length; i++) {
+      final mins = _timeStringToMinutes(times[i]);
+      if (mins == null) continue;
+      final h = mins ~/ 60;
+      final m = mins % 60;
+      final when = nextDailyAt(h, m);
+      await _plugin.zonedSchedule(
+        id: _notificationId(medId, i),
+        scheduledDate: when,
         notificationDetails: details,
         androidScheduleMode: androidMode,
         title: _channelName,

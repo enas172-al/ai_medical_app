@@ -132,8 +132,23 @@ class DatabaseService {
   }
 
   static String normalizeMedicationKey(String s) {
-    final lower = s.trim().toLowerCase();
-    return lower.replaceAll(RegExp(r'\s+'), ' ');
+    final trimmed = s.trim();
+    if (trimmed.isEmpty) return '';
+    final lower = trimmed.toLowerCase();
+    final noDiacritics = lower
+        // Arabic tashkeel + superscript alef + tatweel
+        .replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '')
+        .replaceAll('\u0640', '');
+    final arabicNormalized = noDiacritics
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll('ى', 'ي')
+        .replaceAll('ؤ', 'و')
+        .replaceAll('ئ', 'ي')
+        .replaceAll('ة', 'ه');
+    // collapse whitespace
+    return arabicNormalized.replaceAll(RegExp(r'\s+'), ' ');
   }
 
   // --- Test Definitions (Search) ---
