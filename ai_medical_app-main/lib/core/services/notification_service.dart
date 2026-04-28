@@ -205,7 +205,10 @@ class NotificationService {
       iOS: const DarwinNotificationDetails(),
     );
 
-    const minLead = Duration(minutes: 10);
+    // If the reminder is very close (e.g. user adds a med for a time a minute from now),
+    // still schedule it for today. We only avoid scheduling a reminder that would trigger
+    // almost immediately.
+    const minLead = Duration(minutes: 1);
 
     tz.TZDateTime nextDailyAt(int hour, int minute) {
       final now = tz.TZDateTime.now(tz.local);
